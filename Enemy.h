@@ -28,14 +28,13 @@ public:
 	/// </summary>
 	/// /// <param name="viewProjection">ビュープロジェクション(参照渡し)</param>
 	void Draw(ViewProjection& viewProjection);
-
-
-
 private:
 	// フェーズごとのアップデート
 	void UpdateApproach();
 	void UpdateLeave();
 
+	// メンバ関数ポインタのテーブル
+	static void (Enemy::*spUpdateTable[])();
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// テクスチャハンドル

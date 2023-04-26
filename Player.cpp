@@ -82,7 +82,7 @@ void Player::Update() {
 #pragma endregion 攻撃アップデート
 #pragma region デバック
 	// キャラクターの座標を画面表示する処理
-	ImGui::Begin("Debug");
+	ImGui::Begin("Player");
 	ImGui::Text(
 	    "position %f,%f,%f", worldTransform_.translation_.x, worldTransform_.translation_.y,
 	    worldTransform_.translation_.z);

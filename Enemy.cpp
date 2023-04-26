@@ -1,6 +1,13 @@
 #include "Enemy.h"
 #include <assert.h>
 #include "mat4x4.h"
+#include <imgui.h>
+
+//staticで宣言したメンバ関数ポインタテーブルの実体
+void (Enemy::*Enemy::spUpdateTable[])() = {
+    &Enemy::UpdateApproach,
+    &Enemy::UpdateLeave,
+};
 
 void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 	// NULLポインタチェック
@@ -19,21 +26,26 @@ void Enemy::Update() {
 
 	
 
-	//フェーズ
-	switch (phase_) {
-	case Enemy::Phase::Approach:
-	default:
-		UpdateApproach();
-		break;
-	case Enemy::Phase::Leave:
-		UpdateLeave();
-		break;
-	}
+	//現在フェーズの関数を実行
+	(this->*spUpdateTable[static_cast<size_t>(phase_)])();
 
 	//座標移動
 	worldTransform_.translation_ += move;
 
 	UpdateMatrix();
+
+	//デバック
+	//  キャラクターの座標を画面表示する処理
+	//  ウィンドウの位置を指定する変数
+	ImVec2 window_pos = ImVec2(60.0f, 120.0f);
+
+	// ウィンドウを描画する前に、ウィンドウの位置を指定する
+	ImGui::SetNextWindowPos(window_pos);
+	ImGui::Begin("Enemy");
+	ImGui::Text(
+	    "position %f,%f,%f", worldTransform_.translation_.x, worldTransform_.translation_.y,
+	    worldTransform_.translation_.z);
+	ImGui::End();
 }
 
 void Enemy::UpdateMatrix() {
