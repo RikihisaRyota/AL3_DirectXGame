@@ -2,7 +2,7 @@
 #include "mat4x4.h"
 #include <ImGuiManager.h>
 #include <cassert>
-#include <DirectXMath.h>
+#include "MyMath.h"
 
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
@@ -112,14 +112,21 @@ void Player::Draw(ViewProjection& viewProjection) {
 }
 
 void Player::Attack() {
-	if (input_->PushKey(DIK_SPACE)) {
+	if (input_->TriggerKey(DIK_SPACE)) {
 
 		//自キャラの座標をコピー
 		Vector3 position = worldTransform_.translation_;
 
+		//弾の速度
+		const float kBulletSpeed = 1.0f;
+		Vector3 velocity(0.0f, 0.0f, kBulletSpeed);
+
+		//速度ベクトルを自機の向きに合わせて回転させる
+		velocity = TransformNormal(velocity,worldTransform_.matWorld_);
+
 		// 弾を生成し、初期化
 		PlayerBullet* newBullet = new PlayerBullet();
-		newBullet->Initialize(model_, worldTransform_.translation_);
+		newBullet->Initialize(model_, worldTransform_.translation_,velocity);
 
 		// 弾を登録する
 		bullets_.push_back(newBullet);

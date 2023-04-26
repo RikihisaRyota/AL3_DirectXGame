@@ -115,6 +115,7 @@
       <CallingConvention Condition="'$(Configuration)|$(Platform)'=='Release|x64'">FastCall</CallingConvention>
     </ClCompile>
     <ClCompile Include="math\Matrix4x4.cpp" />
+    <ClCompile Include="MyMath.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerBullet.cpp" />
     <ClCompile Include="scene\GameScene.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="math\Vector4.h" />
+    <ClInclude Include="MyMath.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerBullet.h" />
     <ClInclude Include="scene\GameScene.h" />
