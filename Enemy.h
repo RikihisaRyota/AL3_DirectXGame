@@ -32,10 +32,21 @@ public:
 
 
 private:
+	// フェーズごとのアップデート
+	void UpdateApproach();
+	void UpdateLeave();
+
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// テクスチャハンドル
-	uint32_t textureHandle_;
+	uint32_t textureHandle_ = 0u;
 	// モデル
 	Model* model_ = nullptr;
+	//行動フェーズ
+	enum class Phase {
+		Approach,//接近する
+		Leave,//離脱する
+	};
+	//フェーズ
+	Phase phase_=Phase::Approach;
 };
