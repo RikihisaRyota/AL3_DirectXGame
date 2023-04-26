@@ -1,15 +1,21 @@
 #include "Player.h"
-#include <cassert>
 #include "mat4x4.h"
 #include <ImGuiManager.h>
+#include <cassert>
+#include <DirectXMath.h>
 
+Player::~Player() {
+	for (PlayerBullet* bullet : bullets_) {
+		delete bullet;
+	}
+}
 void Player::Initialize(Model* model, uint32_t textureHandle) {
 	// NULLポインタチェック
 	assert(model);
 	model_ = model;
 	textureHandle_ = textureHandle;
 	worldTransform_.Initialize();
-	//シングルトンインスタンスを取得する
+	// シングルトンインスタンスを取得する
 	input_ = Input::GetInstance();
 }
 
@@ -17,16 +23,16 @@ void Player::Update() {
 	// 行列を定数バッファに転送
 	worldTransform_.TransferMatrix();
 
-	//キャラクターの移動ベクトル
+	// キャラクターの移動ベクトル
 	Vector3 move = {0, 0, 0};
 
-	//キャラクターの移動速さ
+	// キャラクターの移動速さ
 	const float kCharacterSpeed = 0.2f;
 	// 回転の速さ[ラジアン/frame]
 	const float kRotSpeed = 0.02f;
 #pragma region キーボード入力
 #pragma region キャラクター移動
-	//押した方向で良そうベクトルを変更(左右)
+	// 押した方向で良そうベクトルを変更(左右)
 	if (input_->PushKey(DIK_LEFT)) {
 		move.x -= kCharacterSpeed;
 	} else if (input_->PushKey(DIK_RIGHT)) {
@@ -52,11 +58,11 @@ void Player::Update() {
 #pragma endregion キャラクター攻撃
 #pragma endregion キーボード入力
 #pragma region 移動限界座標
-	//移動限界座標
+	// 移動限界座標
 	const float kMoveLimitX = 30;
 	const float kMoveLimitY = 15;
 
-	//範囲を超えないように処理
+	// 範囲を超えないように処理
 	worldTransform_.translation_.x =
 	    std::clamp(worldTransform_.translation_.x, -kMoveLimitX, kMoveLimitX);
 	worldTransform_.translation_.y =
@@ -64,14 +70,14 @@ void Player::Update() {
 
 #pragma endregion 移動限界座標
 #pragma region 座標変換
-	//座標移動(ベクトルの加算)
+	// 座標移動(ベクトルの加算)
 	worldTransform_.translation_ += move;
 
 	UpdateMatrix();
 #pragma endregion 座標変換
 #pragma region 攻撃アップデート
-	if (bullet_) {
-		bullet_->Update();
+	for (PlayerBullet* bullet : bullets_) {
+		bullet->Update();
 	}
 #pragma endregion 攻撃アップデート
 #pragma region デバック
@@ -96,22 +102,26 @@ void Player::UpdateMatrix() {
 }
 
 void Player::Draw(ViewProjection& viewProjection) {
-	
+
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
-	//弾描画
-	if (bullet_) {
-	bullet_->Draw(viewProjection);
+	// 弾描画
+	for (PlayerBullet* bullet : bullets_) {
+		bullet->Draw(viewProjection);
 	}
 }
 
-void Player::Attack() { 
+void Player::Attack() {
 	if (input_->PushKey(DIK_SPACE)) {
-	//弾を生成し、初期化
+
+		//自キャラの座標をコピー
+		Vector3 position = worldTransform_.translation_;
+
+		// 弾を生成し、初期化
 		PlayerBullet* newBullet = new PlayerBullet();
 		newBullet->Initialize(model_, worldTransform_.translation_);
 
-		//弾を登録する
-		bullet_ = newBullet;
+		// 弾を登録する
+		bullets_.push_back(newBullet);
 	}
 }
