@@ -1,11 +1,17 @@
 #pragma once
 #include "Model.h"
 #include "WorldTransform.h"
+#include "EnemyState.h"
 /// <summary>
 /// 敵
 /// </summary>
 class Enemy {
 public:
+	/// <summary>
+	/// デストラクタ
+	/// </summary>
+	~Enemy();
+
 	/// <summary>
 	/// 初期化
 	/// </summary>
@@ -28,13 +34,38 @@ public:
 	/// </summary>
 	/// /// <param name="viewProjection">ビュープロジェクション(参照渡し)</param>
 	void Draw(ViewProjection& viewProjection);
+
+	/// <summary>
+	/// 行動パターン更新
+	/// </summary>
+	void UpdateState();
+
+	/// <summary>
+	/// WorldTransformのゲッター
+	/// </summary>
+	/// <returns></returns>
+	WorldTransform GetWorldTransform() { return worldTransform_; }
+
+	/// <summary>
+	/// translationのゲッター
+	/// </summary>
+	/// <returns></returns>
+	Vector3 GetTanslation() { return worldTransform_.translation_; }
+
+	void AddTanslation(const Vector3& position) { worldTransform_.translation_ += position; }
+
+	/// <summary>
+	/// changeState
+	/// </summary>
+	void changeState(EnemyState* newState);
+
+
+
 private:
 	// フェーズごとのアップデート
-	void UpdateApproach();
-	void UpdateLeave();
-
-	// メンバ関数ポインタのテーブル
-	static void (Enemy::*spUpdateTable[])();
+	EnemyState* state_;
+	////メンバ関数ポインタのテーブル
+	//static void (Enemy::*spUpdateTable[])();
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// テクスチャハンドル

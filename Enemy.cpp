@@ -3,11 +3,13 @@
 #include "mat4x4.h"
 #include <imgui.h>
 
-//staticで宣言したメンバ関数ポインタテーブルの実体
-void (Enemy::*Enemy::spUpdateTable[])() = {
-    &Enemy::UpdateApproach,
-    &Enemy::UpdateLeave,
-};
+////staticで宣言したメンバ関数ポインタテーブルの実体
+//void (Enemy::*Enemy::spUpdateTable[])() = {
+//    &Enemy::UpdateApproach,
+//    &Enemy::UpdateLeave,
+//};
+
+Enemy::~Enemy() { /*delete state_;*/ }
 
 void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 	// NULLポインタチェック
@@ -15,6 +17,7 @@ void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 	model_ = model;
 	textureHandle_ = textureHandle;
 	worldTransform_.Initialize();
+	state_ = new Approach;
 }
 
 void Enemy::Update() { 
@@ -24,10 +27,8 @@ void Enemy::Update() {
 	//キャラクターの移動ベクトル
 	Vector3 move = {0.0f, 0.0f, 0.0f};
 
-	
-
-	//現在フェーズの関数を実行
-	(this->*spUpdateTable[static_cast<size_t>(phase_)])();
+	//行動パターン
+	UpdateState();
 
 	//座標移動
 	worldTransform_.translation_ += move;
@@ -64,19 +65,11 @@ void Enemy::Draw(ViewProjection& viewProjection) {
 	model_->Draw(worldTransform_,viewProjection,textureHandle_);
 }
 
-void Enemy::UpdateApproach() {
-	// キャラクターの移動速度
-	const float kApproachSpeed = -0.2f;
-	// 移動（ベクトルを加算）
-	worldTransform_.translation_ += Vector3(0.0f, 0.0f, kApproachSpeed);
-	if (worldTransform_.translation_.z < -20.0f) {
-		phase_ = Phase::Leave;
-	}
+void Enemy::UpdateState() { 
+	state_->Update(this); 
 }
 
-void Enemy::UpdateLeave() {
-	// キャラクターの移動速度
-	const float kLeaveSpeed = -0.2f;
-	// 移動（ベクトルを加算）
-	worldTransform_.translation_ += Vector3(kLeaveSpeed, -kLeaveSpeed, kLeaveSpeed);
+void Enemy::changeState(EnemyState* newState) {
+	/*delete state_;*/
+	state_ = newState;
 }
