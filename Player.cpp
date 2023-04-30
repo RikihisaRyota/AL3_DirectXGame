@@ -4,11 +4,8 @@
 #include <cassert>
 #include "MyMath.h"
 
-Player::~Player() {
-	for (PlayerBullet* bullet : bullets_) {
-		delete bullet;
-	}
-}
+Player::~Player() {}
+
 void Player::Initialize(Model* model, uint32_t textureHandle) {
 	// NULLポインタチェック
 	assert(model);
@@ -30,6 +27,16 @@ void Player::Update() {
 	const float kCharacterSpeed = 0.2f;
 	// 回転の速さ[ラジアン/frame]
 	const float kRotSpeed = 0.02f;
+#pragma region 弾の寿命確認
+	//デスフラグの立った弾の削除
+	bullets_.remove_if([](std::unique_ptr<PlayerBullet>& bullet) { 
+		if (bullet->IsDead()) {
+			return true;
+		}
+		return false;
+	});
+#pragma endregion 弾の寿命確認
+
 #pragma region キーボード入力
 #pragma region キャラクター移動
 	// 押した方向で良そうベクトルを変更(左右)
@@ -76,8 +83,9 @@ void Player::Update() {
 	UpdateMatrix();
 #pragma endregion 座標変換
 #pragma region 攻撃アップデート
-	for (PlayerBullet* bullet : bullets_) {
-		bullet->Update();
+	for (std::list<std::unique_ptr<PlayerBullet>>::iterator it = bullets_.begin();
+	     it != bullets_.end(); ++it) {
+		(*it)->Update();
 	}
 #pragma endregion 攻撃アップデート
 #pragma region デバック
@@ -106,8 +114,9 @@ void Player::Draw(ViewProjection& viewProjection) {
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 	// 弾描画
-	for (PlayerBullet* bullet : bullets_) {
-		bullet->Draw(viewProjection);
+	for (std::list<std::unique_ptr<PlayerBullet>>::iterator it = bullets_.begin();
+	     it != bullets_.end(); ++it) {
+		(*it)->Draw(viewProjection);
 	}
 }
 
@@ -125,10 +134,10 @@ void Player::Attack() {
 		velocity = TransformNormal(velocity,worldTransform_.matWorld_);
 
 		// 弾を生成し、初期化
-		PlayerBullet* newBullet = new PlayerBullet();
+		std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
 		newBullet->Initialize(model_, worldTransform_.translation_,velocity);
 
 		// 弾を登録する
-		bullets_.push_back(newBullet);
+		bullets_.push_back(std::move(newBullet));
 	}
 }

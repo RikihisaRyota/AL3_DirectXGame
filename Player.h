@@ -53,5 +53,5 @@ private:
 	//キーボード入力
 	Input* input_ = nullptr;
 	//弾
-	std::list<PlayerBullet*> bullets_;
+	std::list<std::unique_ptr<PlayerBullet>> bullets_;
 };

@@ -2,6 +2,10 @@
 #include "Model.h"
 #include "WorldTransform.h"
 #include "EnemyState.h"
+#include "EnemyBullet.h"
+#include "TimeCall.h"
+#include <list>
+
 /// <summary>
 /// 敵
 /// </summary>
@@ -36,11 +40,6 @@ public:
 	void Draw(ViewProjection& viewProjection);
 
 	/// <summary>
-	/// 行動パターン更新
-	/// </summary>
-	void UpdateState();
-
-	/// <summary>
 	/// WorldTransformのゲッター
 	/// </summary>
 	/// <returns></returns>
@@ -59,24 +58,37 @@ public:
 	/// </summary>
 	void changeState(EnemyState* newState);
 
+	/// <summary>
+	/// 弾を発射しタイマーをリセットするコールバック関数
+	/// </summary>
+	void BulletsSet();
 
+	/// <summary>
+	/// 弾
+	/// </summary>
+	void Fire();
+
+	//発射間隔
+	static const int kFireInterval = 60;
 
 private:
+	/// <summary>
+	/// 行動パターン更新
+	/// </summary>
+	void UpdateState();
+
 	// フェーズごとのアップデート
 	EnemyState* state_;
-	////メンバ関数ポインタのテーブル
-	//static void (Enemy::*spUpdateTable[])();
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 	// モデル
 	Model* model_ = nullptr;
-	//行動フェーズ
-	enum class Phase {
-		Approach,//接近する
-		Leave,//離脱する
-	};
-	//フェーズ
-	Phase phase_=Phase::Approach;
+	//弾
+	std::list<std::unique_ptr<EnemyBullet>> bullets_;
+	//発射タイマー
+	int32_t fireTimer_ = 0;
+	//時限発動リスト
+	std::list<std::unique_ptr<TimeCall>> timedCalls_;
 };

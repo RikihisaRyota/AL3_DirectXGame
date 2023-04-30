@@ -19,6 +19,10 @@ void PlayerBullet::Update() {
 	//座標を移動させる（1フレーム分の移動量を足しこむ）
 	worldTransform_.translation_ += velocity_;
 	UpdateMatrix();
+	//時間経過でデス
+	if (--deathTimer_ <= 0) {
+		isDead_ = true;
+	}
 }
 
 void PlayerBullet::UpdateMatrix() {
