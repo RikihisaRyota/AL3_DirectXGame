@@ -40,7 +40,6 @@ struct Vector3 final {
 		return Vector3(this->x * a, this->y * a, this->z * a);
 	}
 
-
 	void Normalize() {
 		float length = sqrt(x * x + y * y + z * z);
 		assert(length != 0);
@@ -48,4 +47,6 @@ struct Vector3 final {
 		y /= length;
 		z /= length;
 	}
+
+	float length(Vector3 v) { return sqrt(v.x * v.x + v.y * v.y + v.z * v.z); }
 };

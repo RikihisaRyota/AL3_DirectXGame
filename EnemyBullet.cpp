@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <ImGui.h>
 
+#include "Player.h"
+#include "MyMath.h"
+
 void EnemyBullet::Initialize(Model* model, const Vector3& position,const Vector3& velocity) {
 	//NULLポインタチェック
 	assert(model);
@@ -40,6 +43,22 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position,const Vector3
 }
 
 void EnemyBullet::Update() { 
+	// 敵弾から自キャラへのベクトルを計算
+	Vector3 toPlayer = player_->GetWorldPosition() - worldTransform_.translation_;
+
+	//ベクトルを正規化する
+	toPlayer.Normalize();
+	velocity_.Normalize();
+	//球面線形補間により、今の速度と自キャラへのベクトルの内挿し、新たな速度とする
+	velocity_ = Slerp(velocity_, toPlayer, 0.05f)*0.2f;
+	//キャラの方向に弾の向きを変える処理
+	//  Y軸回り角度(θy)
+	worldTransform_.rotation_.y = std::atan2(velocity_.x, velocity_.z);
+	// 横軸方向の長さを求める
+	float velocityXZ = sqrt(velocity_.x * velocity_.x + velocity_.z * velocity_.z);
+	// X軸回り角度(θx)
+	worldTransform_.rotation_.x = std::atan2(-velocity_.y, velocityXZ);
+
 	// 座標を移動させる（1フレーム分の移動量を足しこむ）
 	worldTransform_.translation_ += velocity_;
 	UpdateMatrix();

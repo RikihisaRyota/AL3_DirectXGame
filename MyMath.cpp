@@ -8,3 +8,16 @@ Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
 	};
 	return result;
 }
+
+Vector3 Lerp(const Vector3& start, const Vector3& end, float t) {
+	{ return start + ((end - start) * t); }
+}
+
+Vector3 Slerp(const Vector3& start, const Vector3& end, float t) {
+	float omega = std::acos(start.x * end.x + start.y * end.y + start.z * end.z);
+	float so = std::sin(omega);
+	if (so == 0.0f) {
+		return start;
+	}
+	return start * (std::sin((1 - t) * omega) / so) + end * (std::sin(t * omega) / so);
+}
