@@ -141,3 +141,11 @@ void Player::Attack() {
 		bullets_.push_back(std::move(newBullet));
 	}
 }
+
+Vector3 Player::GetWorldPosition() { 
+	return {
+	    worldTransform_.translation_.x,
+		worldTransform_.translation_.y,
+	    worldTransform_.translation_.z
+	};
+}

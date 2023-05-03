@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <imgui.h>
 
+#include "Player.h"
+
 ////staticで宣言したメンバ関数ポインタテーブルの実体
 // void (Enemy::*Enemy::spUpdateTable[])() = {
 //     &Enemy::UpdateApproach,
@@ -24,9 +26,6 @@ void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 }
 
 void Enemy::Update() {
-	// 行列を定数バッファに転送
-	worldTransform_.TransferMatrix();
-
 	// キャラクターの移動ベクトル
 
 	// 寿命
@@ -101,12 +100,17 @@ void Enemy::UpdateState() {
 }
 
 void Enemy::Fire() {
+
 	// 自キャラの座標をコピー
-	Vector3 position = worldTransform_.translation_;
+	Vector3 playerPosition = player_->GetWorldPosition();
+	// ホーミングの初期ベクトル
+	Vector3 vector = playerPosition - worldTransform_.translation_;
+	// 正規化
+	vector.Normalize();
 
 	// 弾の速度
-	const float kBulletSpeed = -2.0f;
-	Vector3 velocity(0.0f, 0.0f, kBulletSpeed);
+	const float kBulletSpeed = 0.5f;
+	Vector3 velocity(vector * kBulletSpeed);
 
 	// 速度ベクトルに自機の向きに合わせて回転させる
 	velocity = TransformNormal(velocity, worldTransform_.matWorld_);
@@ -126,6 +130,13 @@ void Enemy::BulletsSet() {
 	std::function<void(void)> callback = std::bind(&Enemy::BulletsSet, this);
 	std::unique_ptr<TimeCall> timedCall = std::make_unique<TimeCall>(callback, kFireInterval);
 	timedCalls_.push_back(std::move(timedCall));
+}
+
+Vector3 Enemy::GetWorldPosition() {
+	return {
+	    worldTransform_.translation_.x, 
+		worldTransform_.translation_.y,
+	    worldTransform_.translation_.z};
 }
 
 void Enemy::changeState(EnemyState* newState) {

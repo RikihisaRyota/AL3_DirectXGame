@@ -50,6 +50,8 @@ mat4x4 mat4x4::operator*(const mat4x4& m2) {
 	return mat;
 }
 
+Vector3 mat4x4::operator*(const Vector3& mat) { return Transform(mat, *this); }
+
 
 mat4x4 Add(const mat4x4& m1, const mat4x4& m2)
 {

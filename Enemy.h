@@ -5,6 +5,8 @@
 #include "EnemyBullet.h"
 #include "TimeCall.h"
 #include <list>
+// 自機クラスの前方宣言
+class Player;
 
 /// <summary>
 /// 敵
@@ -51,6 +53,12 @@ public:
 	/// <returns></returns>
 	Vector3 GetTanslation() { return worldTransform_.translation_; }
 
+	/// <summary>
+	///  ワールド座標を取得
+	/// </summary>
+	/// <returns></returns>
+	Vector3 GetWorldPosition();
+
 	void AddTanslation(const Vector3& position) { worldTransform_.translation_ += position; }
 
 	/// <summary>
@@ -70,6 +78,11 @@ public:
 
 	//発射間隔
 	static const int kFireInterval = 60;
+
+	// 自キャラ
+	Player* player_ = nullptr;
+
+	void SetPlayer(Player* player) { player_ = player; }
 
 private:
 	/// <summary>

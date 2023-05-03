@@ -43,6 +43,12 @@ public:
 	/// </summary>
 	void Attack();
 
+	/// <summary>
+	///  ワールド座標を取得
+	/// </summary>
+	/// <returns></returns>
+	Vector3 GetWorldPosition();
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

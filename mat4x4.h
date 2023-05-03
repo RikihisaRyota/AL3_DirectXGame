@@ -19,6 +19,7 @@ public:
 		m[3][0] = _41, m[3][1] = _42, m[3][2] = _43, m[3][3] = _44;
 	}
 	mat4x4 operator*(const mat4x4& mat);
+	Vector3 operator*(const Vector3& mat);
 };
 
 //1,行列の加法
