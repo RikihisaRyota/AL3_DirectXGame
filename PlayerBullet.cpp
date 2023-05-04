@@ -13,6 +13,10 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 	worldTransform_.translation_ = position;
 	// 引数で受け取った速度をメンバ変数にセット
 	velocity_ = velocity;
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributePlayer);
+	// 衝突対象を自分以外に設定
+	SetCollisionMask(~kCollisionAttributePlayer);
 }
 
 void PlayerBullet::Update() { 

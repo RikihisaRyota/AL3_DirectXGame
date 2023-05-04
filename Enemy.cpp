@@ -22,6 +22,10 @@ void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = Vector3(20.0f, 10.0f, 50.0f);
 	state_ = new Approach;
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributeEnemy);
+	// 衝突対象を自分以外に設定
+	SetCollisionMask(~kCollisionAttributeEnemy);
 	BulletsSet();
 }
 

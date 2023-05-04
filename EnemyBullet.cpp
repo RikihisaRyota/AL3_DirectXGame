@@ -27,17 +27,22 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position,const Vector3
 	worldTransform_.rotation_.x = std::atan2(-velocityZ.y, velocityZ.z);
 #pragma endregion 方法1
 #pragma region 方法2
-	// Y軸回り角度(θy)
-	 worldTransform_.rotation_.y = std::atan2(velocity.x, velocity.z);
-	// 横軸方向の長さを求める
-	 float velocityXZ = sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-	// X軸回り角度(θx)
-	 worldTransform_.rotation_.x = std::atan2(-velocity.y, velocityXZ);
+	//// Y軸回り角度(θy)
+	// worldTransform_.rotation_.y = std::atan2(velocity.x, velocity.z);
+	//// 横軸方向の長さを求める
+	// float velocityXZ = sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+	//// X軸回り角度(θx)
+	// worldTransform_.rotation_.x = std::atan2(-velocity.y, velocityXZ);
 #pragma endregion 方法2
 	//引数で受け取った初期座標をセット
 	worldTransform_.translation_ = position;
 	//引数で受け取った速度をメンバ変数のセット
 	velocity_ = velocity;
+
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributeEnemy);
+	// 衝突対象を自分以外に設定
+	SetCollisionMask(~kCollisionAttributeEnemy);
 
 	UpdateMatrix();
 }
