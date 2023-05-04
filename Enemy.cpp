@@ -95,6 +95,8 @@ void Enemy::Draw(ViewProjection& viewProjection) {
 	}
 }
 
+void Enemy::OnCollision() {}
+
 void Enemy::UpdateState() {
 	state_->Update(this); 
 }

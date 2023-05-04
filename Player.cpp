@@ -149,3 +149,5 @@ Vector3 Player::GetWorldPosition() {
 	    worldTransform_.translation_.z
 	};
 }
+
+void Player::OnCollision() {}

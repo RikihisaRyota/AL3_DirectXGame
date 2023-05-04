@@ -5,13 +5,14 @@
 #include "EnemyBullet.h"
 #include "TimeCall.h"
 #include <list>
+#include "Collider.h"
 // 自機クラスの前方宣言
 class Player;
 
 /// <summary>
 /// 敵
 /// </summary>
-class Enemy {
+class Enemy : public Collider {
 public:
 	/// <summary>
 	/// デストラクタ
@@ -57,7 +58,7 @@ public:
 	///  ワールド座標を取得
 	/// </summary>
 	/// <returns></returns>
-	Vector3 GetWorldPosition();
+	Vector3 GetWorldPosition() override;
 
 	void AddTanslation(const Vector3& position) { worldTransform_.translation_ += position; }
 
@@ -84,6 +85,18 @@ public:
 
 	void SetPlayer(Player* player) { player_ = player; }
 
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision() override;
+
+	// 弾のリストを取得
+	const std::list<std::unique_ptr<EnemyBullet>>& GetBullets() { return bullets_; }
+
+	//半径
+	float GetRadius() override { return radius_; }
+
+	//セッター
+	void SetRadius(float radius) override { radius_ = radius; }
+
 private:
 	/// <summary>
 	/// 行動パターン更新
@@ -91,7 +104,7 @@ private:
 	void UpdateState();
 
 	// フェーズごとのアップデート
-	EnemyState* state_;
+	EnemyState* state_ = nullptr;
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// テクスチャハンドル
@@ -104,4 +117,6 @@ private:
 	int32_t fireTimer_ = 0;
 	//時限発動リスト
 	std::list<std::unique_ptr<TimeCall>> timedCalls_;
+	//半径
+	float radius_ = 1.0f;
 };

@@ -48,9 +48,8 @@ void EnemyBullet::Update() {
 
 	//ベクトルを正規化する
 	toPlayer.Normalize();
-	velocity_.Normalize();
 	//球面線形補間により、今の速度と自キャラへのベクトルの内挿し、新たな速度とする
-	velocity_ = Slerp(velocity_, toPlayer, 0.05f)*0.2f;
+	velocity_ = Slerp(velocity_, toPlayer, 0.2f)*0.5f;
 	//キャラの方向に弾の向きを変える処理
 	//  Y軸回り角度(θy)
 	worldTransform_.rotation_.y = std::atan2(velocity_.x, velocity_.z);
@@ -93,3 +92,5 @@ void EnemyBullet::Draw(const ViewProjection& viewProjection) {
 //モデルの描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 }
+
+void EnemyBullet::OnCollision() { isDead_ = true; }

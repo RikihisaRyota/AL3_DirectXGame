@@ -1,11 +1,12 @@
 #pragma once
 #include "Model.h"
 #include "WorldTransform.h"
+#include "Collider.h"
 
 /// <summary>
 /// 自キャラの弾
 /// </summary>
-class PlayerBullet {
+class PlayerBullet : public Collider {
 public:
 	/// <summary>
 	/// 初期化
@@ -32,6 +33,16 @@ public:
 
 	bool IsDead() const { return isDead_; }
 
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision() override;
+
+	Vector3 GetWorldPosition() override { return worldTransform_.translation_; }
+
+	float GetRadius() override { return radius_; }
+
+	// セッター
+	void SetRadius(float radius) override { radius_ = radius; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -47,4 +58,6 @@ private:
 	int32_t deathTimer_ = kLifeTime;
 	//デスフラグ
 	bool isDead_ = false;
+	//半径
+	float radius_ = 1.0f;
 };

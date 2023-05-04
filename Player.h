@@ -4,11 +4,11 @@
 #include <Input.h>
 #include "PlayerBullet.h"
 #include <list>
-
+#include "Collider.h"
 /// <summary>
 /// 自キャラ
 /// </summary>
-class Player {
+class Player:public Collider {
 public:
 	/// <summary>
 	/// デストラクタ
@@ -47,7 +47,19 @@ public:
 	///  ワールド座標を取得
 	/// </summary>
 	/// <returns></returns>
-	Vector3 GetWorldPosition();
+	Vector3 GetWorldPosition() override;
+
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision() override;
+
+	// 弾のリストを取得
+	const std::list<std::unique_ptr<PlayerBullet>>& GetBullets() { return bullets_; }
+
+	//半径ゲッター
+	float GetRadius() override { return radius_; }
+
+	// セッター
+	void SetRadius(float radius) override { radius_ = radius; }
 
 private:
 	// ワールド変換データ
@@ -60,4 +72,6 @@ private:
 	Input* input_ = nullptr;
 	//弾
 	std::list<std::unique_ptr<PlayerBullet>> bullets_;
+	//半径
+	float radius_ = 1.0f;
 };

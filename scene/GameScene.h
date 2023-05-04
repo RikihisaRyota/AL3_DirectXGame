@@ -16,7 +16,7 @@
 /// <summary>
 /// ゲームシーン
 /// </summary>
-class GameScene {
+class GameScene{
 
 public: // メンバ関数
 	/// <summary>
@@ -44,7 +44,17 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
-private: // メンバ変数
+private:
+	// メンバ関数
+	void CheckAllCollisions();
+
+	/// <summary>
+	/// コライダー2つの衝突判定と応答
+	/// </summary>
+	/// <param name="colliderA">コライダーA</param>
+	/// <param name="colliderB">コライダーB</param>
+	void CheakCollisionPair(Collider* colliderA, Collider* colliderB);
+	// メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;

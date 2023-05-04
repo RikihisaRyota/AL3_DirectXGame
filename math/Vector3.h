@@ -42,7 +42,7 @@ struct Vector3 final {
 
 	void Normalize() {
 		float length = sqrt(x * x + y * y + z * z);
-		assert(length != 0);
+		assert(length != 0.0f);
 		x /= length;
 		y /= length;
 		z /= length;
