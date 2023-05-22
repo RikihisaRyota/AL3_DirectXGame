@@ -24,6 +24,13 @@ struct Vector3 final {
 		return *this;
 	}
 
+	Vector3& operator*=(float a) {
+		this->x *= a;
+		this->y *= a;
+		this->z *= a;
+		return *this;
+	}
+
 	Vector3 operator+(const Vector3& a) const {
 		return Vector3(this->x + a.x, this->y + a.y, this->z + a.z);
 	}

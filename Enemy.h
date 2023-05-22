@@ -9,6 +9,9 @@
 // 自機クラスの前方宣言
 class Player;
 
+// GameSceneの前方宣言
+class GameScene;
+
 /// <summary>
 /// 敵
 /// </summary>
@@ -24,17 +27,12 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="textureHandle">テクスチャハンドル</param>
-	void Initialize(Model* model, uint32_t textureHandle);
+	void Initialize(Model* model, uint32_t textureHandle, const Vector3& position);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
 	void Update();
-
-	/// <summary>
-	/// 行列を計算、転送する
-	/// </summary>
-	void UpdateMatrix();
 
 	/// <summary>
 	/// 描画
@@ -92,10 +90,14 @@ public:
 	const std::list<std::unique_ptr<EnemyBullet>>& GetBullets() { return bullets_; }
 
 	//半径
-	float GetRadius() override { return radius_; }
+	float GetRadius() override { return radius_;}
 
 	//セッター
 	void SetRadius(float radius) override { radius_ = radius; }
+
+	void SetGameScene(GameScene* gameScene) {
+		gameScene_ = gameScene;
+	}
 
 private:
 	/// <summary>
@@ -119,4 +121,6 @@ private:
 	std::list<std::unique_ptr<TimeCall>> timedCalls_;
 	//半径
 	float radius_ = 1.0f;
+	// ゲームシーン
+	GameScene* gameScene_ = nullptr;
 };

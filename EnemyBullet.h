@@ -22,11 +22,6 @@ public:
 	void Update();
 
 	/// <summary>
-	/// 行列を計算転送する
-	/// </summary>
-	void UpdateMatrix();
-
-	/// <summary>
 	/// 描画
 	/// </summary>
 	/// <param name="viewProjection">ビュープロジェクション</param>
@@ -66,7 +61,7 @@ private:
 	//デスフラグ
 	bool isDead_ = false;
 	//自キャラ
-	Player* player_=nullptr;
+	Player* player_ = nullptr;
 	//弾の半径
 	float radius_ = 1.0f;
 };

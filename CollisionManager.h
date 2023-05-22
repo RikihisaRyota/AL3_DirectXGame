@@ -1,16 +1,22 @@
 #pragma once
 #include <list>
+#include <memory>
 #include "Collider.h"
 class Player;
 class Enemy;
+class EnemyBullet;
 
 class CollisionManager {
 public:
-	void Update(Player* player, Enemy* enemy);
+	void Update(
+	    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+	    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet);
 
 private:
 	// メンバ関数
-	void CheckAllCollisions(Player* player, Enemy* enemy);
+	void CheckAllCollisions(
+	    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+	    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet);
 
 	/// <summary>
 	/// コライダー2つの衝突判定と応答

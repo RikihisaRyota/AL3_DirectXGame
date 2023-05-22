@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector3.h"
-class mat4x4
-{
+struct Matrix4x4;
+class mat4x4 {
 public:
 	float m[4][4];
 public:
@@ -60,3 +60,5 @@ mat4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, f
 mat4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
 //3,ビューポート変換行列
 mat4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
+
+mat4x4 Convert(const Matrix4x4& m1);

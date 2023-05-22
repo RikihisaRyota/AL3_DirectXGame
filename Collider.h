@@ -38,8 +38,6 @@ public:
 		collisionMask_ = collisionMask;
 	}
 
-
-
 private:
 	// 衝突半径
 	float radius_;

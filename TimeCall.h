@@ -1,6 +1,5 @@
 #pragma once
 #include <functional>
-class Enemy;
 /// <summary>
 /// 時限発動
 /// </summary>

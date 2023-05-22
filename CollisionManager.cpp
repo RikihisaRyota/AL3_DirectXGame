@@ -7,21 +7,32 @@
 #include "PlayerBullet.h"
 
 
-void CollisionManager::Update(Player* player,Enemy* enemy) { 
+void CollisionManager::Update(
+    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet) { 
 	colliders_.clear();
-	CheckAllCollisions(player,enemy); 
+	CheckAllCollisions(player, enemy, enemyBullet);
 }
 
 
-void CollisionManager::CheckAllCollisions(Player* player_, Enemy* enemy_) {
+void CollisionManager::CheckAllCollisions(
+    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy_,
+    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet) {
+	// 敵のリストに取得
+	const std::list<std::unique_ptr<Enemy>>& enemy = enemy_;
 	// 自弾リストの取得
-	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player_->GetBullets();
+	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player->GetBullets();
 	// 敵弾リストの取得
-	const std::list<std::unique_ptr<EnemyBullet>>& enemyBullets = enemy_->GetBullets();
+	const std::list<std::unique_ptr<EnemyBullet>>& enemyBullets = enemyBullet;
 
 	// コライダーをリストに追加
-	colliders_.push_back(player_);
-	colliders_.push_back(enemy_);
+	colliders_.push_back(player);
+
+	// 敵のリスト
+	for (std::list<std::unique_ptr<Enemy>>::const_iterator it = enemy.begin(); it != enemy.end();++it) {
+		// イテレーターを使用して敵弾の座標を取得する
+		colliders_.push_back(it->get());
+	}
 
 	// 自弾全てについて
 	for (std::list<std::unique_ptr<PlayerBullet>>::const_iterator it = playerBullets.begin();

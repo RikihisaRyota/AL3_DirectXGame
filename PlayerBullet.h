@@ -21,11 +21,6 @@ public:
 	void Update();
 
 	/// <summary>
-	/// 行列を計算、転送する
-	/// </summary>
-	void UpdateMatrix();
-
-	/// <summary>
 	/// 描画
 	/// </summary>
 	/// <param name="viewProjection">ビュープロジェクション</param>

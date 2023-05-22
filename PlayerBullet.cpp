@@ -22,22 +22,11 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 void PlayerBullet::Update() { 
 	//座標を移動させる（1フレーム分の移動量を足しこむ）
 	worldTransform_.translation_ += velocity_;
-	UpdateMatrix();
+	worldTransform_.UpdateMatrix();
 	//時間経過でデス
 	if (--deathTimer_ <= 0) {
 		isDead_ = true;
 	}
-}
-
-void PlayerBullet::UpdateMatrix() {
-	// スケール、回転、平行移動を合成して行列を計算する
-	//  自作のAffine変換だと無理だから
-	mat4x4 tmp;
-	tmp = MakeAffineMatrix(
-	    worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-	worldTransform_.matWorld_ = Convert(tmp);
-	// 定数バッファに転送する
-	worldTransform_.TransferMatrix();
 }
 
 void PlayerBullet::Draw(const ViewProjection& viewProjection) {

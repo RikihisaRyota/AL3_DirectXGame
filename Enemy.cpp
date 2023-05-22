@@ -5,22 +5,17 @@
 #include <imgui.h>
 
 #include "Player.h"
-
-////staticで宣言したメンバ関数ポインタテーブルの実体
-// void (Enemy::*Enemy::spUpdateTable[])() = {
-//     &Enemy::UpdateApproach,
-//     &Enemy::UpdateLeave,
-// };
+#include "GameScene.h"
 
 Enemy::~Enemy() {}
 
-void Enemy::Initialize(Model* model, uint32_t textureHandle) {
+void Enemy::Initialize(Model* model, uint32_t textureHandle,const Vector3& position) {
 	// NULLポインタチェック
 	assert(model);
 	model_ = model;
 	textureHandle_ = textureHandle;
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = Vector3(20.0f, 10.0f, 50.0f);
+	worldTransform_.translation_ = position;
 	state_ = new Approach;
 	// 衝突属性を設定
 	SetCollisionAttribute(kCollisionAttributeEnemy);
@@ -31,38 +26,11 @@ void Enemy::Initialize(Model* model, uint32_t textureHandle) {
 
 void Enemy::Update() {
 	// キャラクターの移動ベクトル
-
-	// 寿命
-	bullets_.remove_if([](std::unique_ptr<EnemyBullet>& bullet) {
-		if (bullet->IsDead()) {
-			return true;
-		}
-		return false;
-	});
-
-	timedCalls_.remove_if([](std::unique_ptr<TimeCall>& timedCalls) {
-		if (timedCalls->IsDead()) {
-			return true;
-		}
-		return false;
-	});
-
 	// 行動パターン
 	UpdateState();
 
-	// 弾の更新
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin();
-	     it != bullets_.end(); ++it) {
-		(*it)->Update();
-	}
-	// 弾のタイマーの更新
-	for (std::list<std::unique_ptr<TimeCall>>::iterator it = timedCalls_.begin();
-	     it != timedCalls_.end(); ++it) {
-		(*it)->Update();
-	}
-
 	// 座標移動
-	UpdateMatrix();
+	worldTransform_.UpdateMatrix();
 
 	// デバック
 	//   キャラクターの座標を画面表示する処理
@@ -78,25 +46,9 @@ void Enemy::Update() {
 	ImGui::End();
 }
 
-void Enemy::UpdateMatrix() {
-	// スケール、回転、平行移動を合成して行列を計算する
-	//  自作のAffine変換だと無理だから
-	mat4x4 tmp;
-	tmp = MakeAffineMatrix(
-	    worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-	worldTransform_.matWorld_ = Convert(tmp);
-	// 定数バッファに転送する
-	worldTransform_.TransferMatrix();
-}
-
 void Enemy::Draw(ViewProjection& viewProjection) {
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
-	// 弾描画
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin();
-	     it != bullets_.end(); ++it) {
-		(*it)->Draw(viewProjection);
-	}
 }
 
 void Enemy::OnCollision() {}
@@ -126,9 +78,8 @@ void Enemy::Fire() {
 	newBullet->SetPlayer(player_);
 	newBullet->Initialize(model_, worldTransform_.translation_, velocity);
 
-
 	// 弾を登録する
-	bullets_.push_back(std::move(newBullet));
+	gameScene_->AddEnemyBullet(std::move(newBullet));
 }
 
 void Enemy::BulletsSet() {
@@ -137,7 +88,7 @@ void Enemy::BulletsSet() {
 	// 発射タイマーをリセットする
 	std::function<void(void)> callback = std::bind(&Enemy::BulletsSet, this);
 	std::unique_ptr<TimeCall> timedCall = std::make_unique<TimeCall>(callback, kFireInterval);
-	timedCalls_.push_back(std::move(timedCall));
+	//gameScene_->AddEnemyBulletTimedCalls(std::move(timedCall));
 }
 
 Vector3 Enemy::GetWorldPosition() {

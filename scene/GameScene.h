@@ -10,9 +10,13 @@
 #include "WorldTransform.h"
 
 #include "Player.h"
+#include "PlayerBullet.h"
 #include "Enemy.h"
 #include "CollisionManager.h"
+#include "Skydome.h"
+#include "RailCamera.h"
 #include "DebugCamera.h"
+#include <sstream>
 
 /// <summary>
 /// ゲームシーン
@@ -45,6 +49,34 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	/// <summary>
+	/// 敵弾を追加する
+	/// </summary>
+	/// <param name="enemyBullet"></param>
+	void AddEnemyBullet(std::unique_ptr<EnemyBullet> enemyBullet);
+
+	/// <summary>
+	/// 敵弾を追加する
+	/// </summary>
+	/// <param name="enemyBullet"></param>
+	void AddEnemyBulletTimedCalls(std::unique_ptr<TimeCall> timeCall);
+
+	/// <summary>
+	/// プレイヤー弾を追加する
+	/// </summary>
+	/// <param name="playerBullet"></param>
+	void AddPlayerBullet(std::unique_ptr<PlayerBullet> playerBullet);
+
+	/// <summary>
+	/// 敵発生データの読み込み
+	/// </summary>
+	void LoadEnemyPopData();
+
+	/// <summary>
+	/// 敵発生コマンドの更新
+	/// </summary>
+	void UpdateEnemyPopCommands();
+
 private:
 	// メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -63,15 +95,35 @@ private:
 
 	//自キャラ
 	Player* player_ = nullptr;
-
+	// 自弾
+	std::list<std::unique_ptr<PlayerBullet>> playerBullets_;
 	//敵キャラ
-	Enemy* enemy_ = nullptr;
+	std::list<std::unique_ptr<Enemy>> enemy_;
+	// 敵弾
+	std::list<std::unique_ptr<EnemyBullet>> enemyBullets_;
+	// 時限発動リスト
+	std::list<std::unique_ptr<TimeCall>> timedCalls_;
 
 	// コリジョンマネージャー
-	std::unique_ptr<CollisionManager> collisionManager;
+	std::unique_ptr<CollisionManager> collisionManager = nullptr;
+
+	// skydome
+	std::unique_ptr<Skydome> skydome;
+
+	//3Dモデル
+	Model* modelSkydome_ = nullptr;
+
+	// レールカメラ
+	std::unique_ptr<RailCamera> railCamera_ = nullptr;
 
 	//デバックカメラ有効	
 	bool isDebugCameraActive_ = false;
 	//デバックカメラ
 	DebugCamera* debugCamera_ = nullptr;
+	//敵発生コマンド
+	std::stringstream enemyPopCommands;
+	// 敵発生フラグ
+	bool waitFlag_ = false;
+	// 待機中タイマー
+	int32_t waitTime_;
 };

@@ -1,14 +1,17 @@
 #pragma once
+#include "Collider.h"
 #include "Model.h"
+#include "PlayerBullet.h"
+#include "Sprite.h"
 #include "WorldTransform.h"
 #include <Input.h>
-#include "PlayerBullet.h"
 #include <list>
-#include "Collider.h"
+
+class GameScene;
 /// <summary>
 /// 自キャラ
 /// </summary>
-class Player:public Collider {
+class Player : public Collider {
 public:
 	/// <summary>
 	/// デストラクタ
@@ -20,23 +23,23 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="textureHandle">テクスチャハンドル</param>
-	void Initialize(Model* model,uint32_t textureHandle);
+	void Initialize(Model* model, uint32_t textureHandle);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update();
-
-	/// <summary>
-	/// 行列を計算、転送する
-	/// </summary>
-	void UpdateMatrix();
+	void Update(ViewProjection& viewProjection);
 
 	/// <summary>
 	/// 描画
 	/// </summary>
 	/// /// <param name="viewProjection">ビュープロジェクション(参照渡し)</param>
 	void Draw(ViewProjection& viewProjection);
+
+	/// <summary>
+	/// UI描画
+	/// </summary>
+	void DrawUI();
 
 	/// <summary>
 	/// 攻撃
@@ -49,17 +52,31 @@ public:
 	/// <returns></returns>
 	Vector3 GetWorldPosition() override;
 
+	Matrix4x4 GetMatWorld() { return worldTransform_.matWorld_; }
+	Matrix4x4 GetParentMatWorld() { return worldTransform_.parent_->matWorld_; }
+
 	// 衝突を検出したら呼び出されるコールバック関数
 	void OnCollision() override;
 
 	// 弾のリストを取得
 	const std::list<std::unique_ptr<PlayerBullet>>& GetBullets() { return bullets_; }
 
-	//半径ゲッター
+	// 半径ゲッター
 	float GetRadius() override { return radius_; }
 
 	// セッター
 	void SetRadius(float radius) override { radius_ = radius; }
+
+	/// <summary>
+	/// 親となるワールドトランスフォームをセット
+	/// </summary>
+	/// <param name="parent">親となるワールドトランスフォーム</param>
+	void SetParent(const WorldTransform* parent) {
+		worldTransform_.parent_ = parent;
+		worldTransform3DReticle_.parent_ = parent;
+	}
+
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 
 private:
 	// ワールド変換データ
@@ -68,10 +85,16 @@ private:
 	Model* model_ = nullptr;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
-	//キーボード入力
+	// キーボード入力
 	Input* input_ = nullptr;
-	//弾
+	// 弾
 	std::list<std::unique_ptr<PlayerBullet>> bullets_;
-	//半径
+	// 半径
 	float radius_ = 1.0f;
+	// ゲームシーン
+	GameScene* gameScene_ = nullptr;
+	// 3Dレティクル用ワールドトランスフォーム
+	WorldTransform worldTransform3DReticle_;
+	// 3Dレティクル用スプライト
+	Sprite* sprite2DReticle_ = nullptr;
 };
