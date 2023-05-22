@@ -128,9 +128,6 @@ void Player::Update(ViewProjection& viewProjection) {
 	// クライアントエリア座標に変換する
 	HWND hwnd = WinApp::GetInstance()->GetHwnd();
 	ScreenToClient(hwnd, &mousePosition);
-	/*worldTransform3DReticle_.translation_ = Vector3(
-	    static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y),
-	    worldTransform3DReticle_.translation_.z);*/
 	{ 
 		mat4x4 reticleWorldPos = MakeAffineMatrix(
 		    worldTransform3DReticle_.scale_, 
@@ -146,13 +143,35 @@ void Player::Update(ViewProjection& viewProjection) {
 		mat4x4 matViewProjectionViewport =
 		    Convert(viewProjection.matView) * Convert(viewProjection.matProjection) * matViewport;
 
+		// 合成行列の逆行列を計算する
+		mat4x4 matInverseVPV = Inverse(matViewProjectionViewport);
+
+		// スクリーン座標
+		Vector3 posNear =
+		    Vector3(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y), 0.0f);
+
+		Vector3 posFar =
+		    Vector3(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y), 1.0f);
+
+		// スクリーン座標系からワールド座標系
+		posNear = Transform(posNear,matInverseVPV);
+		posFar = Transform(posFar, matInverseVPV);
+
+		// マウスレイの方向
+		Vector3 mouseDirection = posFar - posNear;
+
+		mouseDirection.Normalize();
+
+		// カメラから照準オブジェクトの距離
+		const float kDistanceTestObject = 50.0f;
+		worldTransform3DReticle_.translation_;
+
 		// ワールド->スクリーン座標変換(ここで3Dから2Dになる)
-		positionReticle = Transform(
-		    Vector3(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y), worldTransform3DReticle_.translation_.z),
-		    matViewProjectionViewport);
+		positionReticle = Transform(positionReticle, matViewProjectionViewport);
 
 		// スプライトのレティクルに座標設定
-		sprite2DReticle_->SetPosition(Vector2(positionReticle.x, positionReticle.y));
+		sprite2DReticle_->SetPosition(
+		    Vector2(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y)));
 
 
 	}
