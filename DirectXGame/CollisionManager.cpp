@@ -8,20 +8,25 @@
 
 
 void CollisionManager::Update(
-    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+    Player* player, 
+    const std::list<std::unique_ptr<PlayerBullet>>& playerBullet,
+	const std::list<std::unique_ptr<Enemy>>& enemy,
     const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet) { 
 	colliders_.clear();
-	CheckAllCollisions(player, enemy, enemyBullet);
+	CheckAllCollisions(player, playerBullet, enemy, enemyBullet);
 }
 
 
 void CollisionManager::CheckAllCollisions(
-    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy_,
+    Player* player, 
+	const std::list<std::unique_ptr<PlayerBullet>>& playerBullet,
+    const std::list<std::unique_ptr<Enemy>>& enemy_,
     const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet) {
+
 	// 敵のリストに取得
 	const std::list<std::unique_ptr<Enemy>>& enemy = enemy_;
 	// 自弾リストの取得
-	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player->GetBullets();
+	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = playerBullet;
 	// 敵弾リストの取得
 	const std::list<std::unique_ptr<EnemyBullet>>& enemyBullets = enemyBullet;
 

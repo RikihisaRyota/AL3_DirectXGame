@@ -23,7 +23,7 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="textureHandle">テクスチャハンドル</param>
-	void Initialize(Model* model, uint32_t textureHandle);
+	void Initialize(Model* model, uint32_t textureHandle, ViewProjection& viewProjection);
 
 	/// <summary>
 	/// 更新
@@ -73,7 +73,7 @@ public:
 	/// <param name="parent">親となるワールドトランスフォーム</param>
 	void SetParent(const WorldTransform* parent) {
 		worldTransform_.parent_ = parent;
-		worldTransform3DReticle_.parent_ = parent;
+		//worldTransform3DReticle_.parent_ = parent;
 	}
 
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
@@ -97,4 +97,6 @@ private:
 	WorldTransform worldTransform3DReticle_;
 	// 3Dレティクル用スプライト
 	Sprite* sprite2DReticle_ = nullptr;
+	// レティクルポジション(screen)
+	Vector3 reticlePosition_;
 };

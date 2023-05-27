@@ -3,19 +3,24 @@
 #include <memory>
 #include "Collider.h"
 class Player;
+class PlayerBullet;
 class Enemy;
 class EnemyBullet;
 
 class CollisionManager {
 public:
 	void Update(
-	    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+	    Player* player, 
+		const std::list<std::unique_ptr<PlayerBullet>>& playerBullet,
+	    const std::list<std::unique_ptr<Enemy>>& enemy,
 	    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet);
 
 private:
 	// メンバ関数
 	void CheckAllCollisions(
-	    Player* player, const std::list<std::unique_ptr<Enemy>>& enemy,
+	    Player* player, 
+		const std::list<std::unique_ptr<PlayerBullet>>& playerBullet,
+	    const std::list<std::unique_ptr<Enemy>>& enemy,
 	    const std::list<std::unique_ptr<EnemyBullet>>& enemyBullet);
 
 	/// <summary>

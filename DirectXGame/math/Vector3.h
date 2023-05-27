@@ -47,6 +47,10 @@ struct Vector3 final {
 		return Vector3(this->x * a, this->y * a, this->z * a);
 	}
 
+	Vector3 operator+(const float a) const {
+		return Vector3(this->x + a, this->y + a, this->z + a);
+	}
+
 	void Normalize() {
 		float length = sqrt(x * x + y * y + z * z);
 		assert(length != 0.0f);

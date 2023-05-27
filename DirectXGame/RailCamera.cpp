@@ -11,12 +11,13 @@ void RailCamera::Initialize(const Vector3* position, const Vector3* radian) {
 }
 
 void RailCamera::Update(ViewProjection* viewProjection /*Vector3* position, Vector3* radian*/) {
-	worldTransform_.translation_ += Vector3(0.0f,0.0f,-0.08f)/* *position*/;
+	//worldTransform_.translation_ += Vector3(0.0f,0.0f,0.08f)/* *position*/;
 	worldTransform_.rotation_ += Vector3(0.0f, 0.0f, 0.0f) /**radian*/;
 
 	mat4x4 tmp;
 	tmp = MakeAffineMatrix(
 	    worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
+
 	worldTransform_.matWorld_ = Convert(tmp);
 
 	// カメラオブジェクトのワールド行列からビュー行列を計算する(きも)

@@ -1,5 +1,6 @@
 #include "PlayerBullet.h"
 #include <assert.h>
+#include <ImGuiManager.h>
 
 void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector3& velocity) {
 	// NULLポインタチェック
@@ -27,6 +28,12 @@ void PlayerBullet::Update() {
 	if (--deathTimer_ <= 0) {
 		isDead_ = true;
 	}
+
+	ImGui::Begin("PlayerBullets");
+	ImGui::Text(
+	    "worldTransform_Position %f,%f,%f", worldTransform_.translation_.x,
+	    worldTransform_.translation_.y, worldTransform_.translation_.z);
+	ImGui::End();
 }
 
 void PlayerBullet::Draw(const ViewProjection& viewProjection) {

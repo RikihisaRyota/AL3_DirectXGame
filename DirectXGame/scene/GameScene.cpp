@@ -58,7 +58,7 @@ void GameScene::Initialize() {
 
 	// 自キャラの初期化
 	player_->SetGameScene(this);
-	player_->Initialize(model_, textureHandle_);
+	player_->Initialize(model_, textureHandle_, viewProjection_);
 
 	// 敵キャラに自キャラのアドレスを渡す
 	//enemy_->SetPlayer(player_);
@@ -125,6 +125,13 @@ void GameScene::Update() {
 		return false;
 	});
 
+	playerBullets_.remove_if([](std::unique_ptr<PlayerBullet>& bullet) {
+		if (bullet->IsDead()) {
+			return true;
+		}
+		return false;
+	});
+
 	timedCalls_.remove_if([](std::unique_ptr<TimeCall>& timedCalls) {
 		if (timedCalls->IsDead()) {
 			return true;
@@ -133,11 +140,13 @@ void GameScene::Update() {
 	});
 
 	// 当たり判定
-	collisionManager->Update(player_,enemy_,enemyBullets_);
+	collisionManager->Update(player_, playerBullets_,enemy_, enemyBullets_);
 
 	skydome->Update();
 
-	
+	// レールカメラアップデート
+	railCamera_->Update(&viewProjection_ /*&translation, &rotation*/);
+
 	// デバックカメラアップデート
 #ifdef _DEBUG
 	if (input_->TriggerKey(DIK_0)) {
@@ -157,6 +166,8 @@ void GameScene::Update() {
 		railCamera_->Update(&viewProjection_ /*&translation, &rotation*/);
 	}
 #endif // _DEBUG
+
+
 }
 
 void GameScene::Draw() {

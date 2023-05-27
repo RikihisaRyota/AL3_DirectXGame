@@ -30,6 +30,12 @@ struct WorldTransform {
 	const WorldTransform* parent_ = nullptr;
 
 	/// <summary>
+	/// ワールドマトリックスからトランスフォームを取得
+	/// </summary>
+	/// <returns></returns>
+	Vector3 GetTranslation() { return {matWorld_.m[3][0], matWorld_.m[3][1], matWorld_.m[3][2]};}
+
+	/// <summary>
 	/// 初期化
 	/// </summary>
 	void Initialize();

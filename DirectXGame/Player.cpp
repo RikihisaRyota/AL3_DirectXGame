@@ -8,7 +8,7 @@
 
 Player::~Player() { delete sprite2DReticle_; }
 
-void Player::Initialize(Model* model, uint32_t textureHandle) {
+void Player::Initialize(Model* model, uint32_t textureHandle, ViewProjection& viewProjection) {
 	// NULLポインタチェック
 	assert(model);
 	model_ = model;
@@ -29,9 +29,21 @@ void Player::Initialize(Model* model, uint32_t textureHandle) {
 
 	// レティクル用テクスチャ取得
 	uint32_t textureReticle = TextureManager::Load("Reticle.png");
+	// ビューポート行列
+	mat4x4 matViewport =
+	    MakeViewportMatrix(0, 0, WinApp::kWindowWidth, WinApp::kWindowHeight, 0, 1);
 
+	// ビュー行列とプロジェクション行列、ビューポート行列を合成する
+	mat4x4 matVPV =
+	    Convert(viewProjection.matView) * Convert(viewProjection.matProjection) * matViewport;
+	// スクリーン座標系からワールド座標系
+	reticlePosition_ = Transform(worldTransform_.translation_, matVPV);
 	// スプライト生成
-	sprite2DReticle_ = Sprite::Create(textureReticle, {0.0f, 0.0f,}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.5f, 0.5f});
+	sprite2DReticle_ = Sprite::Create(
+	    textureReticle, 
+		{reticlePosition_.x,reticlePosition_.y},
+	    {1.0f, 1.0f, 1.0f, 1.0f}, {0.5f, 0.5f});
+	
 }
 
 void Player::Update(ViewProjection& viewProjection) {
@@ -51,14 +63,26 @@ void Player::Update(ViewProjection& viewProjection) {
 		return false;
 	});
 #pragma endregion 弾の寿命確認
-#pragma region キーボード入力
 #pragma region キャラクター移動
+#pragma region キーボード入力
 	// 押した方向で良そうベクトルを変更(左右)
 	if (input_->PushKey(DIK_LEFT)) {
 		move.x -= kCharacterSpeed;
 	} else if (input_->PushKey(DIK_RIGHT)) {
 		move.x += kCharacterSpeed;
 	}
+#pragma endregion キーボード入力
+#pragma region ゲームパット入力
+	// ゲームパットの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState = {};
+
+	// ジョイスティック状態を取得
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		move.x += (float)joyState.Gamepad.sThumbLX / SHRT_MAX * kCharacterSpeed;
+		move.y += (float)joyState.Gamepad.sThumbLY / SHRT_MAX * kCharacterSpeed;
+	}
+
+#pragma endregion ゲームパット入力
 #pragma endregion キャラクター移動
 #pragma region キャラクター旋回
 	// 押した方向で良そうベクトルを変更(上下)
@@ -74,28 +98,6 @@ void Player::Update(ViewProjection& viewProjection) {
 		worldTransform_.rotation_.y -= kRotSpeed;
 	}
 #pragma endregion キャラクター旋回
-#pragma region キャラクター攻撃
-
-#pragma region 3Dレティクル
-	// 自機のワールド座標から3Dレティクルのワールド座標を計算
-	// 自機から3Dレティクルへの距離
-	const float kDistancePlayerTo3DReticle = 50.0f;
-	// 自機から3Dレティクルのオフセット(Z+向き)
-	Vector3 offset = {0.0f, 0.0f, 1.0f};
-	// 自機のワールド行列の回転を反映
-	mat4x4 playerMatWorld = MakeAffineMatrix(
-	    worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-	offset = TransformNormal(offset,Convert(playerMatWorld));
-	offset.Normalize();
-	offset = offset * kDistancePlayerTo3DReticle;
-	// 3Dレティクルの座標を設定
-	worldTransform3DReticle_.translation_ = offset + worldTransform_.translation_;
-	worldTransform3DReticle_.UpdateMatrix();
-#pragma endregion 3Dレティクル
-	Attack();
-
-#pragma endregion キャラクター攻撃
-#pragma endregion キーボード入力
 #pragma region 移動限界座標
 	// 移動限界座標
 	const float kMoveLimitX = 30;
@@ -120,71 +122,97 @@ void Player::Update(ViewProjection& viewProjection) {
 		(*it)->Update();
 	}
 #pragma endregion 攻撃アップデート
+#pragma region キャラクター攻撃
 #pragma region 3Dレティクル
-	POINT mousePosition;
-	// マウス座標(スクリーン座標)を取得する
-	GetCursorPos(&mousePosition);
+#pragma region マウスレティクル
+	//POINT mousePosition;
+	//// マウス座標(スクリーン座標)を取得する
+	//GetCursorPos(&mousePosition);
 
-	// クライアントエリア座標に変換する
-	HWND hwnd = WinApp::GetInstance()->GetHwnd();
-	ScreenToClient(hwnd, &mousePosition);
-	{ 
-		mat4x4 reticleWorldPos = MakeAffineMatrix(
-		    worldTransform3DReticle_.scale_, 
-			worldTransform3DReticle_.rotation_,
-		    worldTransform3DReticle_.translation_);
-		Vector3 positionReticle = Vector3(reticleWorldPos.m[3][0], reticleWorldPos.m[3][1], reticleWorldPos.m[3][2]);
+	//// クライアントエリア座標に変換する
+	//HWND hwnd = WinApp::GetInstance()->GetHwnd();
+	//ScreenToClient(hwnd, &mousePosition);
+	//reticlePosition_.x = static_cast<float>(mousePosition.x);
+	//reticlePosition_.y =static_cast<float>(mousePosition.y);
+	//// スプライトのレティクルに座標設定
+	//sprite2DReticle_->SetPosition(Vector2(reticlePosition_.x, reticlePosition_.x));
+#pragma endregion マウスレティクル
+#pragma region スティックレティクル
+	// スプライトの現在座標を取得
+	reticlePosition_.x = sprite2DReticle_->GetPosition().x;
+	reticlePosition_.y = sprite2DReticle_->GetPosition().y;
 
-		// ビューポート行列
-		mat4x4 matViewport =
-		    MakeViewportMatrix(0, 0, WinApp::kWindowWidth, WinApp::kWindowHeight, 0, 1);
-
-		// ビュー行列とプロジェクション行列、ビューポート行列を合成する
-		mat4x4 matViewProjectionViewport =
-		    Convert(viewProjection.matView) * Convert(viewProjection.matProjection) * matViewport;
-
-		// 合成行列の逆行列を計算する
-		mat4x4 matInverseVPV = Inverse(matViewProjectionViewport);
-
-		// スクリーン座標
-		Vector3 posNear =
-		    Vector3(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y), 0.0f);
-
-		Vector3 posFar =
-		    Vector3(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y), 1.0f);
-
-		// スクリーン座標系からワールド座標系
-		posNear = Transform(posNear,matInverseVPV);
-		posFar = Transform(posFar, matInverseVPV);
-
-		// マウスレイの方向
-		Vector3 mouseDirection = posFar - posNear;
-
-		mouseDirection.Normalize();
-
-		// カメラから照準オブジェクトの距離
-		const float kDistanceTestObject = 50.0f;
-		worldTransform3DReticle_.translation_;
-
-		// ワールド->スクリーン座標変換(ここで3Dから2Dになる)
-		positionReticle = Transform(positionReticle, matViewProjectionViewport);
-
-		// スプライトのレティクルに座標設定
-		sprite2DReticle_->SetPosition(
-		    Vector2(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y)));
-
-
+	// ジョイスティック状態の取得
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		reticlePosition_.x += (float)joyState.Gamepad.sThumbRX / SHRT_MAX * 5.0f;
+		reticlePosition_.y -= (float)joyState.Gamepad.sThumbRY / SHRT_MAX * 5.0f;
+		// スプライトの座標変更を反映
+		sprite2DReticle_->SetPosition(Vector2(reticlePosition_.x, reticlePosition_.y));
 	}
+#pragma endregion スティックレティクル
+
+	// ビューポート行列
+	mat4x4 matViewport =
+	    MakeViewportMatrix(0, 0, WinApp::kWindowWidth, WinApp::kWindowHeight, 0, 1);
+
+	// ビュー行列とプロジェクション行列、ビューポート行列を合成する
+	mat4x4 matVPV =
+	    Convert(viewProjection.matView) * Convert(viewProjection.matProjection) * matViewport;
+
+	// 合成行列の逆行列を計算する
+	mat4x4 matInverseVPV = Inverse(matVPV);
+
+	// スクリーン座標
+	Vector3 posNear = Vector3(
+	    static_cast<float>(reticlePosition_.x), static_cast<float>(reticlePosition_.y), 0.0f);
+
+	Vector3 posFar = Vector3(
+	    static_cast<float>(reticlePosition_.x), static_cast<float>(reticlePosition_.y), 1.0f);
+
+	// スクリーン座標系からワールド座標系
+	posNear = Transform(posNear, matInverseVPV);
+	posFar = Transform(posFar, matInverseVPV);
+
+	// マウスレイの方向
+	Vector3 mouseDirection = posFar - posNear;
+
+	mouseDirection.Normalize();
+
+	// カメラから照準オブジェクトの距離
+	const float kDistanceTestObject = 100.0f;
+
+	Vector3 reticlePos = posNear + (mouseDirection * kDistanceTestObject);
+
+	worldTransform3DReticle_.translation_ = Vector3(reticlePos.x, reticlePos.y, reticlePos.z);
+
+	worldTransform3DReticle_.matWorld_ = Convert(MakeAffineMatrix(
+	    worldTransform3DReticle_.scale_, worldTransform3DReticle_.rotation_,
+	    worldTransform3DReticle_.translation_));
+
+	worldTransform3DReticle_.UpdateMatrix();
+
 #pragma endregion 3Dレティクル
+	Attack();
+#pragma endregion キャラクター攻撃
 #pragma region デバック
 	// キャラクターの座標を画面表示する処理
 	ImGui::Begin("Player");
 	ImGui::Text(
-	    "position %f,%f,%f", worldTransform_.translation_.x, worldTransform_.translation_.y,
+	    "worldTransform_Position %f,%f,%f", worldTransform_.translation_.x, worldTransform_.translation_.y,
 	    worldTransform_.translation_.z);
 	ImGui::Text(
-	    "position %f,%f,%f", worldTransform3DReticle_.translation_.x,
+	    "worldTransform_Position %f,%f,%f", worldTransform_.matWorld_.m[3][0],
+	    worldTransform_.matWorld_.m[3][1], worldTransform_.matWorld_.m[3][2]);
+	ImGui::Text(
+	    "sprite2DReticle_Position %f,%f", sprite2DReticle_->GetPosition().x, sprite2DReticle_->GetPosition().y);
+	ImGui::Text("Near %f,%f,%f", posNear.x, posNear.y, posNear.z);
+	ImGui::Text("Far %f,%f,%f", posFar.x, posFar.y, posFar.z);
+	ImGui::Text(
+	    "worldTransform3DReticle_Position %f,%f,%f", worldTransform3DReticle_.translation_.x,
 	    worldTransform3DReticle_.translation_.y, worldTransform3DReticle_.translation_.z);
+	ImGui::Text(
+	    "worldTransform_Position %f,%f,%f", worldTransform3DReticle_.matWorld_.m[3][0],
+	    worldTransform3DReticle_.matWorld_.m[3][1], worldTransform3DReticle_.matWorld_.m[3][2]);
 	ImGui::End();
 #pragma endregion デバック
 }
@@ -200,11 +228,16 @@ void Player::DrawUI() {
 }
 
 void Player::Attack() {
-	if (input_->TriggerKey(DIK_SPACE)) {
+	// ゲームパットの状態を得る変数(XINPUT)
+	XINPUT_STATE joyState = {};
+	Input::GetInstance()->GetJoystickState(0, joyState);
+
+	if (input_->TriggerKey(DIK_SPACE) || (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)) {
 		// 弾の速度
-		const float kBulletSpeed = 1.0f;
+		const float kBulletSpeed = 2.0f;
 		// 自キャラからレティクルのベクトルを計算
-		Matrix4x4 playerMat = worldTransform_.matWorld_ * worldTransform_.parent_->matWorld_;
+		Matrix4x4 playerMat = worldTransform_.matWorld_;
+
 		Vector3 toReticle = worldTransform3DReticle_.translation_ -
 		                    Vector3(playerMat.m[3][0], playerMat.m[3][1], playerMat.m[3][2]);
 
@@ -215,10 +248,7 @@ void Player::Attack() {
 		WorldTransform tmp = worldTransform_;
 		tmp.matWorld_ *= worldTransform_.parent_->matWorld_;
 		tmp.UpdateMatrix();
-		Vector3 position = {
-			tmp.matWorld_.m[3][0], 
-			tmp.matWorld_.m[3][1], 
-			tmp.matWorld_.m[3][2]};
+		Vector3 position = {tmp.matWorld_.m[3][0], tmp.matWorld_.m[3][1], tmp.matWorld_.m[3][2]};
 
 		// 弾を生成し、初期化
 		std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
