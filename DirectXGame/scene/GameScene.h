@@ -9,6 +9,7 @@
 #include "ViewProjection.h"
 #include "WorldTransform.h"
 
+#include "Catmull_Rom.h"
 #include "Player.h"
 #include "PlayerBullet.h"
 #include "Enemy.h"
@@ -112,6 +113,8 @@ private:
 
 	//3Dモデル
 	Model* modelSkydome_ = nullptr;
+
+	std::unique_ptr<Catmull_Rom> catmull_Rom = nullptr;	
 
 	// レールカメラ
 	std::unique_ptr<RailCamera> railCamera_ = nullptr;

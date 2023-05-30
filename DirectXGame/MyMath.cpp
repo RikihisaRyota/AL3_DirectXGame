@@ -1,5 +1,7 @@
 #include "MyMath.h"
 #include "Vector3.h"
+#include <list>
+#include <vector>
 
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
 	Vector3 result{
@@ -40,6 +42,24 @@ Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	const Vector3 result = v1 * w1 + v2 * w2;
 
 	return result;
+}
+
+Vector3 CatmullRom(Vector3 Position0, Vector3 Position1, Vector3 Position2, Vector3 Position3, float t) {
+	Vector3 Result;
+
+	float t2 = t * t;
+	float t3 = t2 * t;
+
+	float P0 = -t3 + 2.0f * t2 - t;
+	float P1 = 3.0f * t3 - 5.0f * t2 + 2.0f;
+	float P2 = -3.0f * t3 + 4.0f * t2 + t;
+	float P3 = t3 - t2;
+
+	Result.x = (P0 * Position0.x + P1 * Position1.x + P2 * Position2.x + P3 * Position3.x) * 0.5f;
+	Result.y = (P0 * Position0.y + P1 * Position1.y + P2 * Position2.y + P3 * Position3.y) * 0.5f;
+	Result.z = (P0 * Position0.z + P1 * Position1.z + P2 * Position2.z + P3 * Position3.z) * 0.5f;
+
+	return Result;
 }
 
 float Distance(const Vector3& v1, const Vector3& v2) {

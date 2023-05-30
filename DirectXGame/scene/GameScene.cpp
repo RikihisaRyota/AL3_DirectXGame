@@ -76,6 +76,9 @@ void GameScene::Initialize() {
 	// 自キャラとレールカメラの親子関係を結ぶ
 	player_->SetParent(&railCamera_->GetWorldTransform());
 
+	// catmullRomの初期化
+	catmull_Rom = std::make_unique<Catmull_Rom>();
+	catmull_Rom->Initialize();
 #pragma endregion 
 	// csvファイルの読み込み
 	LoadEnemyPopData();
@@ -162,8 +165,8 @@ void GameScene::Update() {
 		viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
 		viewProjection_.TransferMatrix();
 	} else {
-		// レールカメラアップデート
-		railCamera_->Update(&viewProjection_ /*&translation, &rotation*/);
+		//// レールカメラアップデート
+		//railCamera_->Update(&viewProjection_ /*&translation, &rotation*/);
 	}
 #endif // _DEBUG
 
@@ -182,7 +185,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに背景スプライトの描画処理を追加できる
 	/// </summary>
-
+	
 	// スプライト描画後処理
 	Sprite::PostDraw();
 	// 深度バッファクリア
@@ -217,7 +220,7 @@ void GameScene::Draw() {
 	     ++it) {
 		(*it)->Draw(viewProjection_);
 	}
-
+	catmull_Rom->Draw(viewProjection_);
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
@@ -231,6 +234,8 @@ void GameScene::Draw() {
 	/// </summary>
 	/// // PlayerUI
 	player_->DrawUI();
+
+	
 
 	// スプライト描画後処理
 	Sprite::PostDraw();

@@ -27,8 +27,8 @@ void RailCamera::Update(ViewProjection* viewProjection /*Vector3* position, Vect
 
 	// デバック
 	ImGui::Begin("Camera");
-	ImGui::SliderFloat3("translation", &worldTransform_.translation_.x, -100.0f, 100.0f);
-	ImGui::SliderFloat3("rotation_", &worldTransform_.rotation_.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("translation", &worldTransform_.translation_.x, -50.0f, 50.0f);
+	ImGui::SliderFloat3("rotation_", &worldTransform_.rotation_.x, -1.0f, 1.0f);
 	ImGui::End();
 }
 
