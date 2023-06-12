@@ -99,4 +99,12 @@ private:
 	Sprite* sprite2DReticle_ = nullptr;
 	// レティクルポジション(screen)
 	Vector3 reticlePosition_;
+	// 
+	std::vector<Vector3> controlPoints_;
+	// catmull
+	int catmullCount = 51;
+	// 線分を描画する用の頂点リスト
+	std::vector<Vector3> points;
+	// 線分の数
+	const size_t segmentCount = 200;
 };

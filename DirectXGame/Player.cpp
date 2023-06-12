@@ -43,7 +43,28 @@ void Player::Initialize(Model* model, uint32_t textureHandle, ViewProjection& vi
 	    textureReticle, 
 		{reticlePosition_.x,reticlePosition_.y},
 	    {1.0f, 1.0f, 1.0f, 1.0f}, {0.5f, 0.5f});
+
 	
+	controlPoints_ = {
+	    {0.0f,  0.0f,  0.0f}, //!< 0
+	    {10.0f, 10.0f, 0.0f}, //!< 1
+	    {10.0f, 15.0f, 0.0f}, //!< 2
+	    {20.0f, 15.0f, 0.0f}, //!< 3
+	    {20.0f, 0.0f,  0.0f}, //!< 4
+	    {30.0f, 0.0f,  0.0f}, //!< 5
+	};
+
+	for (std::vector<Vector3>::iterator itr = controlPoints_.begin();
+	     itr != controlPoints_.end() - 4; ++itr) {
+		for (size_t i = 0; i < segmentCount + 1; i++) {
+			float t = 1.0f / segmentCount * i;
+			Vector3 pos = CatmullRom(
+			    Vector3(itr->x, itr->y, itr->z), Vector3((itr + 1)->x, (itr + 1)->y, (itr + 1)->z),
+			    Vector3((itr + 2)->x, (itr + 2)->y, (itr + 2)->z),
+			    Vector3((itr + 3)->x, (itr + 3)->y, (itr + 3)->z), t);
+			points.push_back(pos);
+		}
+	}
 }
 
 void Player::Update(ViewProjection& viewProjection) {
@@ -113,7 +134,6 @@ void Player::Update(ViewProjection& viewProjection) {
 #pragma region 座標変換
 	// 座標移動(ベクトルの加算)
 	worldTransform_.translation_ += move;
-
 	worldTransform_.UpdateMatrix();
 #pragma endregion 座標変換
 #pragma region 攻撃アップデート

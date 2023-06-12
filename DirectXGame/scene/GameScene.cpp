@@ -12,6 +12,7 @@ GameScene::~GameScene() {
 	delete player_;
 	delete debugCamera_;
 	delete modelSkydome_;
+	TextureManager::Unload(textureHandle_);
 }
 
 void GameScene::Initialize() {
@@ -22,9 +23,6 @@ void GameScene::Initialize() {
 
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandle_ = TextureManager::Load("mario.png");
-
-	//レティクルのテクスチャ
-	TextureManager::Load("Reticle.png");
 #pragma region 生成
 	// 3Dモデルの生成
 	model_ = Model::Create();
@@ -71,7 +69,7 @@ void GameScene::Initialize() {
 	skydome->Initialize(modelSkydome_);
 
 	//レールカメラ初期化
-	railCamera_->Initialize(&viewProjection_.translation_, &viewProjection_.rotation_);
+	railCamera_->Initialize(&viewProjection_.translation_, &viewProjection_.rotation_,player_);
 
 	// 自キャラとレールカメラの親子関係を結ぶ
 	player_->SetParent(&railCamera_->GetWorldTransform());
