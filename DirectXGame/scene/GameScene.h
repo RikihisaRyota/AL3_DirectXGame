@@ -45,12 +45,12 @@ private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
-
+	ViewProjection viewProjection_;
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 	// プレイヤーモデル
-	std::unique_ptr<Model> playerModel_;
+	Model* playerModel_;
 };

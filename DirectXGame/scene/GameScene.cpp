@@ -12,12 +12,14 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
+	viewProjection_.Initialize();
+
 	// プレイヤーモデル
-	playerModel_ = std::make_unique<Model>();
+	playerModel_ = Model::Create();
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
-	player_->Initialize(playerModel_.get(),0);
+	player_->Initialize(playerModel_);
 }
 
 void GameScene::Update() {}
@@ -48,6 +50,8 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
+	// プレイヤー描画
+	player_->Draw(viewProjection_);
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
