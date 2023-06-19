@@ -17,7 +17,7 @@ void GameScene::Initialize() {
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
-	player_->Initialize(playerModel_.get());
+	player_->Initialize(playerModel_.get(),0);
 }
 
 void GameScene::Update() {}

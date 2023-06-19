@@ -3,12 +3,12 @@
 #include <cassert>
 
 void Player::Initialize(Model* model, int32_t texture) { 
-	// nullptrƒ`ƒFƒbƒN
+	// nullptrãƒã‚§ãƒƒã‚¯
 	assert(model);
 	model_ = std::make_unique<Model>(model);
-	// ƒeƒNƒXƒ`ƒƒƒnƒ“ƒhƒ‹
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒ³ãƒ‰ãƒ«
 	texture_ = texture;
-	// worldTransform‰Šú‰»
+	// worldTransformåˆæœŸåŒ–
 	worldTransform_.Initialize(); 
 }
 
