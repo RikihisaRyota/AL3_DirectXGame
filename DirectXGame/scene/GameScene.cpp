@@ -11,6 +11,13 @@ void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
+
+	// プレイヤーモデル
+	playerModel_ = std::make_unique<Model>();
+	// プレイヤー生成
+	player_ = std::make_unique<Player>();
+	// プレイヤー初期化
+	player_->Initialize(playerModel_.get());
 }
 
 void GameScene::Update() {}
