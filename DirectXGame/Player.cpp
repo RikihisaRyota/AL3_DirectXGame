@@ -206,7 +206,8 @@ void Player::Update(ViewProjection& viewProjection) {
 	worldTransform3DReticle_.translation_ = Vector3(reticlePos.x, reticlePos.y, reticlePos.z);
 
 	worldTransform3DReticle_.matWorld_ = Convert(MakeAffineMatrix(
-	    worldTransform3DReticle_.scale_, worldTransform3DReticle_.rotation_,
+	    worldTransform3DReticle_.scale_, 
+		worldTransform3DReticle_.rotation_,
 	    worldTransform3DReticle_.translation_));
 
 	worldTransform3DReticle_.UpdateMatrix();

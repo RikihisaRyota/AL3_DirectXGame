@@ -13,12 +13,12 @@ void RailCamera::Initialize(const Vector3* position, const Vector3* radian,Playe
 
 	drawer_ = PrimitiveDrawer::GetInstance();
 	controlPoints_ = {
-	    {0.0f,  0.0f,  0.0f}, //!< 0
+	    {0.0f,  0.0f,  0.0f }, //!< 0
 	    {10.0f, 10.0f, 10.0f}, //!< 1
 	    {10.0f, 15.0f, 15.0f}, //!< 2
-	    {20.0f, 15.0f, 5.0f}, //!< 3
-	    {20.0f, 0.0f,  2.0f}, //!< 4
-	    {30.0f, 0.0f,  0.0f}, //!< 5
+	    {20.0f, 15.0f, 10.0f}, //!< 3
+	    {20.0f, 0.0f,  5.0f }, //!< 4
+	    {30.0f, 0.0f,  0.0f }, //!< 5
 	};
 
 	for (std::vector<Vector3>::iterator itr = controlPoints_.begin();
