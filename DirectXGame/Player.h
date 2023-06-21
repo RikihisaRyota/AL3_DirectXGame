@@ -10,7 +10,7 @@ public: // メンバ関数
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(Model* model, int32_t texture = 0);
+	void Initialize(std::unique_ptr<Model> model, int32_t texture = 0);
 	/// <summary>
 	/// 更新
 	/// </summary>
@@ -21,7 +21,10 @@ public: // メンバ関数
 	void Draw(const ViewProjection& viewProjection);
 
 private: // メンバ変数
+	// ワールド
 	WorldTransform worldTransform_;
+	// モデル
 	std::unique_ptr<Model> model_;
+	// テクスチャハンドル
 	int32_t texture_;
 };

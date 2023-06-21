@@ -15,11 +15,13 @@ void GameScene::Initialize() {
 	viewProjection_.Initialize();
 
 	// プレイヤーモデル
-	playerModel_ = Model::Create();
+	playerModel_.reset(Model::Create());
+	// プレイヤーテクスチャハンドル
+	playerTextureHandle_ = TextureManager::Load("mario.png");
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
-	player_->Initialize(playerModel_);
+	player_->Initialize(std::move(playerModel_),playerTextureHandle_);
 }
 
 void GameScene::Update() {}

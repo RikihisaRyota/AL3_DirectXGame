@@ -52,5 +52,7 @@ private: // メンバ変数
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 	// プレイヤーモデル
-	Model* playerModel_;
+	std::unique_ptr<Model> playerModel_;
+	// プレイヤーテクスチャハンドル
+	int32_t playerTextureHandle_ = 0;
 };
