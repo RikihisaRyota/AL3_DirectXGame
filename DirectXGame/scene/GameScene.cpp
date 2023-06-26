@@ -59,11 +59,11 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
-	// 天球描画
-	skydome_->Draw(viewProjection_);
+	
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
-
+	// 天球描画
+	skydome_->Draw(viewProjection_);
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
