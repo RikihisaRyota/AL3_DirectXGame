@@ -9,6 +9,7 @@
 #include "WorldTransform.h"
 
 #include "Player.h"
+#include "Skydome.h"
 
 /// <summary>
 /// ゲームシーン
@@ -55,4 +56,8 @@ private: // メンバ変数
 	std::unique_ptr<Model> playerModel_;
 	// プレイヤーテクスチャハンドル
 	int32_t playerTextureHandle_ = 0;
+	// 天球
+	std::unique_ptr<Skydome> skydome_;
+	// 天球モデル
+	std::unique_ptr<Model> skydomeModel_;
 };

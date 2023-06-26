@@ -22,6 +22,15 @@ void GameScene::Initialize() {
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
 	player_->Initialize(std::move(playerModel_),playerTextureHandle_);
+
+	// 天球のモデル
+	skydomeModel_.reset(Model::Create());
+	// 天球テクスチャハンドル
+	playerTextureHandle_ = TextureManager::Load("mario.png");
+	// 天球生成
+	skydome_ = std::make_unique<Skydome>();
+	// 天球初期化
+	player_->Initialize(std::move(skydomeModel_), playerTextureHandle_);
 }
 
 void GameScene::Update() {}
@@ -52,6 +61,8 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
+	// 天球描画
+	skydome_->Draw(viewProjection_);
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
 
