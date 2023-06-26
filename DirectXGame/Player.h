@@ -1,9 +1,10 @@
 #pragma once
+#include <cstdlib>
+#include <memory>
+
 #include "Model.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
-#include <cstdlib>
-#include <memory>
 
 class Player {
 public: // メンバ関数

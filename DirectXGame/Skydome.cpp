@@ -1,10 +1,10 @@
 #include "Skydome.h"
 #include <assert.h>
 
-void Skydome::Initialize(Model* model) {
+void Skydome::Initialize(std::unique_ptr<Model> model) {
 	// NULLポインタチェック
 	assert(model);
-	model_ = model;
+	model_ = std::move(model);
 	worldTransform_.translation_ = {0.0f, 0.0f, 0.0f};
 	worldTransform_.scale_ = {50.0f, 50.0f, 50.0f};
 	worldTransform_.TransferMatrix();

@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "Model.h"
 #include "WorldTransform.h"
 class Skydome {
@@ -6,7 +8,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(Model* model);
+	void Initialize(std::unique_ptr<Model> model);
 
 	/// <summary>
 	/// 更新
@@ -22,5 +24,5 @@ private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// モデル
-	Model* model_ = nullptr;
+	std::unique_ptr<Model> model_ = nullptr;
 };

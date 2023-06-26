@@ -24,9 +24,7 @@ void GameScene::Initialize() {
 	player_->Initialize(std::move(playerModel_),playerTextureHandle_);
 
 	// 天球のモデル
-	skydomeModel_.reset(Model::Create());
-	// 天球テクスチャハンドル
-	playerTextureHandle_ = TextureManager::Load("mario.png");
+	skydomeModel_.reset(Model::CreateFromOBJ("sky",true));
 	// 天球生成
 	skydome_ = std::make_unique<Skydome>();
 	// 天球初期化
