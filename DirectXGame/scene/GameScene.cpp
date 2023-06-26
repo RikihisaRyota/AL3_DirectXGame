@@ -28,7 +28,7 @@ void GameScene::Initialize() {
 	// 天球生成
 	skydome_ = std::make_unique<Skydome>();
 	// 天球初期化
-	player_->Initialize(std::move(skydomeModel_), playerTextureHandle_);
+	skydome_->Initialize(std::move(skydomeModel_));
 }
 
 void GameScene::Update() {}
