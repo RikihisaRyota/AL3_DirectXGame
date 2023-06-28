@@ -29,6 +29,13 @@ void GameScene::Initialize() {
 	skydome_ = std::make_unique<Skydome>();
 	// 天球初期化
 	skydome_->Initialize(std::move(skydomeModel_));
+
+	//　地面のモデル
+	groundModel_.reset(Model::CreateFromOBJ("sky", true));
+	// 地面生成
+	ground_ = std::make_unique<Skydome>();
+	// 地面初期化
+	ground_->Initialize(std::move(groundModel_));
 }
 
 void GameScene::Update() {}
@@ -59,11 +66,13 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
-	
-	// プレイヤー描画
-	player_->Draw(viewProjection_);
 	// 天球描画
 	skydome_->Draw(viewProjection_);
+	// 地面描画
+	ground_->Draw(viewProjection_);
+	// プレイヤー描画
+	player_->Draw(viewProjection_);
+	
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion

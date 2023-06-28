@@ -60,4 +60,8 @@ private: // メンバ変数
 	std::unique_ptr<Skydome> skydome_;
 	// 天球モデル
 	std::unique_ptr<Model> skydomeModel_;
+	// 地面
+	std::unique_ptr<Skydome> ground_;
+	// 地面モデル
+	std::unique_ptr<Model> groundModel_;
 };
