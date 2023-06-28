@@ -12,6 +12,9 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
+	// デバックカメラの生成	
+	debugCamera_ = std::make_unique<DebugCamera>(WinApp::kWindowWidth,WinApp::kWindowHeight);
+	// viewProjectionの初期化
 	viewProjection_.Initialize();
 
 	// プレイヤーモデル
@@ -38,7 +41,10 @@ void GameScene::Initialize() {
 	ground_->Initialize(std::move(groundModel_));
 }
 
-void GameScene::Update() {}
+void GameScene::Update() {
+	// デバックカメラの更新
+	debugCamera_->Update();
+}
 
 void GameScene::Draw() {
 

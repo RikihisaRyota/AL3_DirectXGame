@@ -1,6 +1,7 @@
 #pragma once
 #include "Audio.h"
 #include "DirectXCommon.h"
+#include "DebugCamera.h"
 #include "Input.h"
 #include "Model.h"
 #include "SafeDelete.h"
@@ -47,6 +48,8 @@ private: // メンバ変数
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 	ViewProjection viewProjection_;
+	// デバックカメラ
+	std::unique_ptr<DebugCamera> debugCamera_;
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
