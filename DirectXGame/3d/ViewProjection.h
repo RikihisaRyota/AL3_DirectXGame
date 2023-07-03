@@ -72,4 +72,14 @@ struct ViewProjection {
 	/// 射影行列を更新する
 	/// </summary>
 	void UpdateProjectionMatrix();
+
+public: // ゲッター,セッター
+	/// <summary>
+	/// SetViewProjection
+	/// </summary>
+	/// <param name="viewProjection">ViewProjection</param>
+	void SetViewProjection(const ViewProjection* viewProjection) {
+		matView = viewProjection->matView;
+		matProjection = viewProjection->matProjection;
+	};
 };

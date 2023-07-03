@@ -27,6 +27,9 @@ private: // メンバ関数
 	/// </summary>
 	void Move();
 
+public: // ゲッター,セッター
+	WorldTransform* GetWorldTransform() { return &worldTransform_; }
+
 private: // メンバ変数
 	// ワールド
 	WorldTransform worldTransform_;

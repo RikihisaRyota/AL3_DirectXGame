@@ -7,46 +7,61 @@ GameScene::GameScene() {}
 GameScene::~GameScene() {}
 
 void GameScene::Initialize() {
-
+#pragma region 初期設定
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
-	// デバックカメラの生成	
-	debugCamera_ = std::make_unique<DebugCamera>(WinApp::kWindowWidth,WinApp::kWindowHeight);
+	// デバックカメラの生成
+	debugCamera_ = std::make_unique<DebugCamera>(WinApp::kWindowWidth, WinApp::kWindowHeight);
 	// viewProjectionの初期化
 	viewProjection_.Initialize();
-
+#pragma endregion
+#pragma region プレイヤー
 	// プレイヤーモデル
 	playerModel_.reset(Model::CreateFromOBJ("player", true));
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
 	player_->Initialize(std::move(playerModel_));
-
+#pragma endregion
+#pragma region 天球
 	// 天球のモデル
-	skydomeModel_.reset(Model::CreateFromOBJ("sky",true));
+	skydomeModel_.reset(Model::CreateFromOBJ("sky", true));
 	// 天球生成
 	skydome_ = std::make_unique<Skydome>();
 	// 天球初期化
 	skydome_->Initialize(std::move(skydomeModel_));
-
-	//　地面のモデル
+#pragma endregion
+#pragma region 地面
+	// 地面のモデル
 	groundModel_.reset(Model::CreateFromOBJ("ground", true));
 	// 地面生成
 	ground_ = std::make_unique<Skydome>();
 	// 地面初期化
 	ground_->Initialize(std::move(groundModel_));
+#pragma endregion
+#pragma region 追従カメラ
+	// 追従カメラ生成
+	followCamera_ = std::make_unique<FollowCamera>();
+	// 追従カメラ初期化
+	followCamera_->Intialize();
+	// 自キャラのワールドトランスフォームを追従カメラにセット
+	followCamera_->SetTarget(player_->GetWorldTransform());
+#pragma endregion
 }
 
 void GameScene::Update() {
 	// デバックカメラの更新
 	debugCamera_->Update();
-	viewProjection_.matView = debugCamera_->GetViewProjection().matView;
-	viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
+	viewProjection_.SetViewProjection(&debugCamera_->GetViewProjection());
 	viewProjection_.TransferMatrix();
 	// プレイヤーの更新
 	player_->Update();
+	// 追従カメラの更新
+	followCamera_->Update();
+	viewProjection_.SetViewProjection(followCamera_->GetViewProjection());
+	viewProjection_.TransferMatrix();
 }
 
 void GameScene::Draw() {
