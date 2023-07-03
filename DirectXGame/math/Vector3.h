@@ -68,4 +68,10 @@ struct Vector3 final {
 		return *this;
 	}
 
+	// !=演算子のオーバーロード
+	bool operator!=(const Vector3& other) const {
+		return !(x == other.x && y == other.y && z == other.z);
+	}
+
+
 };
