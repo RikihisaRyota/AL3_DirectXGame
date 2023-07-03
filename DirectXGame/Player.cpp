@@ -1,6 +1,5 @@
 #include "Player.h"
 
-#include <Xinput.h>
 #include <cassert>
 
 #include "input/Input.h"
@@ -30,8 +29,8 @@ void Player::Move() {
 	XINPUT_STATE joyState{};
 
 	// ゲームパットの状況取得
-	if (((joyState.Gamepad.sThumbLX & XINPUT_GAMEPAD_LEFT_THUMB) ||
-		(joyState.Gamepad.sThumbLY & XINPUT_GAMEPAD_LEFT_THUMB)) &&
+	if (/*((joyState.Gamepad.sThumbLX & XINPUT_GAMEPAD_LEFT_THUMB) ||
+		(joyState.Gamepad.sThumbLY & XINPUT_GAMEPAD_LEFT_THUMB)) &&*/
 	    Input::GetInstance()->GetJoystickState(0, joyState)
 		) {
 		// 移動量

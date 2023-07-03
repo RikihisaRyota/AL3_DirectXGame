@@ -34,4 +34,5 @@ private: // メンバ変数
 	std::unique_ptr<Model> model_;
 	// 速さ
 	const float kSpeed = 0.3f;
+	
 };
