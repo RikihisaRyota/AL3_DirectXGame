@@ -418,3 +418,9 @@ Matrix4x4 Convert(const Matrix4x4& m1) {
 	mat.m[3][3] = m1.m[3][3];
 	return mat;
 }
+
+const double pi = 3.14159265359;
+
+float RadToDeg(float radian) { return static_cast<float> (pi) / radian; }
+
+float DegToRad(float degree) { return degree * static_cast<float>(pi) / 180.0f; }

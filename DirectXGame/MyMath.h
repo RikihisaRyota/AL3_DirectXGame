@@ -56,3 +56,7 @@ Matrix4x4 MakeViewportMatrix(
     float left, float top, float width, float height, float minDepth, float maxDepth);
 
 Matrix4x4 Convert(const Matrix4x4& m1);
+
+float RadToDeg(float radian);
+
+float DegToRad(float degree);

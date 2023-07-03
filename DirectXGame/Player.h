@@ -21,9 +21,17 @@ public: // メンバ関数
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
 
+private: // メンバ関数
+	/// <summary>
+	/// プレイヤーの動き
+	/// </summary>
+	void Move();
+
 private: // メンバ変数
 	// ワールド
 	WorldTransform worldTransform_;
 	// モデル
 	std::unique_ptr<Model> model_;
+	// 速さ
+	const float kSpeed = 0.3f;
 };

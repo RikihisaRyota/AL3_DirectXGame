@@ -45,6 +45,8 @@ void GameScene::Update() {
 	viewProjection_.matView = debugCamera_->GetViewProjection().matView;
 	viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
 	viewProjection_.TransferMatrix();
+	// プレイヤーの更新
+	player_->Update();
 }
 
 void GameScene::Draw() {
