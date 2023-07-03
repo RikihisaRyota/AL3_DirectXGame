@@ -34,7 +34,7 @@ void GameScene::Initialize() {
 	skydome_->Initialize(std::move(skydomeModel_));
 
 	//　地面のモデル
-	groundModel_.reset(Model::CreateFromOBJ("sky", true));
+	groundModel_.reset(Model::CreateFromOBJ("ground", true));
 	// 地面生成
 	ground_ = std::make_unique<Skydome>();
 	// 地面初期化
@@ -44,6 +44,9 @@ void GameScene::Initialize() {
 void GameScene::Update() {
 	// デバックカメラの更新
 	debugCamera_->Update();
+	viewProjection_.matView = debugCamera_->GetViewProjection().matView;
+	viewProjection_.matProjection = debugCamera_->GetViewProjection().matProjection;
+	viewProjection_.TransferMatrix();
 }
 
 void GameScene::Draw() {
