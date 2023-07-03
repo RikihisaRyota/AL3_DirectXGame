@@ -27,10 +27,13 @@ void Player::Draw(const ViewProjection& viewProjection) {
 
 void Player::Move() {
 	// ゲームパットの状態を得る変数
-	XINPUT_STATE joyState;
+	XINPUT_STATE joyState{};
 
 	// ゲームパットの状況取得
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+	if (((joyState.Gamepad.sThumbLX & XINPUT_GAMEPAD_LEFT_THUMB) ||
+		(joyState.Gamepad.sThumbLY & XINPUT_GAMEPAD_LEFT_THUMB)) &&
+	    Input::GetInstance()->GetJoystickState(0, joyState)
+		) {
 		// 移動量
 		Vector3 move = {
 		    static_cast<float>(joyState.Gamepad.sThumbLX / SHRT_MAX * kSpeed),
