@@ -57,8 +57,6 @@ private: // メンバ変数
 	std::unique_ptr<Player> player_;
 	// プレイヤーモデル
 	std::unique_ptr<Model> playerModel_;
-	// プレイヤーテクスチャハンドル
-	int32_t playerTextureHandle_ = 0;
 	// 天球
 	std::unique_ptr<Skydome> skydome_;
 	// 天球モデル

@@ -18,13 +18,11 @@ void GameScene::Initialize() {
 	viewProjection_.Initialize();
 
 	// プレイヤーモデル
-	playerModel_.reset(Model::Create());
-	// プレイヤーテクスチャハンドル
-	playerTextureHandle_ = TextureManager::Load("mario.png");
+	playerModel_.reset(Model::CreateFromOBJ("player", true));
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤー初期化
-	player_->Initialize(std::move(playerModel_),playerTextureHandle_);
+	player_->Initialize(std::move(playerModel_));
 
 	// 天球のモデル
 	skydomeModel_.reset(Model::CreateFromOBJ("sky",true));

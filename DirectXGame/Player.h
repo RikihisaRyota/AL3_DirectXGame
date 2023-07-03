@@ -11,7 +11,7 @@ public: // メンバ関数
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(std::unique_ptr<Model> model, int32_t texture = 0);
+	void Initialize(std::unique_ptr<Model> model);
 	/// <summary>
 	/// 更新
 	/// </summary>
@@ -26,6 +26,4 @@ private: // メンバ変数
 	WorldTransform worldTransform_;
 	// モデル
 	std::unique_ptr<Model> model_;
-	// テクスチャハンドル
-	int32_t texture_;
 };
