@@ -38,7 +38,7 @@ void Player::Move() {
 		    static_cast<float>(joyState.Gamepad.sThumbLY / SHRT_MAX * kSpeed),
 		};
 		// 移動量に速さを反映
-		move.Normalize();
+		//move.Normalize();
 		move *= kSpeed;
 
 		// 移動
