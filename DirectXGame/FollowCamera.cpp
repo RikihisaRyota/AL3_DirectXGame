@@ -17,14 +17,14 @@ void FollowCamera::Update() {
 		// ゲームパットの状況取得
 		if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 			// カメラの角度から回転行列を計算する
-			Matrix4x4 rotate;
 			// X軸
-			viewProjection_.rotation_.x +=
+			viewProjection_.rotation_.x -=
 			    static_cast<float>(joyState.Gamepad.sThumbRY) * kRotateSpeed;
 			// Y軸
 			viewProjection_.rotation_.y +=
 			    static_cast<float>(joyState.Gamepad.sThumbRX) * kRotateSpeed;
-			rotate = Mul(
+			// 回転行列生成
+			Matrix4x4 rotate = Mul(
 				MakeRotateXMatrix(viewProjection_.rotation_.x),
 			    MakeRotateYMatrix(viewProjection_.rotation_.y));
 			// オフセットをカメラの回転に合わせて回転させる

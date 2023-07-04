@@ -41,7 +41,11 @@ void Player::Move() {
 			move.Normalize();
 		}
 		move *= kSpeed;
-
+		// 移動ベクトルにカメラの回転角度だけ回転
+		// 回転行列生成
+		Matrix4x4 rotate = MakeRotateYMatrix(viewProjection_->rotation_.y);
+		// オフセットをカメラの回転に合わせて回転させる
+		move = TransformNormal(move, rotate);
 		// 移動
 		worldTransform_.translation_ += move;
 	}

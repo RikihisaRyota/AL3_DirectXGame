@@ -48,6 +48,9 @@ void GameScene::Initialize() {
 	followCamera_->Intialize();
 	// 自キャラのワールドトランスフォームを追従カメラにセット
 	followCamera_->SetTarget(player_->GetWorldTransform());
+	// プレイヤーにビュープロジェクションをセット
+	player_->SetViewProjection(followCamera_->GetViewProjection());
+	//player_->SetViewProjection(&viewProjection_);
 #pragma endregion
 }
 
