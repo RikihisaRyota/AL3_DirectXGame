@@ -1,5 +1,6 @@
 #include "FollowCamera.h"
 
+#include "ImGuiManager.h"
 #include "input/Input.h"
 #include "MyMath.h"
 void FollowCamera::Intialize() {
@@ -33,7 +34,11 @@ void FollowCamera::Update() {
 		// 座標をコピーしてずらす
 		viewProjection_.translation_ = target_->translation_ + offset;
 	}
-
+	ImGui::Begin("rotate");
+	ImGui::Text(
+	    "rotation.x:%f,y:%f,z:%f ", viewProjection_.rotation_.x, viewProjection_.rotation_.y,
+	    viewProjection_.rotation_.z);
+	ImGui::End();
 	// ビュー行列の更新
 	viewProjection_.UpdateMatrix();
 }

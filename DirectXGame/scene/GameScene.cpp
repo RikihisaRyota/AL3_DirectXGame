@@ -1,6 +1,9 @@
 #include "GameScene.h"
-#include "TextureManager.h"
+
 #include <cassert>
+
+#include "AxisIndicator.h"
+#include "TextureManager.h"
 
 GameScene::GameScene() {}
 
@@ -49,8 +52,7 @@ void GameScene::Initialize() {
 	// 自キャラのワールドトランスフォームを追従カメラにセット
 	followCamera_->SetTarget(player_->GetWorldTransform());
 	// プレイヤーにビュープロジェクションをセット
-	//player_->SetViewProjection(followCamera_->GetViewProjection());
-	player_->SetViewProjection(&viewProjection_);
+	player_->SetViewProjection(followCamera_->GetViewProjection());
 #pragma endregion
 }
 
@@ -59,12 +61,16 @@ void GameScene::Update() {
 	debugCamera_->Update();
 	viewProjection_.SetViewProjection(&debugCamera_->GetViewProjection());
 	viewProjection_.TransferMatrix();
-	// プレイヤーの更新
-	player_->Update();
 	// 追従カメラの更新
 	followCamera_->Update();
 	viewProjection_.SetViewProjection(followCamera_->GetViewProjection());
 	viewProjection_.TransferMatrix();
+	// プレイヤーの更新
+	player_->Update();
+	// 軸方向表示の表示を有効化
+	AxisIndicator::GetInstance()->SetVisible(true);
+	// 軸方向表示が参照するビュープロジェクションを指定する(アドレス渡し)
+	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
 }
 
 void GameScene::Draw() {

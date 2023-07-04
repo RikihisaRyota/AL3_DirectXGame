@@ -5,7 +5,7 @@
 #include "Model.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
-
+#include "input/Input.h"
 class Player {
 public: // メンバ関数
 	/// <summary>
