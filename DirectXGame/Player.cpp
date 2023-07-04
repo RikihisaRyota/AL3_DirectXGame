@@ -48,6 +48,12 @@ void Player::Move() {
 		move = TransformNormal(move, rotate);
 		// 移動
 		worldTransform_.translation_ += move;
+
+		// プレイヤーの姿勢
+		// 横軸方向の長さを求める
+		float velocityXZ = sqrt(move.x * move.x + move.z * move.z);
+		// X軸回り角度(θx)
+		worldTransform_.rotation_.x = std::atan2(-move.y, velocityXZ);
 	}
 
 	// 行列を更新
