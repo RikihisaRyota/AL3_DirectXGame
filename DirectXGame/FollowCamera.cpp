@@ -20,10 +20,14 @@ void FollowCamera::Update() {
 			// カメラの角度から回転行列を計算する
 			// X軸
 			viewProjection_.rotation_.x -=
-			    static_cast<float>(joyState.Gamepad.sThumbRY) * kRotateSpeed;
+			    static_cast<float>(joyState.Gamepad.sThumbRY) * kRotateSpeedX;
+			viewProjection_.rotation_.x = Clamp(
+			    viewProjection_.rotation_.x, 
+				DegToRad(deadZoneRotateMin),
+			    DegToRad(deadZoneRotateMax));
 			// Y軸
 			viewProjection_.rotation_.y +=
-			    static_cast<float>(joyState.Gamepad.sThumbRX) * kRotateSpeed;
+			    static_cast<float>(joyState.Gamepad.sThumbRX) * kRotateSpeedY;
 			// 回転行列生成
 			Matrix4x4 rotate = Mul(
 				MakeRotateXMatrix(viewProjection_.rotation_.x),
@@ -32,12 +36,16 @@ void FollowCamera::Update() {
 			offset = TransformNormal(offset, rotate);
 		}
 		// 座標をコピーしてずらす
-		viewProjection_.translation_ = target_->translation_ + offset;
+		viewProjection_.translation_.x = target_->translation_.x + offset.x;
+		viewProjection_.translation_.y = offset.y;
+		viewProjection_.translation_.z = target_->translation_.z + offset.z;
 	}
-	ImGui::Begin("rotate");
+	ImGui::Begin("camera");
 	ImGui::Text(
-	    "rotation.x:%f,y:%f,z:%f ", viewProjection_.rotation_.x, viewProjection_.rotation_.y,
-	    viewProjection_.rotation_.z);
+	    "x:%f,y:%f,z:%f",
+		viewProjection_.translation_.x,
+		viewProjection_.translation_.y,
+	    viewProjection_.translation_.z);
 	ImGui::End();
 	// ビュー行列の更新
 	viewProjection_.UpdateMatrix();

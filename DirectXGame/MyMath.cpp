@@ -35,7 +35,7 @@ Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	// sin(theta) を計算
 	const float sinTheta = std::sin(theta);
 
-	  // 0除算による計算不可を回避するため、sinThetaが0に近い場合は線形補間を行う
+	// 0除算による計算不可を回避するため、sinThetaが0に近い場合は線形補間を行う
 	if (std::abs(sinTheta) < 0.0001f) {
 		return v1 * (1.0f - t) + v2 * t;
 	}
@@ -48,7 +48,8 @@ Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	return result;
 }
 
-Vector3 CatmullRom(Vector3 Position0, Vector3 Position1, Vector3 Position2, Vector3 Position3, float t) {
+Vector3 CatmullRom(
+    Vector3 Position0, Vector3 Position1, Vector3 Position2, Vector3 Position3, float t) {
 	Vector3 Result;
 
 	float t2 = t * t;
@@ -421,6 +422,25 @@ Matrix4x4 Convert(const Matrix4x4& m1) {
 
 const double pi = 3.14159265359;
 
-float RadToDeg(float radian) { return static_cast<float> (pi) / radian; }
+float Clamp(float num, float min, float max) {
+	if (num <= min) {
+		num = min;
+	} else if (num >= max) {
+		num = max;
+	}
+	return num;
+}
+
+float RadToDeg(float radian) { return static_cast<float>(pi) / radian; }
 
 float DegToRad(float degree) { return degree * static_cast<float>(pi) / 180.0f; }
+
+Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform) { 
+	Matrix4x4 result = MakeIdentity4x4();
+	result = MakeAffineMatrix(
+		worldtransform.scale_, 
+		worldtransform.rotation_, 
+		worldtransform.translation_
+	); 
+	return result;
+}

@@ -1,7 +1,9 @@
 #pragma once
+#include <algorithm> // std::min, std::max
+
 #include "Matrix4x4.h"
 #include "WorldTransform.h"
-//ベクトル変換
+// ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
 
 Vector3 Lerp(const Vector3& start, const Vector3& end, float t);
@@ -10,9 +12,9 @@ Vector3 Slerp(const Vector3& start, const Vector3& end, float t);
 
 float Distance(const Vector3& v1, const Vector3& v2);
 
-//Vector3 operator*(const float a, const Vector3& v) { return Vector3(a * v.x, a * v.y, a * v.z); }
+// Vector3 operator*(const float a, const Vector3& v) { return Vector3(a * v.x, a * v.y, a * v.z); }
 
-Vector3 CatmullRom(Vector3 point0,Vector3 point1,Vector3 point2,Vector3 point3,float t);
+Vector3 CatmullRom(Vector3 point0, Vector3 point1, Vector3 point2, Vector3 point3, float t);
 
 // 1,行列の加法
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2);
@@ -57,6 +59,29 @@ Matrix4x4 MakeViewportMatrix(
 
 Matrix4x4 Convert(const Matrix4x4& m1);
 
+/// <summary>
+/// Clamp
+/// </summary>
+/// <param name="num"></param>
+/// <param name="min">min</param>
+/// <param name="max">max</param>
+/// <returns></returns>
+float Clamp(float num, float min, float max);
+/// <summary>
+/// radian->degree
+/// </summary>
+/// <param name="radian">radian</param>
+/// <returns>degree</returns>
 float RadToDeg(float radian);
-
+/// <summary>
+/// degree->radian
+/// </summary>
+/// <param name="degree">degree</param>
+/// <returns>radian</returns>
 float DegToRad(float degree);
+/// <summary> 
+/// ワールドトランスフォームからワールド行列を生成
+/// </summary>
+/// /// <param name="worldtransform"></param>
+/// /// <returns></returns>
+Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform);

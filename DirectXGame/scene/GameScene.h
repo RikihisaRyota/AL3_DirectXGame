@@ -42,7 +42,6 @@ public: // メンバ関数
 	/// 描画
 	/// </summary>
 	void Draw();
-
 private: // メンバ変数
 #pragma region 初期設定
 	     // 初期設定
@@ -52,6 +51,8 @@ private: // メンバ変数
 	ViewProjection viewProjection_;
 	// デバックカメラ
 	std::unique_ptr<DebugCamera> debugCamera_;
+	// デバックカメラ切り替え
+	bool debugCameraFlag_;
 #pragma endregion
 	/// <summary>
 	/// ゲームシーン用
@@ -59,20 +60,14 @@ private: // メンバ変数
 #pragma region プレイヤー
 	// プレイヤー
 	std::unique_ptr<Player> player_;
-	// プレイヤーモデル
-	std::unique_ptr<Model> playerModel_;
 #pragma endregion
 #pragma region 天球
 	// 天球
 	std::unique_ptr<Skydome> skydome_;
-	// 天球モデル
-	std::unique_ptr<Model> skydomeModel_;
 #pragma endregion
 #pragma region 地面
 	// 地面
 	std::unique_ptr<Skydome> ground_;
-	// 地面モデル
-	std::unique_ptr<Model> groundModel_;
 #pragma endregion
 #pragma region 追従カメラ
 	// 追従カメラ

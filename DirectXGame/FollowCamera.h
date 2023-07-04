@@ -13,7 +13,6 @@ public: // メンバ関数
 	/// 更新
 	/// </summary>
 	void Update();
-
 public: // セッター,ゲッター
 	/// <summary>
 	/// ターゲット
@@ -23,9 +22,14 @@ public: // セッター,ゲッター
 
 	ViewProjection* GetViewProjection() { return &viewProjection_; }
 
-private: // メンバ変数
+private: 
 	// 回転速度
-	const float kRotateSpeed = 0.000001f;
+	const float kRotateSpeedX = 0.000001f;
+	const float kRotateSpeedY = 0.000002f;
+	// 上下方向の回転のデッドゾーン
+	const float deadZoneRotateMin = -10.0f;
+	const float deadZoneRotateMax = 70.0f;
+private: // メンバ変数
 	// ビュープロジェクション
 	ViewProjection viewProjection_;
 	// 追従対象

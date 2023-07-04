@@ -17,32 +17,43 @@ void GameScene::Initialize() {
 
 	// デバックカメラの生成
 	debugCamera_ = std::make_unique<DebugCamera>(WinApp::kWindowWidth, WinApp::kWindowHeight);
+	// デバックカメラフラグ切り替え
+	debugCameraFlag_ = false;
 	// viewProjectionの初期化
 	viewProjection_.Initialize();
 #pragma endregion
 #pragma region プレイヤー
-	// プレイヤーモデル
-	playerModel_.reset(Model::CreateFromOBJ("player", true));
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
+	// プレイヤーモデル
+	std::vector<std::unique_ptr<Model>> playerModel(4);
+	// プレイヤーモデル
+	playerModel[0].reset(Model::CreateFromOBJ("head", true));
+	playerModel[1].reset(Model::CreateFromOBJ("body", true));
+	playerModel[2].reset(Model::CreateFromOBJ("armL", true));
+	playerModel[3].reset(Model::CreateFromOBJ("armR", true));
 	// プレイヤー初期化
-	player_->Initialize(std::move(playerModel_));
+	player_->Initialize(std::move(playerModel));
 #pragma endregion
 #pragma region 天球
+	// 天球モデル
+	std::unique_ptr<Model> skydomeModel;
 	// 天球のモデル
-	skydomeModel_.reset(Model::CreateFromOBJ("sky", true));
+	skydomeModel.reset(Model::CreateFromOBJ("sky", true));
 	// 天球生成
 	skydome_ = std::make_unique<Skydome>();
 	// 天球初期化
-	skydome_->Initialize(std::move(skydomeModel_));
+	skydome_->Initialize(std::move(skydomeModel));
 #pragma endregion
 #pragma region 地面
+	// 地面モデル
+	std::unique_ptr<Model> groundModel;
 	// 地面のモデル
-	groundModel_.reset(Model::CreateFromOBJ("ground", true));
+	groundModel.reset(Model::CreateFromOBJ("ground", true));
 	// 地面生成
 	ground_ = std::make_unique<Skydome>();
 	// 地面初期化
-	ground_->Initialize(std::move(groundModel_));
+	ground_->Initialize(std::move(groundModel));
 #pragma endregion
 #pragma region 追従カメラ
 	// 追従カメラ生成
@@ -57,20 +68,31 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
-	// デバックカメラの更新
-	debugCamera_->Update();
-	viewProjection_.SetViewProjection(&debugCamera_->GetViewProjection());
-	viewProjection_.TransferMatrix();
-	// 追従カメラの更新
-	followCamera_->Update();
-	viewProjection_.SetViewProjection(followCamera_->GetViewProjection());
-	viewProjection_.TransferMatrix();
 	// プレイヤーの更新
 	player_->Update();
+#pragma region カメラ関連
+	if (Input::GetInstance()->TriggerKey(DIK_0)) {
+		debugCameraFlag_ ^= true;
+	}
+	if (debugCameraFlag_) {
+		// デバックカメラの更新
+		debugCamera_->Update();
+		viewProjection_.SetViewProjection(&debugCamera_->GetViewProjection());
+		viewProjection_.TransferMatrix();
+
+	} else {
+		// 追従カメラの更新
+		followCamera_->Update();
+		viewProjection_.SetViewProjection(followCamera_->GetViewProjection());
+		viewProjection_.TransferMatrix();
+	}
+#pragma endregion
+#pragma region 軸
 	// 軸方向表示の表示を有効化
 	AxisIndicator::GetInstance()->SetVisible(true);
 	// 軸方向表示が参照するビュープロジェクションを指定する(アドレス渡し)
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
+#pragma endregion
 }
 
 void GameScene::Draw() {
@@ -105,7 +127,7 @@ void GameScene::Draw() {
 	ground_->Draw(viewProjection_);
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
-	
+
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion

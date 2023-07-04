@@ -10,6 +10,9 @@ void WorldTransform::UpdateMatrix() {
 		rotation_,
 		translation_
 	);
+	if (parent_) {
+		matWorld_ = Mul(matWorld_, parent_->matWorld_);
+	}
 	// 定数バッファに転送
 	TransferMatrix();
 }
