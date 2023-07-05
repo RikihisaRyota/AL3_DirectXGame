@@ -20,6 +20,10 @@ Vector3 Lerp(const Vector3& start, const Vector3& end, float t) {
 	return start + ((end - start) * t);
 }
 
+float Lerp(float start, float end, float t) { 
+	return start + ((end - start) * t);
+}
+
 Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	// 2つのベクトルの内積を計算
 	const float cosTheta = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;

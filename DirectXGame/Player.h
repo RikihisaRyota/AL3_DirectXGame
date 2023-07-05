@@ -12,7 +12,8 @@ public:
 		HEAD, 
 		BODY, 
 		ARML, 
-		ARMR
+		ARMR,
+		COUNT
 	};
 public: // メンバ関数
 	/// <summary>
@@ -33,7 +34,10 @@ private: // メンバ関数
 	/// プレイヤーの動き
 	/// </summary>
 	void Move();
-
+	/// <summary>
+	/// プレイヤーの体の回転
+	/// </summary>
+	void PlayerRotate();
 	/// <summary>
 	/// 浮遊ギミック初期化
 	/// </summary>
@@ -53,7 +57,7 @@ private: // メンバ関数
 	/// <summary>
 	/// 全体
 	/// </summary>
-	void All();
+	void Base();
 	/// <summary>
 	/// 左腕
 	/// </summary>

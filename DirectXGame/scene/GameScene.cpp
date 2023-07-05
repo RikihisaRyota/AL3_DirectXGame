@@ -26,7 +26,7 @@ void GameScene::Initialize() {
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
 	// プレイヤーモデル
-	std::vector<std::unique_ptr<Model>> playerModel(4);
+	std::vector<std::unique_ptr<Model>> playerModel(static_cast<int>(Player::Parts::COUNT));
 	// プレイヤーモデル
 	playerModel[0].reset(Model::CreateFromOBJ("head", true));
 	playerModel[1].reset(Model::CreateFromOBJ("body", true));

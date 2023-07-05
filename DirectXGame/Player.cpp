@@ -60,12 +60,14 @@ void Player::Move() {
 		move = TransformNormal(move, rotate);
 		// 移動
 		worldTransform_.translation_ += move;
-		// キャラの方向に弾の向きを変える処理
-		//  Y軸回り角度(θy)
-		worldTransform_.rotation_.y = std::atan2(move.x, move.z);
 	}
-	// 行列を更新
-	worldTransform_.UpdateMatrix();
+}
+
+void Player::PlayerRotate() {
+	float rotate = std::atan2(move.x, move.z);
+	//  Y軸回り角度(θy)
+	worldTransform_.rotation_.y =
+	    std::atan2(move.x, move.z); 
 }
 
 void Player::InitializeFloatGimmick() { 
@@ -74,7 +76,7 @@ void Player::InitializeFloatGimmick() {
 
 void Player::Motion() { 
 	// 全体
-	All();
+	Base();
 	// 頭
 	Head();
 	// 体
@@ -107,7 +109,10 @@ void Player::UpdateFloatGimmick() {
 	    (std::sin(floatingParameter_) * kFloatAmplitude) + kGroundDistanse;
 }
 
-void Player::All() { 
+void Player::Base() { 
+	// プレイヤーの回転イージング
+	PlayerRotate();
+	// 浮いてるモーション
 	UpdateFloatGimmick(); 
 }
 

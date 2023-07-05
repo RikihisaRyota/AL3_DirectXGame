@@ -73,5 +73,8 @@ struct Vector3 final {
 		return !(x == other.x && y == other.y && z == other.z);
 	}
 
-
+	// ==演算子のオーバーロード
+	bool operator==(const Vector3& other) const {
+		return (x == other.x && y == other.y && z == other.z);
+	}
 };
