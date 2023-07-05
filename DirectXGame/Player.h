@@ -31,9 +31,21 @@ public: // メンバ関数
 
 private: // メンバ関数
 	/// <summary>
-	/// プレイヤーの動き
+	/// ゲームパット入力
+	/// </summary>
+	void GamePadInput();
+	/// <summary>
+	/// プレイヤーの移動
 	/// </summary>
 	void Move();
+	/// <summary>
+	/// ジャンプ
+	/// </summary>
+	void Jump();
+	/// <summary>
+	/// 重力
+	/// </summary>
+	void Gravity();
 	/// <summary>
 	/// プレイヤーの体の回転
 	/// </summary>
@@ -103,6 +115,13 @@ private: // 定数系
 	const float kArmLAmplitude = 0.5f;
 	// 右腕のアニメーションの振幅
 	const float kArmRAmplitude = 0.5f;
+	// 振り向き速度
+	const float kTurn = 0.35f;
+	// 重力
+	const float kGravity = 0.01f;
+	// ジャンプ
+	const float kJumpPower = 0.2f;
+	// 摩擦
 private: // メンバ変数
 	// ワールドトランスフォーム
 	WorldTransform worldTransform_;
@@ -112,4 +131,16 @@ private: // メンバ変数
 	std::vector<std::unique_ptr<Model>> models_;
 	// 浮遊ギミックの媒介変数
 	float floatingParameter_;
+	// ベクトル
+	Vector3 vector_;
+	// 速度
+	Vector3 velocity_;
+	// 加速度
+	Vector3 acceleration_;
+	// 方向
+	Vector3 direction_;
+	// ジャンプフラグ
+	bool isJump;
+
+	float kFriction = 0.01f;
 };

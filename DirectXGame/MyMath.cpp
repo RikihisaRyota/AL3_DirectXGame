@@ -76,6 +76,15 @@ float Distance(const Vector3& v1, const Vector3& v2) {
 	    std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2) + std::pow(v2.z - v1.z, 2));
 }
 
+Vector3 Normalize(const Vector3& v1){
+	Vector3 result = v1;
+	float length = result.Length();
+	result.x /= length;
+	result.y /= length;
+	result.z /= length;
+	return result;
+}
+
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 mat;
 	mat.m[0][0] = m1.m[0][0] + m2.m[0][0], mat.m[0][1] = m1.m[0][1] + m2.m[0][1],

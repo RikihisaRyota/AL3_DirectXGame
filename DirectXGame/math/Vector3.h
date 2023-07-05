@@ -19,7 +19,6 @@ struct Vector3 final {
 		y /= length;
 		z /= length;
 	}
-
 	// 加算演算子のオーバーロード
 	Vector3 operator+(const Vector3& other) const {
 		return {x + other.x, y + other.y, z + other.z};
