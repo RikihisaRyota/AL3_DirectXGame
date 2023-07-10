@@ -3,6 +3,9 @@
 
 #include "Matrix4x4.h"
 #include "WorldTransform.h"
+#include "ViewProjection.h"
+#include "Vector4.h"
+
 // ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
 
@@ -57,6 +60,8 @@ Matrix4x4 MakeOrthographicMatrix(
 // 3,ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(
     float left, float top, float width, float height, float minDepth, float maxDepth);
+// スクリーン変換行列
+Matrix4x4 MakeViewProjectMatrixMatrix(const ViewProjection& viewProjection);
 
 Matrix4x4 Convert(const Matrix4x4& m1);
 
@@ -86,3 +91,13 @@ float DegToRad(float degree);
 /// /// <param name="worldtransform"></param>
 /// /// <returns></returns>
 Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform);
+
+/// <summary>
+/// ヒットボックス表示
+/// </summary>
+/// <param name="worldtransform">worldtransform</param>
+/// <param name="viewProjection">viewProjection</param>
+/// <param name="color">color</param>
+void ChackHitBox(
+    const WorldTransform& worldtransform, const ViewProjection& viewProjection,
+    const Vector4& color);

@@ -11,12 +11,15 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	worldTransform_.Initialize();
 	worldTransform_.translation_.y = 1.0f;
 	worldTransform_.UpdateMatrix();
+	// アニメーション用のworldTransform_
+	worldTransformMotion_.Initialize();
+	worldTransformMotion_.parent_ = &worldTransform_;
 	// worldTransforms初期化
 	worldTransforms_.resize(models_.size()); // モデル数に合わせてサイズを調整
 	for (size_t i = 0; i < models_.size(); ++i) {
 		auto& worldTransform = worldTransforms_[i];
 		worldTransform.Initialize();
-		worldTransform.parent_ = &worldTransform_;
+		worldTransform.parent_ = &worldTransformMotion_;
 	}
 	// ベクトル
 	vector_ = {0.0f, 0.0f, 0.0f};
@@ -55,6 +58,7 @@ void Player::Update() {
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
+	ChackHitBox(worldTransform_, viewProjection, Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	for (size_t i = 0; i < models_.size(); i++) {
 		models_[i]->Draw(worldTransforms_[i], viewProjection);
 	}
@@ -72,6 +76,7 @@ void Player::GamePadInput() {
 void Player::Move() {
 	// 移動量
 	vector_ = {0.0f, 0.0f, 0.0f};
+#pragma region ゲームパット
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 	// ゲームパットの状況取得
@@ -83,35 +88,52 @@ void Player::Move() {
 			    0.0f,
 			    static_cast<float>(joyState.Gamepad.sThumbLY),
 			};
-			// 移動量に速さを反映
-			if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
-				vector_.Normalize();
-			}
-			// 回転行列生成
-			Matrix4x4 rotate = MakeRotateYMatrix(viewProjection_->rotation_.y);
-			// オフセットをカメラの回転に合わせて回転させる
-			vector_ = TransformNormal(vector_, rotate);
-		} 
+		}
 	}
-	// 慣性移動
+#pragma endregion
+#pragma region キーボード
+	if (Input::GetInstance()->PushKey(DIK_W)) {
+		vector_.z = 1.0f;
+	}
+	if (Input::GetInstance()->PushKey(DIK_S)) {
+		vector_.z = -1.0f;
+	}
+	if (Input::GetInstance()->PushKey(DIK_A)) {
+		vector_.x = -1.0f;
+	}
+	if (Input::GetInstance()->PushKey(DIK_D)) {
+		vector_.x = 1.0f;
+	}
+	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
-		velocity_ = vector_ * kSpeed;
-	} else {
-		velocity_ *= 0.92f;
+		vector_.Normalize();
 	}
+#pragma endregion
+#pragma region 正規化と回転
+	// 移動量に速さを反映
+	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
+		vector_.Normalize();
+	}
+	// 回転行列生成
+	Matrix4x4 rotate = MakeRotateYMatrix(viewProjection_->rotation_.y);
+	// オフセットをカメラの回転に合わせて回転させる
+	vector_ = TransformNormal(vector_, rotate);
+#pragma endregion
 }
 void Player::Jump() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 	// ゲームパットの状況取得
 	// 入力がなかったら何もしない
-	if (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	    (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) && !isJump) {
+	if ((Input::GetInstance()->GetJoystickState(0, joyState) && (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
+	    Input::GetInstance()->TriggerKey(DIK_SPACE) &&
+	    !isJump) {
 		acceleration_.y = kJumpPower;
 		isJump = true;
 	}
 }
 void Player::Gravity() {
+	velocity_ = vector_ * kSpeed;
 	velocity_ += acceleration_;
 	worldTransform_.translation_ += velocity_;
 
@@ -126,7 +148,6 @@ void Player::Gravity() {
 		worldTransform_.translation_.y = kGroundDistanse;
 		isJump = false;
 	}
-
 }
 void Player::PlayerRotate() {
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
@@ -160,6 +181,7 @@ void Player::Motion() {
 
 void Player::UpdateMotionMatrix() {
 	worldTransform_.UpdateMatrix();
+	worldTransformMotion_.UpdateMatrix();
 	for (auto worldTrabsform : worldTransforms_) {
 		worldTrabsform.UpdateMatrix();
 	}
@@ -173,9 +195,9 @@ void Player::UpdateFloatGimmick() {
 	floatingParameter_ += kFroatStep;
 	// 2πを超えたら0に戻す
 	floatingParameter_ = std::fmod(floatingParameter_, 2.0f * static_cast<float>(3.14159265359));
-	//// 浮遊を座標に反映
-	// worldTransform_.translation_.y =
-	//     (std::sin(floatingParameter_) * kFloatAmplitude) + kGroundDistanse;
+	// 浮遊を座標に反映
+	 worldTransformMotion_.translation_.y =
+	     (std::sin(floatingParameter_) * kFloatAmplitude);
 }
 
 void Player::Base() {

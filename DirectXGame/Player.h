@@ -116,15 +116,17 @@ private: // 定数系
 	// 右腕のアニメーションの振幅
 	const float kArmRAmplitude = 0.5f;
 	// 振り向き速度
-	const float kTurn = 0.35f;
+	const float kTurn = 0.4f;
 	// 重力
 	const float kGravity = 0.01f;
 	// ジャンプ
 	const float kJumpPower = 0.2f;
 	// 摩擦
 private: // メンバ変数
-	// ワールドトランスフォーム
+	// ワールドトランスフォーム(当たり判定用)
 	WorldTransform worldTransform_;
+	// ワールドトランスフォーム(アニメーション用)
+	WorldTransform worldTransformMotion_;
 	// ワールドトランスフォームパーツごと
 	std::vector<WorldTransform> worldTransforms_;
 	// モデル
