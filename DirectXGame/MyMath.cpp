@@ -4,6 +4,7 @@
 #include <cmath>
 #include <list>
 #include <vector>
+#include "PrimitiveDrawer.h"
 
 #include "Vector3.h"
 
@@ -420,6 +421,12 @@ Matrix4x4 MakeViewportMatrix(
 	return mat;
 }
 
+Matrix4x4 MakeViewProjectMatrixMatrix(const ViewProjection& viewProjection) {
+	Matrix4x4 viewMatrix = Inverse(MakeAffineMatrix(
+	    Vector3(1.0f, 1.0f, 1.0f), viewProjection.rotation_, viewProjection.translation_));
+	return Mul(viewMatrix, viewProjection.matProjection);
+}
+
 Matrix4x4 Convert(const Matrix4x4& m1) {
 	Matrix4x4 mat;
 	mat.m[0][0] = m1.m[0][0], mat.m[0][1] = m1.m[0][1], mat.m[0][2] = m1.m[0][2],
@@ -456,4 +463,37 @@ Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform) {
 		worldtransform.translation_
 	); 
 	return result;
+}
+
+void ChackHitBox(const WorldTransform& worldtransform, const ViewProjection& viewProjection,const Vector4& color) {
+	WorldTransform tmpWorldTransform = worldtransform;
+	Vector3 vertices[] = {
+	    {-tmpWorldTransform.scale_},
+	    {tmpWorldTransform.scale_.x, -tmpWorldTransform.scale_.y, -tmpWorldTransform.scale_.z},
+	    {tmpWorldTransform.scale_.x, -tmpWorldTransform.scale_.y, tmpWorldTransform.scale_.z},
+	    {-tmpWorldTransform.scale_.x, tmpWorldTransform.scale_.y, tmpWorldTransform.scale_.z},
+	    {-tmpWorldTransform.scale_.x, tmpWorldTransform.scale_.y, -tmpWorldTransform.scale_.z},
+	    {tmpWorldTransform.scale_.x, tmpWorldTransform.scale_.y, -tmpWorldTransform.scale_.z},
+	    {tmpWorldTransform.scale_},
+	    {-tmpWorldTransform.scale_.x, tmpWorldTransform.scale_.y, tmpWorldTransform.scale_.z},
+	};
+	PrimitiveDrawer* line = PrimitiveDrawer::GetInstance();
+	line->SetViewProjection(&viewProjection);
+	Matrix4x4 viewMatrix = MakeViewProjectMatrixMatrix(viewProjection);
+	for (int i = 0; i < 4; i++) {
+		int j = (i + 1) % 4;
+		line->DrawLine3d(
+		    Transform(vertices[i], viewMatrix), 
+			Transform(vertices[j], viewMatrix), 
+			color);
+		line->DrawLine3d(
+		    Transform(vertices[i], viewMatrix), 
+			Transform(vertices[i + 4], viewMatrix), 
+			color);
+		line->DrawLine3d(
+		    Transform(vertices[i + 4], viewMatrix),
+			Transform(vertices[j + 4], viewMatrix), 
+			color);
+	}
+
 }
