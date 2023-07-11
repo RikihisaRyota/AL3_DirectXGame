@@ -2,6 +2,7 @@
 #include "Audio.h"
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
+#include "Enemy.h"
 #include "FollowCamera.h"
 #include "Input.h"
 #include "Model.h"
@@ -72,5 +73,9 @@ private: // メンバ変数
 #pragma region 追従カメラ
 	// 追従カメラ
 	std::unique_ptr<FollowCamera> followCamera_;
+#pragma endregion
+#pragma region 敵
+	// 敵
+	std::unique_ptr<Enemy> enemy_;
 #pragma endregion
 };

@@ -28,10 +28,10 @@ void GameScene::Initialize() {
 	// プレイヤーモデル
 	std::vector<std::unique_ptr<Model>> playerModel(static_cast<int>(Player::Parts::COUNT));
 	// プレイヤーモデル
-	playerModel[0].reset(Model::CreateFromOBJ("head", true));
-	playerModel[1].reset(Model::CreateFromOBJ("body", true));
-	playerModel[2].reset(Model::CreateFromOBJ("armL", true));
-	playerModel[3].reset(Model::CreateFromOBJ("armR", true));
+	playerModel[static_cast<int>(Player::Parts::HEAD)].reset(Model::CreateFromOBJ("head", true));
+	playerModel[static_cast<int>(Player::Parts::BODY)].reset(Model::CreateFromOBJ("body", true));
+	playerModel[static_cast<int>(Player::Parts::ARML)].reset(Model::CreateFromOBJ("armL", true));
+	playerModel[static_cast<int>(Player::Parts::ARMR)].reset(Model::CreateFromOBJ("armR", true));
 	// プレイヤー初期化
 	player_->Initialize(std::move(playerModel));
 #pragma endregion
@@ -64,6 +64,17 @@ void GameScene::Initialize() {
 	followCamera_->SetTarget(player_->GetWorldTransform());
 	// プレイヤーにビュープロジェクションをセット
 	player_->SetViewProjection(followCamera_->GetViewProjection());
+#pragma endregion
+#pragma region 敵
+	// 敵生成
+	enemy_ = std::make_unique<Enemy>();
+	// 敵モデル
+	std::vector<std::unique_ptr<Model>>	enemyModel(static_cast<int>(Enemy::Parts::COUNT));
+	// 敵モデル
+	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(Model::CreateFromOBJ("enemy_Body", true));
+	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(Model::CreateFromOBJ("enemy_Light", true));
+	// 敵初期化
+	enemy_->Initialize(std::move(enemyModel));
 #pragma endregion
 }
 
@@ -127,7 +138,8 @@ void GameScene::Draw() {
 	ground_->Draw(viewProjection_);
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
-
+	// 敵描画
+	enemy_->Draw(viewProjection_);
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion

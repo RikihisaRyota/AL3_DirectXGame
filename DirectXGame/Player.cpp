@@ -6,7 +6,8 @@
 #include "MyMath.h"
 
 void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
-	models_ = std::move(model);
+	// 基底クラス
+	BaseCharacter::Initialize(std::move(model));
 	// プレイヤーの初期位置をずらす
 	worldTransform_.Initialize();
 	worldTransform_.translation_.y = 1.0f;
@@ -58,7 +59,7 @@ void Player::Update() {
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
-	ChackHitBox(worldTransform_, viewProjection, Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+	//ChackHitBox(worldTransform_, viewProjection, Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	for (size_t i = 0; i < models_.size(); i++) {
 		models_[i]->Draw(worldTransforms_[i], viewProjection);
 	}

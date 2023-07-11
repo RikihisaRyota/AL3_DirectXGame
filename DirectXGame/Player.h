@@ -2,11 +2,12 @@
 #include <cstdlib>
 #include <memory>
 
+#include "BaseCharacter.h"
 #include "Model.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "input/Input.h"
-class Player {
+class Player : public BaseCharacter {
 public:
 	enum class Parts { 
 		HEAD, 
@@ -19,15 +20,15 @@ public: // メンバ関数
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(std::vector<std::unique_ptr<Model>> model);
+	void Initialize(std::vector<std::unique_ptr<Model>> model) override;
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update();
+	void Update() override;
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw(const ViewProjection& viewProjection);
+	void Draw(const ViewProjection& viewProjection) override;
 
 private: // メンバ関数
 	/// <summary>
@@ -123,14 +124,10 @@ private: // 定数系
 	const float kJumpPower = 0.2f;
 	// 摩擦
 private: // メンバ変数
-	// ワールドトランスフォーム(当たり判定用)
-	WorldTransform worldTransform_;
 	// ワールドトランスフォーム(アニメーション用)
 	WorldTransform worldTransformMotion_;
 	// ワールドトランスフォームパーツごと
 	std::vector<WorldTransform> worldTransforms_;
-	// モデル
-	std::vector<std::unique_ptr<Model>> models_;
 	// 浮遊ギミックの媒介変数
 	float floatingParameter_;
 	// ベクトル
