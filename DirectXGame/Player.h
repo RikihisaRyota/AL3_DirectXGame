@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdlib>
 #include <memory>
+#include <optional>
 
 #include "BaseCharacter.h"
 #include "Model.h"
@@ -9,13 +10,21 @@
 #include "input/Input.h"
 class Player : public BaseCharacter {
 public:
+	// 体のパーツ
 	enum class Parts { 
 		HEAD, 
 		BODY, 
 		ARML, 
 		ARMR,
+		WEAPON,
 		COUNT
 	};
+	// ふるまい
+	enum class Behavior {
+		kRoot, // 通常
+		kAttack, // 攻撃中
+	};
+
 public: // メンバ関数
 	/// <summary>
 	/// 初期化
@@ -28,10 +37,10 @@ public: // メンバ関数
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw(const ViewProjection& viewProjection) override;
-
+	void Draw(const ViewProjection& viewProjection);
 private: // メンバ関数
-	/// <summary>
+#pragma region 移動系
+	     /// <summary>
 	/// ゲームパット入力
 	/// </summary>
 	void GamePadInput();
@@ -47,14 +56,8 @@ private: // メンバ関数
 	/// 重力
 	/// </summary>
 	void Gravity();
-	/// <summary>
-	/// プレイヤーの体の回転
-	/// </summary>
-	void PlayerRotate();
-	/// <summary>
-	/// 浮遊ギミック初期化
-	/// </summary>
-	void InitializeFloatGimmick();
+#pragma endregion
+#pragma region Motion系
 	/// <summary>
 	/// 動き
 	/// </summary>
@@ -63,6 +66,14 @@ private: // メンバ関数
 	/// モーションで計算したものを転送
 	/// </summary>
 	void UpdateMotionMatrix();
+	/// <summary>
+	/// プレイヤーの体の回転
+	/// </summary>
+	void PlayerRotate();
+	/// <summary>
+	/// 浮遊ギミック初期化
+	/// </summary>
+	void InitializeFloatGimmick();
 	/// <summary>
 	/// 浮遊ギミック更新
 	/// </summary>
@@ -87,13 +98,27 @@ private: // メンバ関数
 	/// 体
 	/// </summary>
 	void Body();
+#pragma endregion
+#pragma region RootBehavior
+	/// <summary>
+	/// 通常行動初期化
+	/// </summary>
+	void BehaviorRootInitialize();
+	/// <summary>
+	///  通常行動更新
+	/// </summary>
+	void BehaviorRootUpdate();
+	/// <summary>
+	/// 攻撃行動初期化
+	/// </summary>
+	void BehaviorAttackInitialize();
+	/// <summary>
+	/// 攻撃行動更新
+	/// </summary>
+	void BehaviorAttackUpdate();
+#pragma endregion
 
 public: // ゲッター,セッター
-	/// <summary>
-	/// WorldTransformのゲッター
-	/// </summary>
-	/// <returns></returns>
-	WorldTransform* GetWorldTransform() { return &worldTransform_; }
 	/// <summary>
 	/// ViewProjectionのセッター
 	/// </summary>
@@ -124,22 +149,36 @@ private: // 定数系
 	const float kJumpPower = 0.2f;
 	// 摩擦
 private: // メンバ変数
-	// ワールドトランスフォーム(アニメーション用)
-	WorldTransform worldTransformMotion_;
-	// ワールドトランスフォームパーツごと
-	std::vector<WorldTransform> worldTransforms_;
-	// 浮遊ギミックの媒介変数
-	float floatingParameter_;
-	// ベクトル
-	Vector3 vector_;
-	// 速度
-	Vector3 velocity_;
-	// 加速度
-	Vector3 acceleration_;
-	// 方向
+	// 向き
 	Vector3 direction_;
 	// ジャンプフラグ
 	bool isJump;
+	// floatアニメーションのカウント
+	float floatingParameter_;
+	// ふるまい
+	Behavior behavior_ = Behavior::kRoot;
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
-	float kFriction = 0.01f;
+	// 剣のデットゾーン
+	float slashMin_;
+	float slashMax_;
+	float slash_Attack_Min_;
+	float slash_Attack_Max_;
+	// 初めの角度
+	float slash_Attack_Start_;
+	float slash_ArmAngle_Start_;
+	// 攻撃の溜めモーションスピード
+	float charge_Speed_;
+	float charge_T_; 
+	// 溜めているかどうかのフラグ
+	bool chargeFlag_ = false;
+	// 降り下ろしモーション
+	float slash_Speed_;
+	float slash_T_;
+	// 溜めてあと立てるフラグ
+	bool slashFlag_ = false;
+	// 攻撃硬直
+	bool rigorFlag_ = false;
+	float rigor_Speed_;
+	float rigor_T_;
 };

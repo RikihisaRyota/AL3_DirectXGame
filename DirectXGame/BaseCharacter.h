@@ -17,12 +17,6 @@ public:
 	/// 更新
 	/// </summary>
 	virtual void Update();
-
-	/// <summary>
-	/// 描画
-	/// </summary>
-	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
-	virtual void Draw(const ViewProjection& viewProjection);
 public:
 	/// <summary>
 	/// ワールド変換データを取得

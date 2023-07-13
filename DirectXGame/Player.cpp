@@ -12,22 +12,6 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	worldTransform_.Initialize();
 	worldTransform_.translation_.y = 1.0f;
 	worldTransform_.UpdateMatrix();
-	// アニメーション用のworldTransform_
-	worldTransformMotion_.Initialize();
-	worldTransformMotion_.parent_ = &worldTransform_;
-	// worldTransforms初期化
-	worldTransforms_.resize(models_.size()); // モデル数に合わせてサイズを調整
-	for (size_t i = 0; i < models_.size(); ++i) {
-		auto& worldTransform = worldTransforms_[i];
-		worldTransform.Initialize();
-		worldTransform.parent_ = &worldTransformMotion_;
-	}
-	// ベクトル
-	vector_ = {0.0f, 0.0f, 0.0f};
-	// 速度
-	velocity_ = {0.0f, 0.0f, 0.0f};
-	// 加速度
-	acceleration_ = {0.0f, 0.0f, 0.0f};
 	// 方向
 	direction_ = {0.0f, 0.0f, 1.0f};
 	// ジャンプフラグ
@@ -37,10 +21,33 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 }
 
 void Player::Update() {
-	// 入力
-	GamePadInput();
-	// プレイヤーモーションの更新
-	Motion();
+	if (behaviorRequest_) {
+		// ふるまいを変更
+		behavior_ = behaviorRequest_.value();
+		// 各ふるまいごとの初期化を実行
+		switch (behavior_) {
+		case Player::Behavior::kRoot:
+		default:
+			BehaviorRootInitialize();
+			break;
+		case Player::Behavior::kAttack:
+			BehaviorAttackInitialize();
+			break;
+		}
+		// ふるまいリクエストをリセット
+		behaviorRequest_ = std::nullopt;
+	}
+	switch (behavior_) {
+	case Player::Behavior::kRoot:
+	default:
+		BehaviorRootUpdate();
+		break;
+	case Player::Behavior::kAttack:
+		BehaviorAttackUpdate();
+		break;
+	}
+	// 転送
+	BaseCharacter::Update();
 
 	ImGui::Begin("Player");
 	ImGui::Text(
@@ -53,27 +60,133 @@ void Player::Update() {
 	ImGui::Text("vector_x:%f,y:%f,z:%f", vector_.x, vector_.y, vector_.z);
 	ImGui::Text("velocity_:%f,y:%f,z:%f", velocity_.x, velocity_.y, velocity_.z);
 	ImGui::Text("acceleration_:%f,y:%f,z:%f", acceleration_.x, acceleration_.y, acceleration_.z);
-	// ImGui::SliderFloat("Jump", &kJumpPower, 0.00f, 0.90f);
-	// ImGui::SliderFloat("Gravity", &kGravity, 0.00f, 0.50f);
+	ImGui::Text(
+	    "worldTransforms_Parts_:%f",
+	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
+	ImGui::Text("slashMax_:%f", slashMax_);
+	ImGui::End();
+}
+
+void Player::BehaviorRootUpdate() {
+	// 入力
+	GamePadInput();
+	// プレイヤーモーションの更新
+	Motion();
+}
+
+void Player::BehaviorAttackInitialize() {
+	worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
+	// 剣のデットゾーン
+	slashMin_ = DegToRad(-45.0f);
+	slashMax_ = DegToRad(90.0f);
+
+	slash_Attack_Min_ = DegToRad(RadToDeg(slashMin_) + 135.0f);
+	slash_Attack_Max_ = DegToRad(RadToDeg(slashMax_) + 270.0f);
+
+	slash_Attack_Start_ = 0.0f;
+	slash_ArmAngle_Start_ = DegToRad(slash_Attack_Start_+180.0f);
+	// 攻撃の溜めモーションスピード
+	charge_Speed_ = 0.01f;
+	charge_T_ = 0.0f;
+	// 溜めているかどうかのフラグ
+	chargeFlag_ = true;
+	// 降り下ろしモーション
+	slash_Speed_ = 0.2f;
+	slash_T_ = 0.0f;
+	// 溜めてあと立てるフラグ
+	slashFlag_ = false;
+	// 攻撃硬直
+	rigorFlag_ = false;
+	rigor_Speed_ = 0.1f;
+	rigor_T_ = 0.0f;
+}
+
+void Player::BehaviorAttackUpdate() {
+#pragma region 攻撃
+	// チャージ中
+	if (chargeFlag_) {
+		if (Input::GetInstance()->PushKey(DIK_Q)) {
+			charge_T_ += charge_Speed_;
+			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
+			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
+			worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x =
+			    Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
+			worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
+			    Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
+		} else {
+			// チャージ終わり
+			chargeFlag_ = false;
+			slashFlag_ = true;
+			charge_T_ = 0.0f;
+			slash_Attack_Start_ =
+			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
+			slash_ArmAngle_Start_ =
+			    worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x;
+		}
+	}
+	// 降り始め
+	if (slashFlag_) {
+		slash_T_ += slash_Speed_;
+		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
+		    Lerp(slash_Attack_Start_, slashMax_, Clamp(slash_T_, 0.0f, 1.0f));
+		worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x =
+		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
+		worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
+		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
+		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >= slashMax_-0.00005f) {
+			slashFlag_ = false;
+			slash_T_ = 0.0f;
+			rigorFlag_ = true;
+		}
+	}
+	// 攻撃硬直
+	if (rigorFlag_) {
+		rigor_T_ += rigor_Speed_;
+		if (rigor_T_ >= 1.0f) {
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	}
+#pragma endregion
+#pragma region 腕
+
+#pragma endregion
+
+	
+	ImGui::Begin("weapon");
+	ImGui::SliderFloat("slashMin:%f", &slashMin_, 0.0f, -1.0f);
+	ImGui::SliderFloat("slashMax:%f", &slashMax_, 1.5f, 0.0f);
+	ImGui::SliderFloat("chargeSpeed:%f", &charge_Speed_, 0.1f, 0.01f);
+	ImGui::SliderFloat("slashSpeed:%f", &slash_Speed_, 2.0f, 0.5f);
+	ImGui::Text("rotate:%f", worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
 	ImGui::End();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
-	//ChackHitBox(worldTransform_, viewProjection, Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	for (size_t i = 0; i < models_.size(); i++) {
-		models_[i]->Draw(worldTransforms_[i], viewProjection);
+	models_[static_cast<int>(Parts::HEAD)]->Draw(
+	    worldTransforms_Parts_[static_cast<int>(Parts::HEAD)], viewProjection);
+	models_[static_cast<int>(Parts::BODY)]->Draw(
+	    worldTransforms_Parts_[static_cast<int>(Parts::BODY)], viewProjection);
+	models_[static_cast<int>(Parts::ARML)]->Draw(
+	    worldTransforms_Parts_[static_cast<int>(Parts::ARML)], viewProjection);
+	models_[static_cast<int>(Parts::ARMR)]->Draw(
+	    worldTransforms_Parts_[static_cast<int>(Parts::ARMR)], viewProjection);
+	if (behavior_ == Behavior::kAttack) {
+		models_[static_cast<int>(Parts::WEAPON)]->Draw(
+		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
 	}
 }
-
 void Player::GamePadInput() {
 	// プレイヤー移動
 	Move();
+	// 攻撃開始
+	if (Input::GetInstance()->TriggerKey(DIK_Q)) {
+		behaviorRequest_ = Behavior::kAttack;
+	}
 	// ジャンプ
 	Jump();
 	// 重力
 	Gravity();
 }
-
 void Player::Move() {
 	// 移動量
 	vector_ = {0.0f, 0.0f, 0.0f};
@@ -126,9 +239,9 @@ void Player::Jump() {
 	XINPUT_STATE joyState{};
 	// ゲームパットの状況取得
 	// 入力がなかったら何もしない
-	if ((Input::GetInstance()->GetJoystickState(0, joyState) && (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
-	    Input::GetInstance()->TriggerKey(DIK_SPACE) &&
-	    !isJump) {
+	if ((Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
+	    Input::GetInstance()->TriggerKey(DIK_SPACE) && !isJump) {
 		acceleration_.y = kJumpPower;
 		isJump = true;
 	}
@@ -159,12 +272,11 @@ void Player::PlayerRotate() {
 	}
 	Vector3 rotate = Lerp(direction_, vector_, kTurn);
 	//  Y軸回り角度(θy)
-	worldTransform_.rotation_.y = std::atan2(rotate.x, rotate.z);
+	worldTransform_Motion_.rotation_.y = std::atan2(rotate.x, rotate.z);
 	// プレイヤーの向いている方向
 	direction_ = rotate;
 }
 void Player::InitializeFloatGimmick() { floatingParameter_ = 0.0f; }
-
 void Player::Motion() {
 	// 全体
 	Base();
@@ -177,17 +289,9 @@ void Player::Motion() {
 	// 右腕
 	ArmRight();
 	// 転送
-	UpdateMotionMatrix();
+	// UpdateMotionMatrix();
 }
-
-void Player::UpdateMotionMatrix() {
-	worldTransform_.UpdateMatrix();
-	worldTransformMotion_.UpdateMatrix();
-	for (auto worldTrabsform : worldTransforms_) {
-		worldTrabsform.UpdateMatrix();
-	}
-}
-
+void Player::UpdateMotionMatrix() {}
 void Player::UpdateFloatGimmick() {
 	// 1フレームでのパラメータ加算値
 	const float kFroatStep =
@@ -197,29 +301,25 @@ void Player::UpdateFloatGimmick() {
 	// 2πを超えたら0に戻す
 	floatingParameter_ = std::fmod(floatingParameter_, 2.0f * static_cast<float>(3.14159265359));
 	// 浮遊を座標に反映
-	 worldTransformMotion_.translation_.y =
-	     (std::sin(floatingParameter_) * kFloatAmplitude);
+	worldTransform_Motion_.translation_.y = (std::sin(floatingParameter_) * kFloatAmplitude);
 }
-
 void Player::Base() {
 	// プレイヤーの回転イージング
 	PlayerRotate();
 	// 浮いてるモーション
 	UpdateFloatGimmick();
 }
-
 void Player::ArmLeft() {
 	// 浮遊を座標に反映
-	worldTransforms_[static_cast<int>(Parts::ARML)].rotation_.x =
+	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x =
 	    std::sin(floatingParameter_) * kArmRAmplitude;
 }
-
 void Player::ArmRight() { // 1フレームでのパラメータ加算値
 	// 浮遊を座標に反映
-	worldTransforms_[static_cast<int>(Parts::ARMR)].rotation_.x =
+	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
 	    std::cos(floatingParameter_) * kArmLAmplitude;
 }
-
 void Player::Head() {}
-
 void Player::Body() {}
+
+void Player::BehaviorRootInitialize() { InitializeFloatGimmick(); }

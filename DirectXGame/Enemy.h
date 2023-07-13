@@ -20,5 +20,41 @@ public:
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw(const ViewProjection& viewProjection) override;
+	void Draw(const ViewProjection& viewProjection);
+
+private:
+	/// <summary>
+	/// 移動
+	/// </summary>
+	void Move();
+	/// <summary>
+	/// 動作
+	/// </summary>
+	void Motion();
+	/// <summary>
+	/// 全体
+	/// </summary>
+	void Base();
+	/// <summary>
+	/// 体
+	/// </summary>
+	void Body();
+	/// <summary>
+	/// ライト
+	/// </summary>
+	void Light();
+
+private:
+	// 振り向き速度
+	const float kTurn = 0.4f;
+
+private:
+	// 向き
+	Vector3 direction_;
+	// 移動回転用
+	float moveRatate_;
+	// 動作回転用
+	float motionRatate_;
+	/////////
+	float angle_ = 0.0f;
 };

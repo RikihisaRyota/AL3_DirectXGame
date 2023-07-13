@@ -32,6 +32,7 @@ void GameScene::Initialize() {
 	playerModel[static_cast<int>(Player::Parts::BODY)].reset(Model::CreateFromOBJ("body", true));
 	playerModel[static_cast<int>(Player::Parts::ARML)].reset(Model::CreateFromOBJ("armL", true));
 	playerModel[static_cast<int>(Player::Parts::ARMR)].reset(Model::CreateFromOBJ("armR", true));
+	playerModel[static_cast<int>(Player::Parts::WEAPON)].reset(Model::CreateFromOBJ("player_Weapon", true));
 	// プレイヤー初期化
 	player_->Initialize(std::move(playerModel));
 #pragma endregion
@@ -61,7 +62,7 @@ void GameScene::Initialize() {
 	// 追従カメラ初期化
 	followCamera_->Intialize();
 	// 自キャラのワールドトランスフォームを追従カメラにセット
-	followCamera_->SetTarget(player_->GetWorldTransform());
+	followCamera_->SetTarget(&player_->GetWorldTransform());
 	// プレイヤーにビュープロジェクションをセット
 	player_->SetViewProjection(followCamera_->GetViewProjection());
 #pragma endregion
@@ -81,6 +82,8 @@ void GameScene::Initialize() {
 void GameScene::Update() {
 	// プレイヤーの更新
 	player_->Update();
+	// 敵の更新
+	enemy_->Update();
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;

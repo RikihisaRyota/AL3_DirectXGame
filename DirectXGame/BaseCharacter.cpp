@@ -1,26 +1,33 @@
 #include "BaseCharacter.h"
 
 void BaseCharacter::Initialize(std::vector<std::unique_ptr<Model>> model) {
-	// ƒ‚ƒfƒ‹‘ã“ü
+	// ãƒ¢ãƒ‡ãƒ«ä»£å…¥
 	models_ = std::move(model);
-	// worldTransform_‰Šú‰»
+	// worldTransform_åˆæœŸåŒ–
 	worldTransform_.Initialize();
-	// ƒAƒjƒ[ƒVƒ‡ƒ“—p‚ÌworldTransform_‰Šú‰»
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã®worldTransform_åˆæœŸåŒ–
 	worldTransform_Motion_.Initialize();
+	// è¦ªå­ä»˜ã‘
 	worldTransform_Motion_.parent_ = &worldTransform_;
+	// ã‚µã‚¤ã‚ºã‚’æ±ºã‚ã‚‹
+	worldTransforms_Parts_.resize(models_.size());
+	// ãƒ‘ãƒ¼ãƒ„ã®worldTransforms_ã‚’åˆæœŸåŒ–
 	for (size_t i = 0; i < models_.size(); i++) {
 		worldTransforms_Parts_[i].Initialize();
+		worldTransforms_Parts_[i].parent_ = &worldTransform_Motion_;
 	}
-}
-void BaseCharacter::Update() { 
-	worldTransform_.UpdateMatrix();
-	for (size_t i = 0; i < worldTransforms_Parts_.size(); i++) {
-		worldTransforms_Parts_[i].UpdateMatrix();
-	}
+	// ãƒ™ã‚¯ãƒˆãƒ«
+	vector_ = {0.0f, 0.0f, 0.0f};
+	// é€Ÿåº¦
+	velocity_ = {0.0f, 0.0f, 0.0f};
+	// åŠ é€Ÿåº¦
+	acceleration_ = {0.0f, 0.0f, 0.0f};
 }
 
-void BaseCharacter::Draw(const ViewProjection& viewProjection) {
+void BaseCharacter::Update() { 
+	worldTransform_.UpdateMatrix();
+	worldTransform_Motion_.UpdateMatrix();
 	for (size_t i = 0; i < worldTransforms_Parts_.size(); i++) {
-		models_[i]->Draw(worldTransforms_Parts_[i], viewProjection);
+		worldTransforms_Parts_[i].UpdateMatrix();
 	}
 }
