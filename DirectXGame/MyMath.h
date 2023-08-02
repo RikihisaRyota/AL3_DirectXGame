@@ -101,3 +101,12 @@ Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform);
 void ChackHitBox(
     const WorldTransform& worldtransform, const ViewProjection& viewProjection,
     const Vector4& color);
+
+/// <summary> 
+/// 最短角度補間
+/// </summary>
+/// <param name="a"></param>
+/// <param name="b"></param>
+/// <param name="t">t</param>
+/// <returns></returns>
+float LenpShortAngle(float a, float b, float t);

@@ -56,16 +56,6 @@ void GameScene::Initialize() {
 	// 地面初期化
 	ground_->Initialize(std::move(groundModel));
 #pragma endregion
-#pragma region 追従カメラ
-	// 追従カメラ生成
-	followCamera_ = std::make_unique<FollowCamera>();
-	// 追従カメラ初期化
-	followCamera_->Intialize();
-	// 自キャラのワールドトランスフォームを追従カメラにセット
-	followCamera_->SetTarget(&player_->GetWorldTransform());
-	// プレイヤーにビュープロジェクションをセット
-	player_->SetViewProjection(followCamera_->GetViewProjection());
-#pragma endregion
 #pragma region 敵
 	// 敵生成
 	enemy_ = std::make_unique<Enemy>();
@@ -76,6 +66,18 @@ void GameScene::Initialize() {
 	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(Model::CreateFromOBJ("enemy_Light", true));
 	// 敵初期化
 	enemy_->Initialize(std::move(enemyModel));
+#pragma endregion
+#pragma region 追従カメラ
+	// 追従カメラ生成
+	followCamera_ = std::make_unique<FollowCamera>();
+	// 追従カメラ初期化
+	followCamera_->Intialize();
+	// 自キャラのワールドトランスフォームを追従カメラにセット
+	followCamera_->SetTarget(&player_->GetWorldTransform());
+	// 敵キャラのワールドトランスフォームを追従カメラにセット
+	followCamera_->SetEnemy(&enemy_->GetWorldTransform());
+	// プレイヤーにビュープロジェクションをセット
+	player_->SetViewProjection(followCamera_->GetViewProjection());
 #pragma endregion
 }
 

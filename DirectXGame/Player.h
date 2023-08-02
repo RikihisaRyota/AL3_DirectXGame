@@ -23,7 +23,17 @@ public:
 	enum class Behavior {
 		kRoot, // 通常
 		kAttack, // 攻撃中
+		kDash, // ダッシュ中
 	};
+
+	// ダッシュ用ワーク
+	struct WorkDash {
+		// ダッシュ用の媒介変数
+		uint32_t dashParameter_ = 0;
+	};
+
+private:
+	WorkDash workDash_;
 
 public: // メンバ関数
 	/// <summary>
@@ -116,7 +126,18 @@ private: // メンバ関数
 	/// 攻撃行動更新
 	/// </summary>
 	void BehaviorAttackUpdate();
+	/// <summary>
+	/// ダッシュ行動初期化
+	/// </summary>
+	void BehaviorDashInitialize();
+	/// <summary>
+	/// ダッシュ行動更新
+	/// </summary>
+	void BehaviorDashUpdate();
 #pragma endregion
+
+	void SetGlobalVariables();
+	void GetGlobalVariables();
 
 public: // ゲッター,セッター
 	/// <summary>
@@ -130,7 +151,7 @@ private: // 定数系
 	// 地面から距離
 	const float kGroundDistanse = 1.0f;
 	// キャラクターの速さ
-	const float kSpeed = 0.3f;
+	const float kSpeed = 0.15f;
 	// カメラのビュープロジェクション
 	const ViewProjection* viewProjection_ = nullptr;
 	// 浮遊アニメーションの周期
@@ -149,8 +170,12 @@ private: // 定数系
 	const float kJumpPower = 0.2f;
 	// 摩擦
 private: // メンバ変数
+	// 最終的に向きたい方向
+	Vector3 destinationAngle_;
+	// ダッシュ用方向
+	Vector3 dashAngle_;
 	// 向き
-	Vector3 direction_;
+	Vector3 interRotate_;
 	// ジャンプフラグ
 	bool isJump;
 	// floatアニメーションのカウント

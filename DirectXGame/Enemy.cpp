@@ -22,6 +22,7 @@ void Enemy::Update() {
 	Motion();
 	// 転送
 	BaseCharacter::Update();
+#ifdef DEBUG
 	ImGui::Begin("Enemy");
 	ImGui::Text(
 	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
@@ -38,6 +39,7 @@ void Enemy::Update() {
 	    worldTransforms_Parts_[static_cast<int>(Parts::LIGHT)].rotation_.y,
 	    worldTransforms_Parts_[static_cast<int>(Parts::LIGHT)].rotation_.z);
 	ImGui::End();
+#endif // DEBUG
 }
 
 void Enemy::Draw(const ViewProjection& viewProjection) {

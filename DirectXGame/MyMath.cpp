@@ -497,3 +497,17 @@ void ChackHitBox(const WorldTransform& worldtransform, const ViewProjection& vie
 	}
 
 }
+
+float LenpShortAngle(float a, float b, float t) { 
+	 // 角度差分を求める
+	float diff = b - a;
+	// 角度[-2PI,+2PI]に補正
+	diff = std::fmod(diff, DegToRad(360.0f));
+	// 角度[-PI,+PI]に補正
+	if (diff > DegToRad(180.0f)) {
+		diff -= DegToRad(360.0f);
+	} else if (diff < -DegToRad(180.0f)) {
+		diff += DegToRad(360.0f);
+	}
+	return Lerp(a, a + diff, t);
+}

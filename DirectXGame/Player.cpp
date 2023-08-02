@@ -2,22 +2,22 @@
 
 #include <cassert>
 
+#include "GlobalVariables.h"
 #include "ImGuiManager.h"
 #include "MyMath.h"
 
 void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	// 基底クラス
 	BaseCharacter::Initialize(std::move(model));
-	// プレイヤーの初期位置をずらす
-	worldTransform_.Initialize();
-	worldTransform_.translation_.y = 1.0f;
-	worldTransform_.UpdateMatrix();
+	//SetGlobalVariables();
+	GetGlobalVariables();
 	// 方向
-	direction_ = {0.0f, 0.0f, 1.0f};
+	interRotate_ = {0.0f, 0.0f, 1.0f};
 	// ジャンプフラグ
 	isJump = false;
 	// 浮遊アニメーションの初期化
 	InitializeFloatGimmick();
+
 }
 
 void Player::Update() {
@@ -33,6 +33,9 @@ void Player::Update() {
 		case Player::Behavior::kAttack:
 			BehaviorAttackInitialize();
 			break;
+		case Player::Behavior::kDash:
+			BehaviorDashInitialize();
+			break;
 		}
 		// ふるまいリクエストをリセット
 		behaviorRequest_ = std::nullopt;
@@ -45,10 +48,14 @@ void Player::Update() {
 	case Player::Behavior::kAttack:
 		BehaviorAttackUpdate();
 		break;
+	case Player::Behavior::kDash:
+		BehaviorDashUpdate();
+		break;
 	}
+	
 	// 転送
 	BaseCharacter::Update();
-
+//#ifdef DEBUG
 	ImGui::Begin("Player");
 	ImGui::Text(
 	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
@@ -56,7 +63,10 @@ void Player::Update() {
 	ImGui::Text(
 	    "rotate_ x:%f,y:%f,z:%f", worldTransform_.rotation_.x, worldTransform_.rotation_.y,
 	    worldTransform_.rotation_.z);
-	ImGui::Text("direction_:%f,y:%f,z:%f", direction_.x, direction_.y, direction_.z);
+	ImGui::Text("interRotate_:%f,y:%f,z:%f", interRotate_.x, interRotate_.y, interRotate_.z);
+	ImGui::Text(
+	    "destinationAngle_:%f,y:%f,z:%f", destinationAngle_.x, destinationAngle_.y,
+	    destinationAngle_.z);
 	ImGui::Text("vector_x:%f,y:%f,z:%f", vector_.x, vector_.y, vector_.z);
 	ImGui::Text("velocity_:%f,y:%f,z:%f", velocity_.x, velocity_.y, velocity_.z);
 	ImGui::Text("acceleration_:%f,y:%f,z:%f", acceleration_.x, acceleration_.y, acceleration_.z);
@@ -65,6 +75,7 @@ void Player::Update() {
 	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
 	ImGui::Text("slashMax_:%f", slashMax_);
 	ImGui::End();
+//#endif // DEBUG
 }
 
 void Player::BehaviorRootUpdate() {
@@ -72,6 +83,11 @@ void Player::BehaviorRootUpdate() {
 	GamePadInput();
 	// プレイヤーモーションの更新
 	Motion();
+	if (isJump) {
+		if (acceleration_.y > 0.0f) {
+			// ジャンプ制作途中
+		}
+	}
 }
 
 void Player::BehaviorAttackInitialize() {
@@ -84,7 +100,7 @@ void Player::BehaviorAttackInitialize() {
 	slash_Attack_Max_ = DegToRad(RadToDeg(slashMax_) + 270.0f);
 
 	slash_Attack_Start_ = 0.0f;
-	slash_ArmAngle_Start_ = DegToRad(slash_Attack_Start_+180.0f);
+	slash_ArmAngle_Start_ = DegToRad(slash_Attack_Start_ + 180.0f);
 	// 攻撃の溜めモーションスピード
 	charge_Speed_ = 0.01f;
 	charge_T_ = 0.0f;
@@ -102,10 +118,14 @@ void Player::BehaviorAttackInitialize() {
 }
 
 void Player::BehaviorAttackUpdate() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
 #pragma region 攻撃
 	// チャージ中
 	if (chargeFlag_) {
-		if (Input::GetInstance()->PushKey(DIK_Q)) {
+		if (Input::GetInstance()->PushKey(DIK_Q) ||
+			 (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
 			charge_T_ += charge_Speed_;
 			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
 			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
@@ -133,7 +153,8 @@ void Player::BehaviorAttackUpdate() {
 		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
 		worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
 		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
-		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >= slashMax_-0.00005f) {
+		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >=
+		    slashMax_ - 0.00005f) {
 			slashFlag_ = false;
 			slash_T_ = 0.0f;
 			rigorFlag_ = true;
@@ -150,8 +171,7 @@ void Player::BehaviorAttackUpdate() {
 #pragma region 腕
 
 #pragma endregion
-
-	
+#ifdef DEBUG
 	ImGui::Begin("weapon");
 	ImGui::SliderFloat("slashMin:%f", &slashMin_, 0.0f, -1.0f);
 	ImGui::SliderFloat("slashMax:%f", &slashMax_, 1.5f, 0.0f);
@@ -159,6 +179,61 @@ void Player::BehaviorAttackUpdate() {
 	ImGui::SliderFloat("slashSpeed:%f", &slash_Speed_, 2.0f, 0.5f);
 	ImGui::Text("rotate:%f", worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
 	ImGui::End();
+#endif // DEBUG
+}
+
+void Player::BehaviorDashInitialize() { 
+	workDash_.dashParameter_ = 0;
+	worldTransform_.rotation_.y = std::atan2(destinationAngle_.x, destinationAngle_.z);
+	acceleration_.y = 0.0f;
+}
+
+void Player::BehaviorDashUpdate() {
+	
+	// 自キャラの向いている方向に移動する処理
+	const float kDashSpeed = 0.3f;
+	velocity_ = destinationAngle_ * kDashSpeed;
+	worldTransform_.translation_ += velocity_;
+
+	// ダッシュの時間<frame>
+	const uint32_t behaviorDashTime = 15;
+
+	// 基底の時間経過で通常行動に戻る
+	if (++workDash_.dashParameter_ >= behaviorDashTime) {
+		behaviorRequest_ = Behavior::kRoot;
+	}
+
+	worldTransform_Motion_.rotation_.x = Lerp(
+	    DegToRad(0.0f), DegToRad(720.0f),
+	    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
+	if (workDash_.dashParameter_ < behaviorDashTime * 0.5f) {
+		worldTransform_Motion_.translation_.y = Lerp(
+		    0, 0.5f,
+		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
+	} else {
+		worldTransform_Motion_.translation_.y = Lerp(
+		    0.5f, 0.0f,
+		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
+	}
+	
+}
+
+void Player::SetGlobalVariables() {
+	GlobalVariables* globalVariables = nullptr;
+	globalVariables = GlobalVariables::GetInstance();
+	const char* groupName = "Player";
+	// グループ追加
+	GlobalVariables::GetInstance()->CreateGroup(groupName);
+	GlobalVariables::GetInstance()->SaveFile(groupName);
+}
+
+void Player::GetGlobalVariables() {
+	GlobalVariables* globalVariables = nullptr;
+	globalVariables = GlobalVariables::GetInstance();
+	const char* groupName = "Player";
+	worldTransform_.translation_ = globalVariables->GetValue<Vector3>(groupName, "position");
+	// 転送
+	BaseCharacter::Update();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
@@ -175,18 +250,33 @@ void Player::Draw(const ViewProjection& viewProjection) {
 		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
 	}
 }
+
 void Player::GamePadInput() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
 	// プレイヤー移動
 	Move();
 	// 攻撃開始
-	if (Input::GetInstance()->TriggerKey(DIK_Q)) {
+	if (Input::GetInstance()->TriggerKey(DIK_Q)||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))
+		) {
 		behaviorRequest_ = Behavior::kAttack;
+	}
+	// ダッシュ開始
+	if (Input::GetInstance()->TriggerKey(DIK_E) ||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+		(joyState.Gamepad.bRightTrigger)) &&
+	    (Input::GetInstance()->GetJoystickStatePrevious(0, joyState) &&
+	    (!joyState.Gamepad.bRightTrigger))) {
+		behaviorRequest_ = Behavior::kDash;
 	}
 	// ジャンプ
 	Jump();
 	// 重力
 	Gravity();
 }
+
 void Player::Move() {
 	// 移動量
 	vector_ = {0.0f, 0.0f, 0.0f};
@@ -196,7 +286,14 @@ void Player::Move() {
 	// ゲームパットの状況取得
 	// 入力がなかったら何もしない
 	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		if (joyState.Gamepad.sThumbLX != 0 || joyState.Gamepad.sThumbLY != 0) {
+		const float kMargin = 0.7f;
+		// 移動量
+		Vector3 move = {
+		    static_cast<float>(joyState.Gamepad.sThumbLX),
+		    0.0f,
+		    static_cast<float>(joyState.Gamepad.sThumbLY),
+		};
+		if (move.Length() > kMargin) {
 			vector_ = {
 			    static_cast<float>(joyState.Gamepad.sThumbLX),
 			    0.0f,
@@ -227,21 +324,23 @@ void Player::Move() {
 	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector_.Normalize();
+		// 回転行列生成
+		Matrix4x4 rotate = MakeRotateYMatrix(viewProjection_->rotation_.y);
+		// オフセットをカメラの回転に合わせて回転させる
+		vector_ = TransformNormal(vector_, rotate);
+		destinationAngle_ = vector_;
 	}
-	// 回転行列生成
-	Matrix4x4 rotate = MakeRotateYMatrix(viewProjection_->rotation_.y);
-	// オフセットをカメラの回転に合わせて回転させる
-	vector_ = TransformNormal(vector_, rotate);
 #pragma endregion
 }
+
 void Player::Jump() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 	// ゲームパットの状況取得
 	// 入力がなかったら何もしない
-	if ((Input::GetInstance()->GetJoystickState(0, joyState) &&
+	if (((Input::GetInstance()->GetJoystickState(0, joyState) &&
 	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
-	    Input::GetInstance()->TriggerKey(DIK_SPACE) && !isJump) {
+	    Input::GetInstance()->TriggerKey(DIK_SPACE)) && !isJump) {
 		acceleration_.y = kJumpPower;
 		isJump = true;
 	}
@@ -267,16 +366,19 @@ void Player::PlayerRotate() {
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector_.Normalize();
 	}
-	if (direction_ != Vector3(0.0f, 0.0f, 0.0f)) {
-		direction_.Normalize();
+	if (interRotate_ != Vector3(0.0f, 0.0f, 0.0f)) {
+		interRotate_.Normalize();
 	}
-	Vector3 rotate = Lerp(direction_, vector_, kTurn);
+	Vector3 rotate = Lerp(interRotate_, vector_, kTurn);
 	//  Y軸回り角度(θy)
-	worldTransform_Motion_.rotation_.y = std::atan2(rotate.x, rotate.z);
+	worldTransform_.rotation_.y = std::atan2(rotate.x, rotate.z);
 	// プレイヤーの向いている方向
-	direction_ = rotate;
+	interRotate_ = rotate;
 }
-void Player::InitializeFloatGimmick() { floatingParameter_ = 0.0f; }
+void Player::InitializeFloatGimmick() { 
+	floatingParameter_ = 0.0f;
+	worldTransform_Motion_.rotation_ = {0.0f, 0.0f, 0.0f};
+}
 void Player::Motion() {
 	// 全体
 	Base();
@@ -321,5 +423,4 @@ void Player::ArmRight() { // 1フレームでのパラメータ加算値
 }
 void Player::Head() {}
 void Player::Body() {}
-
-void Player::BehaviorRootInitialize() { InitializeFloatGimmick(); }
+void Player::BehaviorRootInitialize() {InitializeFloatGimmick();}
