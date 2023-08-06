@@ -8,7 +8,9 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "input/Input.h"
-class Player : public BaseCharacter {
+
+class PlayerAttack;
+class Player : public BaseCharacter, public Collider {
 public:
 	// 体のパーツ
 	enum class Parts { 
@@ -48,6 +50,9 @@ public: // メンバ関数
 	/// 描画
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
+
+	void HitBoxDraw(const ViewProjection& viewProjection);
+
 private: // メンバ関数
 #pragma region 移動系
 	     /// <summary>
@@ -135,9 +140,11 @@ private: // メンバ関数
 	/// </summary>
 	void BehaviorDashUpdate();
 #pragma endregion
-
+	void HitBoxUpdate();
 	void SetGlobalVariables();
 	void GetGlobalVariables();
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision(const AABB& aabbB) override;
 
 public: // ゲッター,セッター
 	/// <summary>
@@ -147,7 +154,13 @@ public: // ゲッター,セッター
 	void SetViewProjection(const ViewProjection* viewprojection) {
 		viewProjection_ = viewprojection;
 	}
-private: // 定数系
+	void SetBehavior(const std::optional<Behavior>& behaviorRequest) {
+		behaviorRequest_ = behaviorRequest;
+	}
+	void SetPlayerAttack(PlayerAttack* playerAttack) { playerAttack_ = playerAttack; }
+	 
+	Behavior GetBehavior() const { return behavior_; }
+ private: // 定数系
 	// 地面から距離
 	const float kGroundDistanse = 1.0f;
 	// キャラクターの速さ
@@ -183,7 +196,6 @@ private: // メンバ変数
 	// ふるまい
 	Behavior behavior_ = Behavior::kRoot;
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
-
 	// 剣のデットゾーン
 	float slashMin_;
 	float slashMax_;
@@ -206,4 +218,6 @@ private: // メンバ変数
 	bool rigorFlag_ = false;
 	float rigor_Speed_;
 	float rigor_T_;
+
+	PlayerAttack* playerAttack_;
 };

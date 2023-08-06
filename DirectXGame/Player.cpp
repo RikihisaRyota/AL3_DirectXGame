@@ -2,14 +2,19 @@
 
 #include <cassert>
 
+#include "Draw.h"
 #include "GlobalVariables.h"
 #include "ImGuiManager.h"
 #include "MyMath.h"
+#include "PlayerAttack.h"
+
+// テスト
+#include "PrimitiveDrawer.h"
 
 void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	// 基底クラス
 	BaseCharacter::Initialize(std::move(model));
-	//SetGlobalVariables();
+	// SetGlobalVariables();
 	GetGlobalVariables();
 	// 方向
 	interRotate_ = {0.0f, 0.0f, 1.0f};
@@ -17,7 +22,28 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	isJump = false;
 	// 浮遊アニメーションの初期化
 	InitializeFloatGimmick();
-
+#pragma region 当たり判定
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributePlayer);
+	// 衝突対象を自分以外に設定
+	SetCollisionMask(~kCollisionAttributePlayer);
+	// AABB
+	min_ = {-0.6f, -0.9f, -0.6f};
+	max_ = {0.6f, 1.0f, 0.6f};
+	// Sphere
+	radius_ = 1.2f;
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+#pragma endregion
 }
 
 void Player::Update() {
@@ -52,10 +78,13 @@ void Player::Update() {
 		BehaviorDashUpdate();
 		break;
 	}
-	
+
+	HitBoxUpdate();
+
 	// 転送
 	BaseCharacter::Update();
-//#ifdef DEBUG
+
+	// #ifdef DEBUG
 	ImGui::Begin("Player");
 	ImGui::Text(
 	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
@@ -74,8 +103,12 @@ void Player::Update() {
 	    "worldTransforms_Parts_:%f",
 	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
 	ImGui::Text("slashMax_:%f", slashMax_);
+
+	ImGui::SliderFloat3("AABB_min", &min_.x, -3.0f, 0.0f);
+	ImGui::SliderFloat3("AABB_max", &max_.x, 0.0f, 3.0f);
+	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);
 	ImGui::End();
-//#endif // DEBUG
+	// #endif // DEBUG
 }
 
 void Player::BehaviorRootUpdate() {
@@ -91,107 +124,23 @@ void Player::BehaviorRootUpdate() {
 }
 
 void Player::BehaviorAttackInitialize() {
-	worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
-	// 剣のデットゾーン
-	slashMin_ = DegToRad(-45.0f);
-	slashMax_ = DegToRad(90.0f);
-
-	slash_Attack_Min_ = DegToRad(RadToDeg(slashMin_) + 135.0f);
-	slash_Attack_Max_ = DegToRad(RadToDeg(slashMax_) + 270.0f);
-
-	slash_Attack_Start_ = 0.0f;
-	slash_ArmAngle_Start_ = DegToRad(slash_Attack_Start_ + 180.0f);
-	// 攻撃の溜めモーションスピード
-	charge_Speed_ = 0.01f;
-	charge_T_ = 0.0f;
-	// 溜めているかどうかのフラグ
-	chargeFlag_ = true;
-	// 降り下ろしモーション
-	slash_Speed_ = 0.2f;
-	slash_T_ = 0.0f;
-	// 溜めてあと立てるフラグ
-	slashFlag_ = false;
-	// 攻撃硬直
-	rigorFlag_ = false;
-	rigor_Speed_ = 0.1f;
-	rigor_T_ = 0.0f;
+	playerAttack_->Initialize();
 }
 
 void Player::BehaviorAttackUpdate() {
-	// ゲームパットの状態を得る変数
-	XINPUT_STATE joyState{};
-#pragma region 攻撃
-	// チャージ中
-	if (chargeFlag_) {
-		if (Input::GetInstance()->PushKey(DIK_Q) ||
-			 (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
-			charge_T_ += charge_Speed_;
-			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
-			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
-			worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x =
-			    Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
-			worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
-			    Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
-		} else {
-			// チャージ終わり
-			chargeFlag_ = false;
-			slashFlag_ = true;
-			charge_T_ = 0.0f;
-			slash_Attack_Start_ =
-			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
-			slash_ArmAngle_Start_ =
-			    worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x;
-		}
-	}
-	// 降り始め
-	if (slashFlag_) {
-		slash_T_ += slash_Speed_;
-		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
-		    Lerp(slash_Attack_Start_, slashMax_, Clamp(slash_T_, 0.0f, 1.0f));
-		worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_.x =
-		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
-		worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_.x =
-		    Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
-		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >=
-		    slashMax_ - 0.00005f) {
-			slashFlag_ = false;
-			slash_T_ = 0.0f;
-			rigorFlag_ = true;
-		}
-	}
-	// 攻撃硬直
-	if (rigorFlag_) {
-		rigor_T_ += rigor_Speed_;
-		if (rigor_T_ >= 1.0f) {
-			behaviorRequest_ = Behavior::kRoot;
-		}
-	}
-#pragma endregion
-#pragma region 腕
-
-#pragma endregion
-#ifdef DEBUG
-	ImGui::Begin("weapon");
-	ImGui::SliderFloat("slashMin:%f", &slashMin_, 0.0f, -1.0f);
-	ImGui::SliderFloat("slashMax:%f", &slashMax_, 1.5f, 0.0f);
-	ImGui::SliderFloat("chargeSpeed:%f", &charge_Speed_, 0.1f, 0.01f);
-	ImGui::SliderFloat("slashSpeed:%f", &slash_Speed_, 2.0f, 0.5f);
-	ImGui::Text("rotate:%f", worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
-	ImGui::End();
-#endif // DEBUG
+	playerAttack_->Update();
 }
 
-void Player::BehaviorDashInitialize() { 
+void Player::BehaviorDashInitialize() {
 	workDash_.dashParameter_ = 0;
 	worldTransform_.rotation_.y = std::atan2(destinationAngle_.x, destinationAngle_.z);
 	acceleration_.y = 0.0f;
 }
 
 void Player::BehaviorDashUpdate() {
-	
+
 	// 自キャラの向いている方向に移動する処理
-	const float kDashSpeed = 0.3f;
+	const float kDashSpeed = 0.5f;
 	velocity_ = destinationAngle_ * kDashSpeed;
 	worldTransform_.translation_ += velocity_;
 
@@ -204,7 +153,7 @@ void Player::BehaviorDashUpdate() {
 	}
 
 	worldTransform_Motion_.rotation_.x = Lerp(
-	    DegToRad(0.0f), DegToRad(720.0f),
+	    DegToRad(0.0f), DegToRad(360.0f),
 	    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
 	if (workDash_.dashParameter_ < behaviorDashTime * 0.5f) {
 		worldTransform_Motion_.translation_.y = Lerp(
@@ -215,7 +164,20 @@ void Player::BehaviorDashUpdate() {
 		    0.5f, 0.0f,
 		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
 	}
-	
+}
+
+void Player::HitBoxUpdate() {
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
 }
 
 void Player::SetGlobalVariables() {
@@ -236,6 +198,60 @@ void Player::GetGlobalVariables() {
 	BaseCharacter::Update();
 }
 
+void Player::OnCollision(const AABB& aabbB) {
+	// 衝突している場合は押し戻し処理を行う
+	Vector3 overlap;
+	Vector3 aabb_Min = aabb_.min_;
+	Vector3 aabb_Max = aabb_.max_;
+	Vector3 aabbB_Min = aabbB.min_;
+	Vector3 aabbB_Max = aabbB.max_;
+
+	float aabb_x_min = aabb_Max.x - aabbB_Min.x;
+	float aabbB_x_min = aabbB_Max.x - aabb_Min.x;
+	float aabb_y_min = aabb_Max.y - aabbB_Min.y;
+	float aabbB_y_min = aabbB_Max.y - aabb_Min.y;
+	float aabb_z_min = aabb_Max.z - aabbB_Min.z;
+	float aabbB_z_min = aabbB_Max.z - aabb_Min.z;
+
+	overlap.x = (std::min)(aabb_x_min, aabbB_x_min);
+	overlap.y = (std::min)(aabb_y_min, aabbB_y_min);
+	overlap.z = (std::min)(aabb_z_min, aabbB_z_min);
+
+	// 重なりの最小軸を特定する
+	if (overlap.x <= overlap.y && overlap.x <= overlap.z) {
+		// X軸方向での押し戻し
+		float moveX = overlap.x;
+		// どちらから侵入しているか
+		if ((aabb_Max.x - aabbB_Min.x > aabbB_Max.x - aabb_Min.x)) {
+			aabb_.center_.x += moveX;
+		} else {
+			aabb_.center_.x -= moveX;
+		}
+	} else if (overlap.y <= overlap.x && overlap.y <= overlap.z) {
+		// Y軸方向での押し戻し
+		float moveY = overlap.y;
+		// どちらから侵入しているか
+		if ((aabb_Max.y - aabbB_Min.y > aabbB_Max.y - aabb_Min.y)) {
+			aabb_.center_.y += moveY;
+		} else {
+			aabb_.center_.y -= moveY;
+		}
+	} else {
+		// Z軸方向での押し戻し
+		float moveZ = overlap.z;
+		// どちらから侵入しているか
+		if ((aabb_Max.z - aabbB_Min.z > aabbB_Max.z - aabb_Min.z)) {
+			aabb_.center_.z += moveZ;
+		} else {
+			aabb_.center_.z -= moveZ;
+		}
+	}
+	worldTransform_.translation_ = aabb_.center_;
+	// 転送
+	BaseCharacter::Update();
+	HitBoxUpdate();
+}
+
 void Player::Draw(const ViewProjection& viewProjection) {
 	models_[static_cast<int>(Parts::HEAD)]->Draw(
 	    worldTransforms_Parts_[static_cast<int>(Parts::HEAD)], viewProjection);
@@ -246,9 +262,12 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	models_[static_cast<int>(Parts::ARMR)]->Draw(
 	    worldTransforms_Parts_[static_cast<int>(Parts::ARMR)], viewProjection);
 	if (behavior_ == Behavior::kAttack) {
-		models_[static_cast<int>(Parts::WEAPON)]->Draw(
-		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
+		playerAttack_->Draw(viewProjection);
 	}
+}
+
+void Player::HitBoxDraw(const ViewProjection& viewProjection) {
+	DrawAABB(aabb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void Player::GamePadInput() {
@@ -257,18 +276,16 @@ void Player::GamePadInput() {
 	// プレイヤー移動
 	Move();
 	// 攻撃開始
-	if (Input::GetInstance()->TriggerKey(DIK_Q)||
+	if (Input::GetInstance()->TriggerKey(DIK_Q) ||
 	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))
-		) {
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
 		behaviorRequest_ = Behavior::kAttack;
 	}
 	// ダッシュ開始
 	if (Input::GetInstance()->TriggerKey(DIK_E) ||
-	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-		(joyState.Gamepad.bRightTrigger)) &&
-	    (Input::GetInstance()->GetJoystickStatePrevious(0, joyState) &&
-	    (!joyState.Gamepad.bRightTrigger))) {
+	    (Input::GetInstance()->GetJoystickState(0, joyState) && (joyState.Gamepad.bRightTrigger)) &&
+	        (Input::GetInstance()->GetJoystickStatePrevious(0, joyState) &&
+	         (!joyState.Gamepad.bRightTrigger))) {
 		behaviorRequest_ = Behavior::kDash;
 	}
 	// ジャンプ
@@ -339,8 +356,9 @@ void Player::Jump() {
 	// ゲームパットの状況取得
 	// 入力がなかったら何もしない
 	if (((Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
-	    Input::GetInstance()->TriggerKey(DIK_SPACE)) && !isJump) {
+	      (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A)) ||
+	     Input::GetInstance()->TriggerKey(DIK_SPACE)) &&
+	    !isJump) {
 		acceleration_.y = kJumpPower;
 		isJump = true;
 	}
@@ -375,7 +393,7 @@ void Player::PlayerRotate() {
 	// プレイヤーの向いている方向
 	interRotate_ = rotate;
 }
-void Player::InitializeFloatGimmick() { 
+void Player::InitializeFloatGimmick() {
 	floatingParameter_ = 0.0f;
 	worldTransform_Motion_.rotation_ = {0.0f, 0.0f, 0.0f};
 }
@@ -423,4 +441,4 @@ void Player::ArmRight() { // 1フレームでのパラメータ加算値
 }
 void Player::Head() {}
 void Player::Body() {}
-void Player::BehaviorRootInitialize() {InitializeFloatGimmick();}
+void Player::BehaviorRootInitialize() { InitializeFloatGimmick(); }

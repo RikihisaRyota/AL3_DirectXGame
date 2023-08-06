@@ -5,6 +5,9 @@
 #include "AxisIndicator.h"
 #include "TextureManager.h"
 
+// テスト
+#include "PrimitiveDrawer.h"
+
 GameScene::GameScene() {}
 
 GameScene::~GameScene() {}
@@ -15,26 +18,39 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 
+	soundHandle_ = audio_->LoadWave("system.wav");
+
 	// デバックカメラの生成
 	debugCamera_ = std::make_unique<DebugCamera>(WinApp::kWindowWidth, WinApp::kWindowHeight);
 	// デバックカメラフラグ切り替え
 	debugCameraFlag_ = false;
 	// viewProjectionの初期化
 	viewProjection_.Initialize();
+	// DrawLineに必要なviewProjectionをセット
+	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
 #pragma endregion
 #pragma region プレイヤー
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
+	playerAttack_ = std::make_unique<PlayerAttack>();
 	// プレイヤーモデル
 	std::vector<std::unique_ptr<Model>> playerModel(static_cast<int>(Player::Parts::COUNT));
+	std::vector<std::unique_ptr<Model>> playerAttackModel(
+	    static_cast<int>(PlayerAttack::Parts::COUNT));
 	// プレイヤーモデル
 	playerModel[static_cast<int>(Player::Parts::HEAD)].reset(Model::CreateFromOBJ("head", true));
 	playerModel[static_cast<int>(Player::Parts::BODY)].reset(Model::CreateFromOBJ("body", true));
 	playerModel[static_cast<int>(Player::Parts::ARML)].reset(Model::CreateFromOBJ("armL", true));
 	playerModel[static_cast<int>(Player::Parts::ARMR)].reset(Model::CreateFromOBJ("armR", true));
-	playerModel[static_cast<int>(Player::Parts::WEAPON)].reset(Model::CreateFromOBJ("player_Weapon", true));
+	playerModel[static_cast<int>(Player::Parts::WEAPON)].reset(
+	    Model::CreateFromOBJ("player_Weapon", true));
+	playerAttackModel[static_cast<int>(PlayerAttack::Parts::WEAPON)].reset(
+	    Model::CreateFromOBJ("player_Weapon", true));
 	// プレイヤー初期化
 	player_->Initialize(std::move(playerModel));
+	playerAttack_->Initialize(std::move(playerAttackModel));
+	player_->SetPlayerAttack(playerAttack_.get());
+	playerAttack_->SetPlayer(player_.get());
 #pragma endregion
 #pragma region 天球
 	// 天球モデル
@@ -60,10 +76,12 @@ void GameScene::Initialize() {
 	// 敵生成
 	enemy_ = std::make_unique<Enemy>();
 	// 敵モデル
-	std::vector<std::unique_ptr<Model>>	enemyModel(static_cast<int>(Enemy::Parts::COUNT));
+	std::vector<std::unique_ptr<Model>> enemyModel(static_cast<int>(Enemy::Parts::COUNT));
 	// 敵モデル
-	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(Model::CreateFromOBJ("enemy_Body", true));
-	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(Model::CreateFromOBJ("enemy_Light", true));
+	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(
+	    Model::CreateFromOBJ("enemy_Body", true));
+	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(
+	    Model::CreateFromOBJ("enemy_Light", true));
 	// 敵初期化
 	enemy_->Initialize(std::move(enemyModel));
 #pragma endregion
@@ -82,10 +100,15 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
+	// audio_->PlayWave(soundHandle_);
+
 	// プレイヤーの更新
 	player_->Update();
+
 	// 敵の更新
 	enemy_->Update();
+
+	collisionManager.Update(player_.get(), enemy_.get());
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;
@@ -143,8 +166,12 @@ void GameScene::Draw() {
 	ground_->Draw(viewProjection_);
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
+
 	// 敵描画
 	enemy_->Draw(viewProjection_);
+	//////////////Debug//////////////////
+	player_->HitBoxDraw(viewProjection_);
+	enemy_->HitBoxDraw(viewProjection_);
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion

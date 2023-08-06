@@ -29,6 +29,14 @@ struct Vector3 final {
 		return {x - other.x, y - other.y, z - other.z};
 	}
 
+	// 二項マイナス演算子のオーバーロード（引数なしの単項マイナス演算子ではない）
+	Vector3 operator-() const { return {-x, -y, -z}; }
+
+	// 積演算子のオーバーロード
+	Vector3 operator*(const Vector3& other) const {
+		return {x * other.x, y * other.y, z * other.z};
+	}
+
 	// スカラー乗算演算子のオーバーロード
 	Vector3 operator*(float scalar) const { return {x * scalar, y * scalar, z * scalar}; }
 

@@ -1,10 +1,14 @@
 #pragma once
 #include <algorithm> // std::min, std::max
+#include <vector>
 
+#include "AABB.h"
 #include "Matrix4x4.h"
+#include "OBB.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "Vector4.h"
+#include "Vector2.h"
 
 // ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
@@ -15,6 +19,12 @@ float Lerp(float start, float end, float t);
 Vector3 Slerp(const Vector3& start, const Vector3& end, float t);
 
 float Distance(const Vector3& v1, const Vector3& v2);
+
+float Dot(const Vector3& a, const Vector3& b);
+
+Vector3 Subtract(const Vector3& v1, const Vector3& v2);
+
+float Length(const Vector3& a);
 
 Vector3 Normalize(const Vector3& v1);
 
@@ -110,3 +120,51 @@ void ChackHitBox(
 /// <param name="t">t</param>
 /// <returns></returns>
 float LenpShortAngle(float a, float b, float t);
+
+Vector3 Perpendicular(const Vector3& vector);
+
+// 外積
+// 外積
+Vector3 Cross(const Vector3& v1, const Vector3& v2);
+
+// AABBに値を代入
+AABB AABBAssignment(const AABB& aabb);
+
+// OBBの回転角度の抽出
+OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate);
+
+// OBBの平行移動
+Matrix4x4 OBBMakeWorldMatrix(const OBB& obb);
+
+Matrix4x4 SetRotate(const Vector3 (&array)[3]);
+
+// 曲線
+// 二次ベジエ
+Vector2 QuadraticBezier(
+    const Vector2& controlPoint0, const Vector2& controlPoint1, const Vector2& controlPoint2,
+    float t);
+// 三次ベジエ
+Vector3 CubicBezier(
+    const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
+    float t);
+
+// Lerp
+// float Lerp(float start, float end, float t);
+// Vector2 Lerp(const Vector2& start, const Vector2& end, float t);
+// Vector3 Lerp(const Vector3& start, const Vector3& end, float t);
+template<class T> T Lerp(const T& start, const T& end, float t);
+template<class T> inline T Lerp(const T& start, const T& end, float t) {
+	return start + (end - start) * t;
+}
+
+// CatmullRom
+Vector2 QuadraticCatmullRom(
+    const Vector2& Position0, const Vector2& Position1, const Vector2& Position2,
+    const Vector2& Position3, float t);
+Vector3 CubicCatmullRom(
+    const Vector3& Position0, const Vector3& Position1, const Vector3& Position2,
+    const Vector3& Position3, float t);
+// OBBの頂点
+void OBBIndex(const OBB& obb, std::vector<Vector3>& output_vertices);
+// 分離軸
+bool SeparationAxis(const Vector3 axis, const OBB obb_1, const OBB obb_2);

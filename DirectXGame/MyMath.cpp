@@ -77,6 +77,14 @@ float Distance(const Vector3& v1, const Vector3& v2) {
 	    std::pow(v2.x - v1.x, 2) + std::pow(v2.y - v1.y, 2) + std::pow(v2.z - v1.z, 2));
 }
 
+float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
+	return {(v1.x - v2.x), (v1.y - v2.y), (v1.z - v2.z)};
+}
+
+float Length(const Vector3& a) { return sqrtf((a.x * a.x) + (a.y * a.y) + (a.z * a.z)); }
+
 Vector3 Normalize(const Vector3& v1){
 	Vector3 result = v1;
 	float length = result.Length();
@@ -510,4 +518,194 @@ float LenpShortAngle(float a, float b, float t) {
 		diff += DegToRad(360.0f);
 	}
 	return Lerp(a, a + diff, t);
+}
+
+Vector3 Perpendicular(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return {-vector.y, vector.x, 0.0f};
+	}
+	return {0.0f, -vector.z, vector.y};
+}
+
+Vector3 Cross(const Vector3& a, const Vector3& b) {
+	return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
+}
+
+AABB AABBAssignment(const AABB& aabb) {
+	AABB result = aabb;
+	// x
+	result.min_.x = (std::min)(result.min_.x, result.max_.x);
+	result.max_.x = (std::max)(result.min_.x, result.max_.x);
+	// y
+	result.min_.y = (std::min)(result.min_.y, result.max_.y);
+	result.max_.y = (std::max)(result.min_.y, result.max_.y);
+	// z
+	result.min_.z = (std::min)(result.min_.z, result.max_.z);
+	result.max_.z = (std::max)(result.min_.z, result.max_.z);
+
+	return result;
+}
+
+OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate) {// 回転行列を生成
+	Matrix4x4 rotateMatrix = Mul(
+	    MakeRotateXMatrix(rotate.x), Mul(MakeRotateYMatrix(rotate.y), MakeRotateZMatrix(rotate.z)));
+
+	// 回転行列から軸を抽出
+	OBB obb = Obb;
+
+	obb.orientations_[0].x = rotateMatrix.m[0][0];
+	obb.orientations_[0].y = rotateMatrix.m[0][1];
+	obb.orientations_[0].z = rotateMatrix.m[0][2];
+
+	obb.orientations_[1].x = rotateMatrix.m[1][0];
+	obb.orientations_[1].y = rotateMatrix.m[1][1];
+	obb.orientations_[1].z = rotateMatrix.m[1][2];
+
+	obb.orientations_[2].x = rotateMatrix.m[2][0];
+	obb.orientations_[2].y = rotateMatrix.m[2][1];
+	obb.orientations_[2].z = rotateMatrix.m[2][2];
+
+	return obb;
+}
+
+Matrix4x4 OBBMakeWorldMatrix(const OBB& obb) {
+	Matrix4x4 result;
+	result.m[0][0] = obb.orientations_[0].x;
+	result.m[0][1] = obb.orientations_[0].y;
+	result.m[0][2] = obb.orientations_[0].z;
+
+	result.m[1][0] = obb.orientations_[1].x;
+	result.m[1][1] = obb.orientations_[1].y;
+	result.m[1][2] = obb.orientations_[1].z;
+
+	result.m[2][0] = obb.orientations_[2].x;
+	result.m[2][1] = obb.orientations_[2].y;
+	result.m[2][2] = obb.orientations_[2].z;
+
+	result.m[3][0] = obb.center_.x;
+	result.m[3][1] = obb.center_.y;
+	result.m[3][2] = obb.center_.z;
+	return result;
+}
+
+Matrix4x4 SetRotate(const Vector3 (&array)[3]) {
+	Matrix4x4 rotateMatrix;
+	rotateMatrix.m[0][0] = array[0].x;
+	rotateMatrix.m[0][1] = array[0].y;
+	rotateMatrix.m[0][2] = array[0].z;
+	rotateMatrix.m[1][0] = array[1].x;
+	rotateMatrix.m[1][1] = array[1].y;
+	rotateMatrix.m[1][2] = array[1].z;
+	rotateMatrix.m[2][0] = array[2].x;
+	rotateMatrix.m[2][1] = array[2].y;
+	rotateMatrix.m[2][2] = array[2].z;
+	return rotateMatrix;
+}
+
+Vector2 QuadraticBezier(const Vector2& controlPoint0, const Vector2& controlPoint1, const Vector2& controlPoint2,float t) {
+	// 制御点p0,p1を線形補間
+	Vector2 p0p1 = Lerp(controlPoint0, controlPoint1, t);
+	// 制御点p1,p2線形補間
+	Vector2 p1p2 = Lerp(controlPoint1, controlPoint2, t);
+	// 補間点p0p1,p1p2をさらに線形補間
+	return Lerp(p0p1, p1p2, t);
+}
+
+Vector3 CubicBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,float t) {
+	// 制御点p0,p1を線形補間
+	Vector3 p0p1 = Lerp(controlPoint0, controlPoint1, t);
+	// 制御点p1,p2線形補間
+	Vector3 p1p2 = Lerp(controlPoint1, controlPoint2, t);
+	// 補間点p0p1,p1p2をさらに線形補間
+	return Lerp(p0p1, p1p2, t);
+}
+
+Vector2 QuadraticCatmullRom(const Vector2& Position0, const Vector2& Position1, const Vector2& Position2,const Vector2& Position3, float t) {
+	Vector2 Result;
+
+	float t2 = t * t;
+	float t3 = t2 * t;
+
+	float P0 = -t3 + 2.0f * t2 - t;
+	float P1 = 3.0f * t3 - 5.0f * t2 + 2.0f;
+	float P2 = -3.0f * t3 + 4.0f * t2 + t;
+	float P3 = t3 - t2;
+
+	Result.x = (P0 * Position0.x + P1 * Position1.x + P2 * Position2.x + P3 * Position3.x) * 0.5f;
+	Result.y = (P0 * Position0.y + P1 * Position1.y + P2 * Position2.y + P3 * Position3.y) * 0.5f;
+
+	return Result;
+}
+
+Vector3 CubicCatmullRom(const Vector3& Position0, const Vector3& Position1, const Vector3& Position2,const Vector3& Position3, float t) {
+	Vector3 Result;
+
+	float t2 = t * t;
+	float t3 = t2 * t;
+
+	float P0 = -t3 + 2.0f * t2 - t;
+	float P1 = 3.0f * t3 - 5.0f * t2 + 2.0f;
+	float P2 = -3.0f * t3 + 4.0f * t2 + t;
+	float P3 = t3 - t2;
+
+	Result.x = (P0 * Position0.x + P1 * Position1.x + P2 * Position2.x + P3 * Position3.x) * 0.5f;
+	Result.y = (P0 * Position0.y + P1 * Position1.y + P2 * Position2.y + P3 * Position3.y) * 0.5f;
+	Result.z = (P0 * Position0.z + P1 * Position1.z + P2 * Position2.z + P3 * Position3.z) * 0.5f;
+
+	return Result;
+}
+
+void OBBIndex(const OBB& obb, std::vector<Vector3>& output_vertices) {
+	std::vector<Vector3> vertices = {
+	    {-obb.size_},
+	    {+obb.size_.x, -obb.size_.y, -obb.size_.z},
+	    {+obb.size_.x, -obb.size_.y, +obb.size_.z},
+	    {-obb.size_.x, -obb.size_.y, +obb.size_.z},
+	    {-obb.size_.x, +obb.size_.y, -obb.size_.z},
+	    {+obb.size_.x, +obb.size_.y, -obb.size_.z},
+	    {obb.size_},
+	    {-obb.size_.x, +obb.size_.y, +obb.size_.z},
+	};
+
+	Matrix4x4 rotateMatrix = SetRotate(obb.orientations_);
+	for (auto& vertex : vertices) {
+		vertex = Transform(vertex, rotateMatrix);
+		vertex = vertex + obb.center_;
+	}
+	output_vertices = vertices;
+}
+
+bool SeparationAxis(const Vector3 axis, const OBB obb_1, const OBB obb_2) {// 分離軸
+	Vector3 L = axis;
+	// 頂点数
+	const int32_t kIndex = 8;
+	// 頂点格納用配列
+	std::vector<Vector3> vertices_1;
+	std::vector<Vector3> vertices_2;
+	// 配列に頂点を代入
+	OBBIndex(obb_1, vertices_1);
+	OBBIndex(obb_2, vertices_2);
+	// 距離を格納
+	float min_1 = Dot(vertices_1[0], L);
+	float max_1 = min_1;
+	float min_2 = Dot(vertices_2[0], L);
+	float max_2 = min_2;
+	for (size_t i = 1; i < kIndex; i++) {
+		float dot_1 = Dot(vertices_1[i], L);
+		float dot_2 = Dot(vertices_2[i], L);
+		// min/max比べる
+		min_1 = (std::min)(min_1, dot_1);
+		max_1 = (std::max)(max_1, dot_1);
+		min_2 = (std::min)(min_2, dot_2);
+		max_2 = (std::max)(max_2, dot_2);
+	}
+	float L1 = max_1 - min_1;
+	float L2 = max_2 - min_2;
+	float sumSpan = L1 + L2;
+	float longSpan = (std::max)(max_1, max_2) - (std::min)(min_1, min_2);
+	// 分離軸である
+	if (sumSpan < longSpan) {
+		return true;
+	}
+	return false;
 }

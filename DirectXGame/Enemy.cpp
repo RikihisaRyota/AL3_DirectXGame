@@ -1,5 +1,6 @@
 #include "Enemy.h"
 
+#include"Draw.h"
 #include "ImGuiManager.h"
 #include "MyMath.h"
 
@@ -13,6 +14,29 @@ void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	direction_ = worldTransform_.translation_;
 	moveRatate_ = 0.0f;
 	motionRatate_ = 0.0f;
+
+#pragma region 当たり判定
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributeEnemy);
+	// 衝突対象を自分以外に設定
+	SetCollisionMask(~kCollisionAttributeEnemy);
+	// AABB
+	min_ = {-0.6f, -0.9f, -0.6f};
+	max_ = {0.6f, 1.0f, 0.6f};
+	// Sphere
+	radius_ = 1.2f;
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+#pragma endregion
 }
 
 void Enemy::Update() {
@@ -22,6 +46,7 @@ void Enemy::Update() {
 	Motion();
 	// 転送
 	BaseCharacter::Update();
+	HitBoxUpdate();
 #ifdef DEBUG
 	ImGui::Begin("Enemy");
 	ImGui::Text(
@@ -48,21 +73,35 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	}
 }
 
+void Enemy::HitBoxDraw(const ViewProjection& viewProjection) {
+	DrawAABB(aabb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	//DrawSphere(sphere_, viewProjection, Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+}
+
+bool flag = false;
 void Enemy::Move() {
-	vector_ = {0.0f, 0.0f, 0.0f};
-	// 円運動の計算
-	float radius = 5.0f;
-	float x = radius * std::cos(angle_);
-	float z = radius * std::sin(angle_);
-	vector_ = {x, 0.0f, z};
+	/*if (worldTransform_.translation_.z > 20 || worldTransform_.translation_.z < -20) {
+		flag ^= true;
+	}*/
+	if (flag) {
+		vector_ = {0.0f, 0.0f, 1.0f};
+	} else {
+		vector_ = {0.0f, 0.0f, -1.0f};
+	}
+	//vector_ = {0.0f, 0.0f, 0.0f};
+	//// 円運動の計算
+	//float radius = 5.0f;
+	//float x = radius * std::cos(angle_);
+	//float z = radius * std::sin(angle_);
+	//vector_ = {x, 0.0f, z};
 	vector_.Normalize();
 	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector_.Normalize();
 	}
-	velocity_ = vector_ * 0.2f;
+	velocity_ = vector_ * 0.1f;
 	velocity_ += acceleration_;
-	worldTransform_.translation_ += velocity_;
+	//worldTransform_.translation_ += velocity_;
 	// 角度の更新
 	angle_ += 0.02f;
 }
@@ -87,3 +126,19 @@ void Enemy::Light() {
 	//  Y軸回り角度(θy)
 	worldTransforms_Parts_[static_cast<int>(Parts::LIGHT)].rotation_.y += 0.08f;
 }
+
+void Enemy::HitBoxUpdate() {
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+}
+
+void Enemy::OnCollision(const AABB& aabbA) { AABB aabb = aabbA; }

@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseCharacter.h"
-class Enemy : public BaseCharacter {
+class Enemy : public BaseCharacter, public Collider {
 public:
 	// パーツ
 	enum class Parts { 
@@ -21,6 +21,8 @@ public:
 	/// 描画
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
+
+	void HitBoxDraw(const ViewProjection& viewProjection);
 
 private:
 	/// <summary>
@@ -43,6 +45,11 @@ private:
 	/// ライト
 	/// </summary>
 	void Light();
+
+	void HitBoxUpdate();
+
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision(const AABB& aabb) override;
 
 private:
 	// 振り向き速度

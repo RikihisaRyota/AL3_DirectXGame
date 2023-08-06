@@ -1,5 +1,6 @@
 #pragma once
 #include "Audio.h"
+#include "CollisionManager.h"
 #include "DebugCamera.h"
 #include "DirectXCommon.h"
 #include "Enemy.h"
@@ -7,6 +8,7 @@
 #include "Input.h"
 #include "Model.h"
 #include "Player.h"
+#include "PlayerAttack.h"
 #include "SafeDelete.h"
 #include "Skydome.h"
 #include "Sprite.h"
@@ -50,10 +52,14 @@ private: // メンバ変数
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 	ViewProjection viewProjection_;
+
+	uint32_t soundHandle_;
 	// デバックカメラ
 	std::unique_ptr<DebugCamera> debugCamera_;
 	// デバックカメラ切り替え
 	bool debugCameraFlag_;
+	CollisionManager collisionManager;
+
 #pragma endregion
 	/// <summary>
 	/// ゲームシーン用
@@ -61,6 +67,7 @@ private: // メンバ変数
 #pragma region プレイヤー
 	// プレイヤー
 	std::unique_ptr<Player> player_;
+	std::unique_ptr<PlayerAttack> playerAttack_;
 #pragma endregion
 #pragma region 天球
 	// 天球

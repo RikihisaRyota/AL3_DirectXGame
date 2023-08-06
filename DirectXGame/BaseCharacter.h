@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 
+#include "Collider.h"
 #include "Model.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
@@ -17,12 +18,33 @@ public:
 	/// 更新
 	/// </summary>
 	virtual void Update();
+
 public:
 	/// <summary>
 	/// ワールド変換データを取得
 	/// </summary>
 	/// <returns>ワールド変換データ</returns>
-	const WorldTransform& GetWorldTransform() { return worldTransform_; }
+	const WorldTransform& GetWorldTransform() const { return worldTransform_; }
+	/// <summary>
+	/// ワールド変換データを取得
+	/// </summary>
+	/// <returns>ワールド変換データ</returns>
+	const WorldTransform& GetWorldTransform_Motion() const { return worldTransform_Motion_; }
+	/// <summary>
+	/// ワールド変換データを取得
+	/// </summary>
+	/// <returns>ワールド変換データ</returns>
+	const WorldTransform& GetWorldTransforms_Parts(int count) const { return worldTransforms_Parts_[count];}
+	void SetWorldtransform(const WorldTransform& worldtransfrom) {
+		worldTransform_ = worldtransfrom;
+	}
+	void SetWorldtransform_Motion(const WorldTransform& worldtransfrom) {
+		worldTransform_Motion_ = worldtransfrom;
+	}
+	void SetWorldtransforms_Parts(const WorldTransform& worldtransfrom, int count) {
+		worldTransforms_Parts_[count] = worldtransfrom;
+	}
+
 protected:
 	// モデルデータ配列
 	std::vector<std::unique_ptr<Model>> models_;
@@ -38,4 +60,9 @@ protected:
 	Vector3 velocity_;
 	// 加速度
 	Vector3 acceleration_;
+	// AABB
+	Vector3 min_;
+	Vector3 max_;
+	// Sphere
+	float radius_;
 };
