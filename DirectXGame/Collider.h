@@ -4,6 +4,7 @@
 #include "AABB.h"
 #include "Sphere.h"
 #include "OBB.h"
+#include "ViewProjection.h"
 
 // プレイヤー陣営
 const uint32_t kCollisionAttributePlayer = 0b1;
@@ -16,7 +17,7 @@ struct Vector3;
 class Collider {
 public:
 	// 衝突時に呼ばれる関数
-	virtual void OnCollision(const AABB& aabb) = 0;
+	virtual void OnCollision(const OBB& obb) = 0;
 
 	// 衝突属性の取得
 	virtual uint32_t GetCollisionAttribute() { return collisionAttribute_; }
@@ -32,7 +33,13 @@ public:
 	// 衝突マスク設定
 	virtual void SetCollisionMask(uint32_t collisionMask) { collisionMask_ = collisionMask; }
 
+	// HitBoxDraw
+	virtual void HitBoxInitialize() = 0;
+	virtual void HitBoxUpdate() = 0;
+	virtual void HitBoxDraw(const ViewProjection& viewProjection) = 0;
+
 	AABB* GetAABB() { return &aabb_; }
+	OBB* GetOBB() { return &obb_; }
 	Sphere* GetSphere() { return &sphere_; }
 
 protected:

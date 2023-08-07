@@ -63,6 +63,8 @@ protected:
 	// AABB
 	Vector3 min_;
 	Vector3 max_;
+	// OBB
+	Vector3 size_;
 	// Sphere
 	float radius_;
 };

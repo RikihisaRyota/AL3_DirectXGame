@@ -50,8 +50,8 @@ public: // メンバ関数
 	/// 描画
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
-
-	void HitBoxDraw(const ViewProjection& viewProjection);
+	void HitBoxInitialize() override;
+	void HitBoxDraw(const ViewProjection& viewProjection) override;
 
 private: // メンバ関数
 #pragma region 移動系
@@ -144,7 +144,7 @@ private: // メンバ関数
 	void SetGlobalVariables();
 	void GetGlobalVariables();
 	// 衝突を検出したら呼び出されるコールバック関数
-	void OnCollision(const AABB& aabbB) override;
+	void OnCollision(const OBB& obb) override;
 
 public: // ゲッター,セッター
 	/// <summary>

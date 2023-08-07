@@ -137,7 +137,7 @@ void DrawAABB(const AABB& aabb, const ViewProjection& viewProjection, Vector4 co
 
 void DrawOBB(const OBB& obb, const ViewProjection& viewProjection, Vector4 color) {
 	Vector3 vertices[] = {
-	    {-obb.size_.x, -obb.size_.y, -obb.size_.z},
+	    {-obb.size_},
 	    {+obb.size_.x, -obb.size_.y, -obb.size_.z},
 	    {+obb.size_.x, -obb.size_.y, +obb.size_.z},
 	    {-obb.size_.x, -obb.size_.y, +obb.size_.z},
@@ -147,7 +147,8 @@ void DrawOBB(const OBB& obb, const ViewProjection& viewProjection, Vector4 color
 	    {-obb.size_.x, +obb.size_.y, +obb.size_.z},
 	};
 
-	Matrix4x4 rotateMatrix = SetRotate(obb.orientations_);
+	Matrix4x4 rotateMatrix = MakeIdentity4x4();
+	rotateMatrix = SetRotate(obb.orientations_);
 	for (auto& vertex : vertices) {
 		vertex = Transform(vertex, rotateMatrix);
 		vertex = vertex + obb.center_;

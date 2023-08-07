@@ -132,6 +132,7 @@ AABB AABBAssignment(const AABB& aabb);
 
 // OBBの回転角度の抽出
 OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate);
+OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate, const Vector3& rotate1);
 
 // OBBの平行移動
 Matrix4x4 OBBMakeWorldMatrix(const OBB& obb);

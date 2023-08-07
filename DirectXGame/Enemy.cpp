@@ -20,22 +20,8 @@ void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	SetCollisionAttribute(kCollisionAttributeEnemy);
 	// 衝突対象を自分以外に設定
 	SetCollisionMask(~kCollisionAttributeEnemy);
-	// AABB
-	min_ = {-0.6f, -0.9f, -0.6f};
-	max_ = {0.6f, 1.0f, 0.6f};
-	// Sphere
-	radius_ = 1.2f;
-	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
-	};
-	// Sphere
-	sphere_ = {
-	    .center_{worldTransform_.translation_},
-	    .radius_{radius_},
-	};
+
+	HitBoxInitialize();
 #pragma endregion
 }
 
@@ -73,9 +59,41 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	}
 }
 
+void Enemy::HitBoxInitialize() {
+	// AABB
+	min_ = {-1.0f, -1.0f, -1.0f};
+	max_ = {1.0f, 1.0f, 1.0f};
+	// OBB
+	size_ = {0.5f, 1.0f, 0.5f};
+	// Sphere
+	radius_ = 1.2f;
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// OBB
+	obb_ = {
+	    .center_{worldTransform_.translation_},
+	    .orientations_{
+	             {1.0f, 0.0f, 0.0f},
+	             {0.0f, 1.0f, 0.0f},
+	             {0.0f, 0.0f, 1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+}
+
 void Enemy::HitBoxDraw(const ViewProjection& viewProjection) {
-	DrawAABB(aabb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-	//DrawSphere(sphere_, viewProjection, Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 0.5f, 0.25f, 1.0f));
+	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 bool flag = false;
@@ -88,12 +106,12 @@ void Enemy::Move() {
 	} else {
 		vector_ = {0.0f, 0.0f, -1.0f};
 	}
-	//vector_ = {0.0f, 0.0f, 0.0f};
-	//// 円運動の計算
-	//float radius = 5.0f;
-	//float x = radius * std::cos(angle_);
-	//float z = radius * std::sin(angle_);
-	//vector_ = {x, 0.0f, z};
+	vector_ = {0.0f, 0.0f, 0.0f};
+	// 円運動の計算
+	float radius = 5.0f;
+	float x = radius * std::cos(angle_);
+	float z = radius * std::sin(angle_);
+	vector_ = {x, 0.0f, z};
 	vector_.Normalize();
 	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
@@ -101,7 +119,7 @@ void Enemy::Move() {
 	}
 	velocity_ = vector_ * 0.1f;
 	velocity_ += acceleration_;
-	//worldTransform_.translation_ += velocity_;
+	worldTransform_.translation_ += velocity_;
 	// 角度の更新
 	angle_ += 0.02f;
 }
@@ -117,7 +135,7 @@ void Enemy::Motion() {
 
 void Enemy::Base() {
 	//  Y軸回り角度(θy)
-	worldTransform_Motion_.rotation_.y = std::atan2(vector_.x, vector_.z);
+	worldTransform_.rotation_.y = std::atan2(vector_.x, vector_.z);
 }
 
 void Enemy::Body() {}
@@ -134,6 +152,17 @@ void Enemy::HitBoxUpdate() {
 	    .min_{aabb_.center_ + min_},
 	    .max_{aabb_.center_ + max_},
 	};
+	// OBB
+	obb_ = {
+	    .center_{worldTransform_.translation_},
+	    .orientations_{
+	             {1.0f, 0.0f, 0.0f},
+	             {0.0f, 1.0f, 0.0f},
+	             {0.0f, 0.0f, 1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 	// Sphere
 	sphere_ = {
 	    .center_{worldTransform_.translation_},
@@ -141,4 +170,8 @@ void Enemy::HitBoxUpdate() {
 	};
 }
 
-void Enemy::OnCollision(const AABB& aabbA) { AABB aabb = aabbA; }
+void Enemy::OnCollision(const OBB& obb) {
+	OBB o = obb;
+	worldTransform_.translation_ = Vector3(0.0f, 1.0f, 10.0f);
+	worldTransform_.UpdateMatrix();
+}

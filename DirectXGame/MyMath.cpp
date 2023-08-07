@@ -567,6 +567,28 @@ OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate) {// 回転行列を生�
 
 	return obb;
 }
+OBB OBBSetRotate(const OBB& Obb, const Vector3& rotate, const Vector3& rotate1) { // 回転行列を生成
+	Matrix4x4 rotateMatrix = MakeRotateXMatrix(rotate.x) * MakeRotateXMatrix(rotate1.x) *
+	                         MakeRotateYMatrix(rotate.y) * MakeRotateYMatrix(rotate1.y) *
+	                         MakeRotateZMatrix(rotate.z) * MakeRotateZMatrix(rotate1.z);
+
+	// 回転行列から軸を抽出
+	OBB obb = Obb;
+
+	obb.orientations_[0].x = rotateMatrix.m[0][0];
+	obb.orientations_[0].y = rotateMatrix.m[0][1];
+	obb.orientations_[0].z = rotateMatrix.m[0][2];
+
+	obb.orientations_[1].x = rotateMatrix.m[1][0];
+	obb.orientations_[1].y = rotateMatrix.m[1][1];
+	obb.orientations_[1].z = rotateMatrix.m[1][2];
+
+	obb.orientations_[2].x = rotateMatrix.m[2][0];
+	obb.orientations_[2].y = rotateMatrix.m[2][1];
+	obb.orientations_[2].z = rotateMatrix.m[2][2];
+
+	return obb;
+}
 
 Matrix4x4 OBBMakeWorldMatrix(const OBB& obb) {
 	Matrix4x4 result;
@@ -590,6 +612,7 @@ Matrix4x4 OBBMakeWorldMatrix(const OBB& obb) {
 
 Matrix4x4 SetRotate(const Vector3 (&array)[3]) {
 	Matrix4x4 rotateMatrix;
+	rotateMatrix = MakeIdentity4x4();
 	rotateMatrix.m[0][0] = array[0].x;
 	rotateMatrix.m[0][1] = array[0].y;
 	rotateMatrix.m[0][2] = array[0].z;

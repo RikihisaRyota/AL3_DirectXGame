@@ -21,8 +21,8 @@ public:
 	/// 描画
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
-
-	void HitBoxDraw(const ViewProjection& viewProjection);
+	void HitBoxInitialize() override;
+	void HitBoxDraw(const ViewProjection& viewProjection) override;
 
 private:
 	/// <summary>
@@ -46,10 +46,10 @@ private:
 	/// </summary>
 	void Light();
 
-	void HitBoxUpdate();
+	void HitBoxUpdate() override;
 
 	// 衝突を検出したら呼び出されるコールバック関数
-	void OnCollision(const AABB& aabb) override;
+	void OnCollision(const OBB& obb) override;
 
 private:
 	// 振り向き速度

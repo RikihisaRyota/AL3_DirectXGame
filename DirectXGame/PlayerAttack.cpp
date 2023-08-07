@@ -1,5 +1,6 @@
 #include "PlayerAttack.h"
 
+#include "Draw.h"
 #include "Input.h"
 #include "ImGuiManager.h"
 #include "MyMath.h"
@@ -12,23 +13,13 @@ void PlayerAttack::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	SetCollisionAttribute(kCollisionAttributePlayer);
 	// 衝突対象を自分以外に設定
 	SetCollisionMask(~kCollisionAttributePlayer);
-	// AABB
-	min_ = {-0.6f, -0.9f, -0.6f};
-	max_ = {0.6f, 1.0f, 0.6f};
-	// Sphere
-	radius_ = 1.2f;
-	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
-	};
+	HitBoxInitialize();
 }
 
 void PlayerAttack::Initialize() {
 	worldTransform_ = player_->GetWorldTransform();
-	
 	worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
+
 	// 剣のデットゾーン
 	slashMin_ = DegToRad(-45.0f);
 	slashMax_ = DegToRad(90.0f);
@@ -57,7 +48,7 @@ void PlayerAttack::Initialize() {
 void PlayerAttack::Update() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
-#pragma region 攻撃
+	worldTransform_ = player_->GetWorldTransform();
 	// チャージ中
 	if (chargeFlag_) {
 		if (Input::GetInstance()->PushKey(DIK_Q) ||
@@ -104,10 +95,14 @@ void PlayerAttack::Update() {
 			rigorFlag_ = false;
 		}
 	}
+	ImGui::Begin("PlayerAttack");
+	ImGui::SliderFloat3("AABB_min", &min_.x, -3.0f, 0.0f);
+	ImGui::SliderFloat3("AABB_max", &max_.x, 0.0f, 6.0f);
+	ImGui::SliderFloat3("OBB_size", &size_.x, 0.0f, 6.0f);
+	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);
+	ImGui::End();
 	BaseCharacter::Update();
-#pragma endregion
-
-#pragma endregion
+	HitBoxUpdate();
 }
 
 void PlayerAttack::Draw(const ViewProjection& viewProjection) {
@@ -115,4 +110,69 @@ void PlayerAttack::Draw(const ViewProjection& viewProjection) {
 	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
 }
 
-void PlayerAttack::OnCollision(const AABB& aabbB) { AABB a = aabbB; }
+void PlayerAttack::HitBoxUpdate() {
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// OBB
+	obb_ = {
+	    .center_{worldTransform_.translation_},
+	    .orientations_{
+	             {1.0f, 0.0f, 0.0f},
+	             {0.0f, 1.0f, 0.0f},
+	             {0.0f, 0.0f, 1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(
+		obb_, 
+		worldTransform_.rotation_,
+		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+}
+
+void PlayerAttack::HitBoxInitialize() {
+	// AABB
+	min_ = {-5.1f, -0.9f, -5.1f};
+	max_ = {5.1f, 5.1f, 5.1f};
+	// OBB
+	size_ = {0.5f, 5.1f, 0.5f};
+	// Sphere
+	radius_ = 1.2f;
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// OBB
+	obb_ = {
+	    .center_{
+	             worldTransform_.translation_.x,
+				 worldTransform_.translation_.y+3.0f,
+	             worldTransform_.translation_.z},
+	    .orientations_{
+	             {1.0f,0.0f,0.0f},
+	             {0.0f,1.0f,0.0f},
+	             {0.0f,0.0f,1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(
+	    obb_, worldTransform_.rotation_,
+	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+}
+void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
+	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+}
+
+void PlayerAttack::OnCollision(const OBB& obb) { OBB a = obb; }

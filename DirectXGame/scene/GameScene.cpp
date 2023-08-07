@@ -5,6 +5,8 @@
 #include "AxisIndicator.h"
 #include "TextureManager.h"
 
+#include "Draw.h"
+
 // テスト
 #include "PrimitiveDrawer.h"
 
@@ -108,7 +110,7 @@ void GameScene::Update() {
 	// 敵の更新
 	enemy_->Update();
 
-	collisionManager.Update(player_.get(), enemy_.get());
+	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get());
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;
@@ -171,7 +173,29 @@ void GameScene::Draw() {
 	enemy_->Draw(viewProjection_);
 	//////////////Debug//////////////////
 	player_->HitBoxDraw(viewProjection_);
+	if (player_->GetBehavior() == Player::Behavior::kAttack) {
+		playerAttack_->HitBoxDraw(viewProjection_);
+	}
 	enemy_->HitBoxDraw(viewProjection_);
+	DrawLine(
+	    Vector3(
+	        (player_->GetAABB()->min_.x + player_->GetAABB()->max_.x) * 0.5f, 
+			player_->GetAABB()->max_.y, 
+			player_->GetAABB()->max_.z
+		),
+	    Vector3(
+	        (enemy_->GetAABB()->min_.x + enemy_->GetAABB()->max_.x) * 0.5f, 
+			enemy_->GetAABB()->max_.y,
+			enemy_->GetAABB()->min_.z
+		),
+	    viewProjection_,
+	    Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+
+	float player = player_->GetAABB()->max_.z;
+	float enemy = enemy_->GetAABB()->min_.z;
+	float distance;
+	distance = player - enemy;
+
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion

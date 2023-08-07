@@ -27,22 +27,8 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	SetCollisionAttribute(kCollisionAttributePlayer);
 	// 衝突対象を自分以外に設定
 	SetCollisionMask(~kCollisionAttributePlayer);
-	// AABB
-	min_ = {-0.6f, -0.9f, -0.6f};
-	max_ = {0.6f, 1.0f, 0.6f};
-	// Sphere
-	radius_ = 1.2f;
-	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
-	};
-	// Sphere
-	sphere_ = {
-	    .center_{worldTransform_.translation_},
-	    .radius_{radius_},
-	};
+
+	HitBoxInitialize();
 #pragma endregion
 }
 
@@ -80,7 +66,7 @@ void Player::Update() {
 	}
 
 	HitBoxUpdate();
-
+	
 	// 転送
 	BaseCharacter::Update();
 
@@ -173,6 +159,17 @@ void Player::HitBoxUpdate() {
 	    .min_{aabb_.center_ + min_},
 	    .max_{aabb_.center_ + max_},
 	};
+	// OBB
+	obb_ = {
+	    .center_{worldTransform_.translation_},
+	    .orientations_{
+	             {1.0f, 0.0f, 0.0f},
+	             {0.0f, 1.0f, 0.0f},
+	             {0.0f, 0.0f, 1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 	// Sphere
 	sphere_ = {
 	    .center_{worldTransform_.translation_},
@@ -198,55 +195,36 @@ void Player::GetGlobalVariables() {
 	BaseCharacter::Update();
 }
 
-void Player::OnCollision(const AABB& aabbB) {
-	// 衝突している場合は押し戻し処理を行う
-	Vector3 overlap;
-	Vector3 aabb_Min = aabb_.min_;
-	Vector3 aabb_Max = aabb_.max_;
-	Vector3 aabbB_Min = aabbB.min_;
-	Vector3 aabbB_Max = aabbB.max_;
+void Player::OnCollision(const OBB& obb) {
+	// OBB同士が衝突していると仮定して、重なり領域を計算する
+	// ここでは、OBB同士の各軸方向での重なりの幅を計算し、最小値を取得する
+	Vector3 distance = obb.center_ - obb_.center_;
 
-	float aabb_x_min = aabb_Max.x - aabbB_Min.x;
-	float aabbB_x_min = aabbB_Max.x - aabb_Min.x;
-	float aabb_y_min = aabb_Max.y - aabbB_Min.y;
-	float aabbB_y_min = aabbB_Max.y - aabb_Min.y;
-	float aabb_z_min = aabb_Max.z - aabbB_Min.z;
-	float aabbB_z_min = aabbB_Max.z - aabb_Min.z;
+	// 当たり判定が成功したので押し戻し処理を行う
+	float overlapX = obb_.size_.x + obb.size_.x - std::abs(distance.x);
+	float overlapY = obb_.size_.y + obb.size_.y - std::abs(distance.y);
+	float overlapZ = obb_.size_.z + obb.size_.z - std::abs(distance.z);
 
-	overlap.x = (std::min)(aabb_x_min, aabbB_x_min);
-	overlap.y = (std::min)(aabb_y_min, aabbB_y_min);
-	overlap.z = (std::min)(aabb_z_min, aabbB_z_min);
-
-	// 重なりの最小軸を特定する
-	if (overlap.x <= overlap.y && overlap.x <= overlap.z) {
-		// X軸方向での押し戻し
-		float moveX = overlap.x;
-		// どちらから侵入しているか
-		if ((aabb_Max.x - aabbB_Min.x > aabbB_Max.x - aabb_Min.x)) {
-			aabb_.center_.x += moveX;
+	if (overlapX < overlapY && overlapX < overlapZ) {
+		if (distance.x < 0.0f) {
+			obb_.center_ += Vector3{overlapX, 0, 0};
 		} else {
-			aabb_.center_.x -= moveX;
+			obb_.center_ += Vector3{-overlapX, 0, 0};
 		}
-	} else if (overlap.y <= overlap.x && overlap.y <= overlap.z) {
-		// Y軸方向での押し戻し
-		float moveY = overlap.y;
-		// どちらから侵入しているか
-		if ((aabb_Max.y - aabbB_Min.y > aabbB_Max.y - aabb_Min.y)) {
-			aabb_.center_.y += moveY;
+	} else if (overlapY < overlapX && overlapY < overlapZ) {
+		if (distance.y < 0.0f) {
+			obb_.center_ += Vector3{0, overlapY, 0};
 		} else {
-			aabb_.center_.y -= moveY;
+			obb_.center_ += Vector3{0, -overlapY, 0};
 		}
 	} else {
-		// Z軸方向での押し戻し
-		float moveZ = overlap.z;
-		// どちらから侵入しているか
-		if ((aabb_Max.z - aabbB_Min.z > aabbB_Max.z - aabb_Min.z)) {
-			aabb_.center_.z += moveZ;
+		if (distance.z < 0.0f) {
+			obb_.center_ += Vector3{0, 0, overlapZ};
 		} else {
-			aabb_.center_.z -= moveZ;
+			obb_.center_ += Vector3{0, 0, -overlapZ};
 		}
 	}
-	worldTransform_.translation_ = aabb_.center_;
+	worldTransform_.translation_ = obb_.center_;
 	// 転送
 	BaseCharacter::Update();
 	HitBoxUpdate();
@@ -266,8 +244,43 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	}
 }
 
+void Player::HitBoxInitialize() {
+	// AABB
+	min_ = {-1.0f, -0.9f, -1.0f};
+	max_ = {1.0f, 1.0f, 1.0f};
+	// OBB
+	size_ = {0.5f, 1.0f, 0.5f};
+	// Sphere
+	radius_ = 1.2f;
+	// AABB
+	aabb_ = {
+	    .center_{worldTransform_.translation_},
+	    .min_{aabb_.center_ + min_},
+	    .max_{aabb_.center_ + max_},
+	};
+	// OBB
+	obb_ = {
+	    .center_{
+	             worldTransform_.translation_.x, worldTransform_.translation_.y + 3.0f,
+	             worldTransform_.translation_.z},
+	    .orientations_{
+	             {1.0f, 0.0f, 0.0f},
+	             {0.0f, 1.0f, 0.0f},
+	             {0.0f, 0.0f, 1.0f},
+	             },
+	    .size_{size_}
+    };
+	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	// Sphere
+	sphere_ = {
+	    .center_{worldTransform_.translation_},
+	    .radius_{radius_},
+	};
+}
+
 void Player::HitBoxDraw(const ViewProjection& viewProjection) {
-	DrawAABB(aabb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 0.5f, 0.25f, 1.0f));
+	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void Player::GamePadInput() {

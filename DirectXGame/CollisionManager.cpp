@@ -5,14 +5,18 @@
 
 #include "ImGuiManager.h"
 
-void CollisionManager::Update(Player* player, Enemy* enemy) {
+void CollisionManager::Update(Player* player, PlayerAttack* playerAttack, Enemy* enemy) {
 	colliders_.clear();
-	CheckAllCollisions(player, enemy);
+	CheckAllCollisions(player, playerAttack, enemy);
 }
 
-void CollisionManager::CheckAllCollisions(Player* player, Enemy* enemy) {
+void CollisionManager::CheckAllCollisions(
+    Player* player, PlayerAttack* playerAttack, Enemy* enemy) {
 	// プレイヤーをリストに追加
 	colliders_.emplace_back(player);
+	if (player->GetBehavior() == Player::Behavior::kAttack) {
+		colliders_.emplace_back(playerAttack);
+	}
 	// 敵をリストに追加
 	colliders_.emplace_back(enemy);
 
@@ -44,14 +48,21 @@ void CollisionManager::CheakCollisionPair(Collider* colliderA, Collider* collide
 	ImGui::Text("AABB_center x:%f,y:%f,z:%f", aabbA->center_.x, aabbA->center_.y, aabbA->center_.z);
 	ImGui::Text("AABB_min x:%f,y:%f,z:%f", aabbA->min_.x, aabbA->min_.y, aabbA->min_.z);
 	ImGui::Text("AABB_max x:%f,y:%f,z:%f", aabbA->max_.x, aabbA->max_.y, aabbA->max_.z);
-	ImGui::Text("AABBB_center x:%f,y:%f,z:%f", aabbB->center_.x, aabbB->center_.y, aabbB->center_.z);
+	ImGui::Text(
+	    "AABBB_center x:%f,y:%f,z:%f", aabbB->center_.x, aabbB->center_.y, aabbB->center_.z);
 	ImGui::Text("AABBB_mix x:%f,y:%f,z:%f", aabbB->min_.x, aabbB->min_.y, aabbB->min_.z);
 	ImGui::Text("AABBB_max x:%f,y:%f,z:%f", aabbB->max_.x, aabbB->max_.y, aabbB->max_.z);
 	ImGui::End();
+	// AABBで当たり判定
 	if (IsCollision(*aabbA, *aabbB)) {
-		// 自キャラの衝突時コールバックを呼び出す
-		colliderA->OnCollision(*aabbB);
-		// 敵弾の衝突時コールバックを呼び出す
-		colliderB->OnCollision(*aabbA);
+		OBB* obbA = colliderA->GetOBB();
+		OBB* obbB = colliderB->GetOBB();
+		// OBBで当たり判定
+		if (IsCollision(*obbA, *obbB)) {
+			// 自キャラの衝突時コールバックを呼び出す
+			colliderA->OnCollision(*obbB);
+			// 敵弾の衝突時コールバックを呼び出す
+			colliderB->OnCollision(*obbA);
+		}
 	}
 }
