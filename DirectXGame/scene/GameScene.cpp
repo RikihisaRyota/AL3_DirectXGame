@@ -31,6 +31,19 @@ void GameScene::Initialize() {
 	// DrawLineに必要なviewProjectionをセット
 	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
 #pragma endregion
+#pragma region 敵
+	// 敵生成
+	enemy_ = std::make_unique<Enemy>();
+	// 敵モデル
+	std::vector<std::unique_ptr<Model>> enemyModel(static_cast<int>(Enemy::Parts::COUNT));
+	// 敵モデル
+	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(
+	    Model::CreateFromOBJ("enemy_Body", true));
+	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(
+	    Model::CreateFromOBJ("enemy_Light", true));
+	// 敵初期化
+	enemy_->Initialize(std::move(enemyModel));
+#pragma endregion
 #pragma region プレイヤー
 	// プレイヤー生成
 	player_ = std::make_unique<Player>();
@@ -53,6 +66,7 @@ void GameScene::Initialize() {
 	playerAttack_->Initialize(std::move(playerAttackModel));
 	player_->SetPlayerAttack(playerAttack_.get());
 	playerAttack_->SetPlayer(player_.get());
+	playerAttack_->SetEnemy(enemy_.get());
 #pragma endregion
 #pragma region 天球
 	// 天球モデル
@@ -73,19 +87,6 @@ void GameScene::Initialize() {
 	ground_ = std::make_unique<Skydome>();
 	// 地面初期化
 	ground_->Initialize(std::move(groundModel));
-#pragma endregion
-#pragma region 敵
-	// 敵生成
-	enemy_ = std::make_unique<Enemy>();
-	// 敵モデル
-	std::vector<std::unique_ptr<Model>> enemyModel(static_cast<int>(Enemy::Parts::COUNT));
-	// 敵モデル
-	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(
-	    Model::CreateFromOBJ("enemy_Body", true));
-	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(
-	    Model::CreateFromOBJ("enemy_Light", true));
-	// 敵初期化
-	enemy_->Initialize(std::move(enemyModel));
 #pragma endregion
 #pragma region 追従カメラ
 	// 追従カメラ生成

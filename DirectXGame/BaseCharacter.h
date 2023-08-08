@@ -35,6 +35,12 @@ public:
 	/// </summary>
 	/// <returns>ワールド変換データ</returns>
 	const WorldTransform& GetWorldTransforms_Parts(int count) const { return worldTransforms_Parts_[count];}
+	void SetScale(const Vector3& scale) { worldTransform_.scale_ = scale;
+	}
+	void SetRotation(const Vector3& rotation) { worldTransform_.rotation_ = rotation;
+	}
+	void SetTranslation(const Vector3& translation) { worldTransform_.translation_ = translation;
+	}
 	void SetWorldtransform(const WorldTransform& worldtransfrom) {
 		worldTransform_ = worldtransfrom;
 	}

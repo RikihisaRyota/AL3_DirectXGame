@@ -85,10 +85,6 @@ void Player::Update() {
 	ImGui::Text("vector_x:%f,y:%f,z:%f", vector_.x, vector_.y, vector_.z);
 	ImGui::Text("velocity_:%f,y:%f,z:%f", velocity_.x, velocity_.y, velocity_.z);
 	ImGui::Text("acceleration_:%f,y:%f,z:%f", acceleration_.x, acceleration_.y, acceleration_.z);
-	ImGui::Text(
-	    "worldTransforms_Parts_:%f",
-	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x);
-	ImGui::Text("slashMax_:%f", slashMax_);
 
 	ImGui::SliderFloat3("AABB_min", &min_.x, -3.0f, 0.0f);
 	ImGui::SliderFloat3("AABB_max", &max_.x, 0.0f, 3.0f);
@@ -102,11 +98,6 @@ void Player::BehaviorRootUpdate() {
 	GamePadInput();
 	// プレイヤーモーションの更新
 	Motion();
-	if (isJump) {
-		if (acceleration_.y > 0.0f) {
-			// ジャンプ制作途中
-		}
-	}
 }
 
 void Player::BehaviorAttackInitialize() {
@@ -283,6 +274,21 @@ void Player::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
+void Player::PlayerRotate(const Vector3& vector1) {
+	Vector3 vector = vector1;
+	if (vector != Vector3(0.0f, 0.0f, 0.0f)) {
+		vector.Normalize();
+	}
+	if (interRotate_ != Vector3(0.0f, 0.0f, 0.0f)) {
+		interRotate_.Normalize();
+	}
+	Vector3 rotate = Lerp(interRotate_, vector, kTurn);
+	//  Y軸回り角度(θy)
+	worldTransform_.rotation_.y = std::atan2(rotate.x, rotate.z);
+	// プレイヤーの向いている方向
+	interRotate_ = rotate;
+}
+
 void Player::GamePadInput() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
@@ -293,9 +299,16 @@ void Player::GamePadInput() {
 	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
 		behaviorRequest_ = Behavior::kAttack;
+		playerAttack_->SetBehavior(PlayerAttack::Behavior::kChargeAttack);
+	}
+	if (Input::GetInstance()->TriggerKey(DIK_E) ||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
+		behaviorRequest_ = Behavior::kAttack;
+		playerAttack_->SetBehavior(PlayerAttack::Behavior::kTripleAttack);
 	}
 	// ダッシュ開始
-	if (Input::GetInstance()->TriggerKey(DIK_E) ||
+	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
 	    (Input::GetInstance()->GetJoystickState(0, joyState) && (joyState.Gamepad.bRightTrigger)) &&
 	        (Input::GetInstance()->GetJoystickStatePrevious(0, joyState) &&
 	         (!joyState.Gamepad.bRightTrigger))) {
@@ -409,6 +422,10 @@ void Player::PlayerRotate() {
 void Player::InitializeFloatGimmick() {
 	floatingParameter_ = 0.0f;
 	worldTransform_Motion_.rotation_ = {0.0f, 0.0f, 0.0f};
+	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].translation_ = Vector3(0.0f, 0.0f, 0.0f);
+	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].translation_ = Vector3(0.0f, 0.0f, 0.0f);
+	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_ = Vector3(0.0f, 0.0f, 0.0f);
 }
 void Player::Motion() {
 	// 全体

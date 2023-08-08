@@ -1,7 +1,11 @@
 #pragma once
+#include <optional>
+
 #include "BaseCharacter.h"
 #include "Collider.h"
+
 class Player;
+class Enemy;
 class PlayerAttack : public BaseCharacter, public Collider {
 public:
 	enum class Parts {
@@ -9,14 +13,18 @@ public:
 		COUNT,
 	};
 
+	// ふるまい
+	enum class Behavior {
+		kRoot, // 通常
+		kChargeAttack, // 攻撃中
+		kTripleAttack,   // ３段攻撃中
+	};
+
 public:
 	/// <summary>
 	/// 初期化（モデル代入）
 	/// </summary>
 	void Initialize(std::vector<std::unique_ptr<Model>> model) override;
-	/// <summary>
-	/// 値の初期化
-	/// </summary>
 	void Initialize();
 	/// <summary>
 	/// 更新
@@ -34,9 +42,29 @@ public:
 	void OnCollision(const OBB& obb) override;
 
 	void SetPlayer(Player* player) { player_ = player; }
+	void SetEnemy(Enemy* enmey) { enemy_ =enmey; }
+	void SetBehavior(const Behavior& behavior) { behaviorRequest_ = behavior; }
+
 private:
+	/// <summary>
+	/// 値の初期化
+	/// </summary>
+	void ChageAttackInitialize();
+	void TripleAttackInitialize();
+	void ChageAttackUpdate();
+	void TripleAttackUpdate();
 	void HitBoxUpdate() override;
+private:
 	Player* player_;
+	Enemy* enemy_;
+
+	// ふるまい
+	Behavior behavior_ = Behavior::kRoot;
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
+
+	Vector3 tripleAttackMin_;
+	Vector3 tripleAttackMax_;
+	Vector3 tripleAttackSize_;
 
 	// 剣のデットゾーン
 	float slashMin_;
@@ -60,4 +88,21 @@ private:
 	bool rigorFlag_ = false;
 	float rigor_Speed_;
 	float rigor_T_;
+
+
+	// ３段攻撃
+	// 一回目
+	bool firstFlag = false;
+	float first_T_;
+	float first_Speed_;
+	float armAngleStart_;
+	float armAngleMax_;
+	float armSlideStart_;
+	float armSlideMax_;
+	float bodyAngleStart_;
+	float bodyAngleMax_;
+	// ２回目
+	bool secondFlag = false;
+	float second_T_;
+	float second_Speed_;
 };

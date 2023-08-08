@@ -1,8 +1,10 @@
 #include "PlayerAttack.h"
 
+#include "Collision.h"
 #include "Draw.h"
-#include "Input.h"
+#include "Enemy.h"
 #include "ImGuiManager.h"
+#include "Input.h"
 #include "MyMath.h"
 #include "Player.h"
 
@@ -17,6 +19,59 @@ void PlayerAttack::Initialize(std::vector<std::unique_ptr<Model>> model) {
 }
 
 void PlayerAttack::Initialize() {
+	if (behaviorRequest_) {
+		// ふるまいを変更
+		behavior_ = behaviorRequest_.value();
+		// 各ふるまいごとの初期化を実行
+		switch (behavior_) {
+		case PlayerAttack::Behavior::kRoot:
+		default:
+			break;
+		case PlayerAttack::Behavior::kChargeAttack:
+			ChageAttackInitialize();
+			break;
+		case PlayerAttack::Behavior::kTripleAttack:
+			TripleAttackInitialize();
+			break;
+		}
+		// ふるまいリクエストをリセット
+		behaviorRequest_ = std::nullopt;
+	}
+}
+
+void PlayerAttack::Update() {
+
+	switch (behavior_) {
+	case PlayerAttack::Behavior::kRoot:
+	default:
+		break;
+	case PlayerAttack::Behavior::kChargeAttack:
+		ChageAttackUpdate();
+		break;
+	case PlayerAttack::Behavior::kTripleAttack:
+		TripleAttackUpdate();
+		break;
+	}
+	BaseCharacter::Update();
+	HitBoxUpdate();
+}
+
+void PlayerAttack::Draw(const ViewProjection& viewProjection) {
+	switch (behavior_) {
+	case PlayerAttack::Behavior::kRoot:
+	default:
+		break;
+	case PlayerAttack::Behavior::kChargeAttack:
+		models_[static_cast<int>(Parts::WEAPON)]->Draw(
+		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
+		break;
+	case PlayerAttack::Behavior::kTripleAttack:
+
+		break;
+	}
+}
+
+void PlayerAttack::ChageAttackInitialize() {
 	worldTransform_ = player_->GetWorldTransform();
 	worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
 
@@ -45,7 +100,7 @@ void PlayerAttack::Initialize() {
 	rigor_T_ = 0.0f;
 }
 
-void PlayerAttack::Update() {
+void PlayerAttack::ChageAttackUpdate() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 	worldTransform_ = player_->GetWorldTransform();
@@ -57,17 +112,24 @@ void PlayerAttack::Update() {
 			charge_T_ += charge_Speed_;
 			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
 			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
-			WorldTransform worldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
-			worldtramsform.rotation_.x = Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
-			player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARML));
-			player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARMR));
+			WorldTransform worldtramsform =
+			    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
+			worldtramsform.rotation_.x =
+			    Lerp(slash_ArmAngle_Start_, slash_Attack_Min_, Clamp(charge_T_, 0.0f, 1.0f));
+			player_->SetWorldtransforms_Parts(
+			    worldtramsform, static_cast<int>(Player::Parts::ARML));
+			player_->SetWorldtransforms_Parts(
+			    worldtramsform, static_cast<int>(Player::Parts::ARMR));
 		} else {
 			// チャージ終わり
 			chargeFlag_ = false;
 			slashFlag_ = true;
 			charge_T_ = 0.0f;
-			slash_Attack_Start_ = worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
-			slash_ArmAngle_Start_ = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML)).rotation_.x;
+			slash_Attack_Start_ =
+			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
+			slash_ArmAngle_Start_ =
+			    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML))
+			        .rotation_.x;
 		}
 	}
 	// 降り始め
@@ -75,7 +137,8 @@ void PlayerAttack::Update() {
 		slash_T_ += slash_Speed_;
 		float rotate = Lerp(slash_Attack_Start_, slashMax_, Clamp(slash_T_, 0.0f, 1.0f));
 		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = rotate;
-		WorldTransform worldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
+		WorldTransform worldtramsform =
+		    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
 		rotate = Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
 		worldtramsform.rotation_.x = rotate;
 		player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARML));
@@ -92,6 +155,7 @@ void PlayerAttack::Update() {
 		rigor_T_ += rigor_Speed_;
 		if (rigor_T_ >= 1.0f) {
 			player_->SetBehavior(Player::Behavior::kRoot);
+			behaviorRequest_ = Behavior::kRoot;
 			rigorFlag_ = false;
 		}
 	}
@@ -101,36 +165,157 @@ void PlayerAttack::Update() {
 	ImGui::SliderFloat3("OBB_size", &size_.x, 0.0f, 6.0f);
 	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);
 	ImGui::End();
-	BaseCharacter::Update();
-	HitBoxUpdate();
 }
 
-void PlayerAttack::Draw(const ViewProjection& viewProjection) {
-	models_[static_cast<int>(Parts::WEAPON)]->Draw(
-	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
+void PlayerAttack::TripleAttackInitialize() {
+	worldTransform_ = player_->GetWorldTransform();
+	firstFlag = true;
+	first_T_ = 0.0f;
+	first_Speed_ = 0.1f;
+	armAngleStart_ = 0.0f;
+	armAngleMax_ =-2.0f/* DegToRad(45.0f)*/;
+	armSlideStart_ = 0.0f;
+	armSlideMax_ = 0.5f;
+	bodyAngleStart_ = 0.0f;
+	bodyAngleMax_ = DegToRad(15.0f);
+	
+	second_T_=0.0f;
+	second_Speed_ = 0.1f;
+
+}
+
+void PlayerAttack::TripleAttackUpdate() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
+	if (firstFlag) {
+		first_T_ += first_Speed_;
+		WorldTransform armWorldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
+		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+		WorldTransform worldtramsform = player_->GetWorldTransform();
+
+		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
+		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(first_T_, 0.0f, 1.0f));
+		armWorldtramsform.rotation_.x = armrotate;
+		armWorldtramsform.translation_.z = translation;
+		float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleStart_, Clamp(first_T_, 0.0f, 1.0f));
+		motionWorldtramsform.rotation_.y = motionbodyrotate;
+
+		worldtramsform.translation_.z += armWorldtramsform.translation_.z;
+		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
+		player_->SetWorldtransform_Motion(motionWorldtramsform);
+		// 範囲内にはいていたらホーミング
+		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
+			Vector3 toEnemy =
+			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
+			toEnemy.Normalize();
+			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
+			player_->SetTranslation(worldTransform_.translation_);
+			player_->PlayerRotate(toEnemy);
+		}
+		if (first_T_ >= 1.0f) {
+			if (Input::GetInstance()->TriggerKey(DIK_E) ||
+			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
+				secondFlag = true;
+				firstFlag = false;
+			}
+		} 
+		if (first_T_ >= 1.5f) {
+			first_T_ = 0.0f;
+			player_->SetBehavior(Player::Behavior::kRoot);
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	}
+	if (secondFlag) {
+		second_T_ += second_Speed_;
+		WorldTransform armWorldtramsform =
+		    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
+		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+		WorldTransform worldtramsform = player_->GetWorldTransform();
+
+		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
+		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(second_T_, 0.0f, 1.0f));
+		armWorldtramsform.rotation_.x = armrotate;
+		armWorldtramsform.translation_.z = translation;
+		float motionbodyrotate =
+		    Lerp(bodyAngleStart_, bodyAngleStart_, Clamp(second_T_, 0.0f, 1.0f));
+		motionWorldtramsform.rotation_.y = motionbodyrotate;
+
+		worldtramsform.translation_.z += armWorldtramsform.translation_.z;
+		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARML));
+		player_->SetWorldtransform_Motion(motionWorldtramsform);
+		// 範囲内にはいていたらホーミング
+		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
+			Vector3 toEnemy =
+			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
+			toEnemy.Normalize();
+			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
+			player_->SetTranslation(worldTransform_.translation_);
+			player_->PlayerRotate(toEnemy);
+		}
+		if (first_T_ >= 1.0f) {
+			if (Input::GetInstance()->TriggerKey(DIK_E) ||
+			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
+				secondFlag = true;
+				firstFlag = false;
+			}
+		}
+		if (first_T_ >= 1.5f) {
+			first_T_ = 0.0f;
+			player_->SetBehavior(Player::Behavior::kRoot);
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	}
 }
 
 void PlayerAttack::HitBoxUpdate() {
-	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
-	};
-	// OBB
-	obb_ = {
-	    .center_{worldTransform_.translation_},
-	    .orientations_{
-	             {1.0f, 0.0f, 0.0f},
-	             {0.0f, 1.0f, 0.0f},
-	             {0.0f, 0.0f, 1.0f},
-	             },
-	    .size_{size_}
-    };
-	obb_ = OBBSetRotate(
-		obb_, 
-		worldTransform_.rotation_,
-		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+
+	switch (behavior_) {
+	case PlayerAttack::Behavior::kRoot:
+	default:
+		break;
+	case PlayerAttack::Behavior::kChargeAttack:
+		// AABB
+		aabb_ = {
+		    .center_{worldTransform_.translation_},
+		    .min_{aabb_.center_ + min_},
+		    .max_{aabb_.center_ + max_},
+		};
+		// OBB
+		obb_ = {
+		    .center_{worldTransform_.translation_},
+		    .orientations_{
+		             {1.0f, 0.0f, 0.0f},
+		             {0.0f, 1.0f, 0.0f},
+		             {0.0f, 0.0f, 1.0f},
+		             },
+		    .size_{size_}
+        };
+		obb_ = OBBSetRotate(
+		    obb_, worldTransform_.rotation_,
+		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+		break;
+	case PlayerAttack::Behavior::kTripleAttack:
+		// AABB
+		aabb_ = {
+		    .center_{worldTransform_.translation_},
+		    .min_{aabb_.center_ + tripleAttackMin_},
+		    .max_{aabb_.center_ + tripleAttackMax_},
+		};
+		// OBB
+		obb_ = {
+		    .center_{worldTransform_.translation_},
+		    .orientations_{
+		             {1.0f, 0.0f, 0.0f},
+		             {0.0f, 1.0f, 0.0f},
+		             {0.0f, 0.0f, 1.0f},
+		             },
+		    .size_{tripleAttackSize_}
+        };
+		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+		break;
+	}
 
 	// Sphere
 	sphere_ = {
@@ -143,32 +328,58 @@ void PlayerAttack::HitBoxInitialize() {
 	// AABB
 	min_ = {-5.1f, -0.9f, -5.1f};
 	max_ = {5.1f, 5.1f, 5.1f};
+	tripleAttackMin_ = {-3.0f, -0.9f, -3.0f};
+	tripleAttackMax_ = {3.0f, 1.0f, 3.0f};
 	// OBB
 	size_ = {0.5f, 5.1f, 0.5f};
+	tripleAttackSize_ = {0.5f, 0.5f, 0.5f};
 	// Sphere
 	radius_ = 1.2f;
-	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
-	};
-	// OBB
-	obb_ = {
-	    .center_{
-	             worldTransform_.translation_.x,
-				 worldTransform_.translation_.y+3.0f,
-	             worldTransform_.translation_.z},
-	    .orientations_{
-	             {1.0f,0.0f,0.0f},
-	             {0.0f,1.0f,0.0f},
-	             {0.0f,0.0f,1.0f},
-	             },
-	    .size_{size_}
-    };
-	obb_ = OBBSetRotate(
-	    obb_, worldTransform_.rotation_,
-	    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+	switch (behavior_) {
+	case PlayerAttack::Behavior::kRoot:
+	default:
+		break;
+	case PlayerAttack::Behavior::kChargeAttack:
+		// AABB
+		aabb_ = {
+		    .center_{worldTransform_.translation_},
+		    .min_{aabb_.center_ + min_},
+		    .max_{aabb_.center_ + max_},
+		};
+		// OBB
+		obb_ = {
+		    .center_{worldTransform_.translation_},
+		    .orientations_{
+		             {1.0f, 0.0f, 0.0f},
+		             {0.0f, 1.0f, 0.0f},
+		             {0.0f, 0.0f, 1.0f},
+		             },
+		    .size_{size_}
+        };
+		obb_ = OBBSetRotate(
+		    obb_, worldTransform_.rotation_,
+		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+		break;
+	case PlayerAttack::Behavior::kTripleAttack:
+		// AABB
+		aabb_ = {
+		    .center_{worldTransform_.translation_},
+		    .min_{aabb_.center_ + tripleAttackMin_},
+		    .max_{aabb_.center_ + tripleAttackMax_},
+		};
+		// OBB
+		obb_ = {
+		    .center_{worldTransform_.translation_},
+		    .orientations_{
+		             {1.0f, 0.0f, 0.0f},
+		             {0.0f, 1.0f, 0.0f},
+		             {0.0f, 0.0f, 1.0f},
+		             },
+		    .size_{tripleAttackSize_}
+        };
+		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+		break;
+	}
 }
 void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 1.0f, 0.0f, 1.0f));

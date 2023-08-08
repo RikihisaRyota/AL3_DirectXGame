@@ -52,6 +52,10 @@ public: // メンバ関数
 	void Draw(const ViewProjection& viewProjection);
 	void HitBoxInitialize() override;
 	void HitBoxDraw(const ViewProjection& viewProjection) override;
+	/// <summary>
+	/// プレイヤーの体の回転
+	/// </summary>
+	void PlayerRotate(const Vector3& vector);
 
 private: // メンバ関数
 #pragma region 移動系
@@ -196,28 +200,6 @@ private: // メンバ変数
 	// ふるまい
 	Behavior behavior_ = Behavior::kRoot;
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
-	// 剣のデットゾーン
-	float slashMin_;
-	float slashMax_;
-	float slash_Attack_Min_;
-	float slash_Attack_Max_;
-	// 初めの角度
-	float slash_Attack_Start_;
-	float slash_ArmAngle_Start_;
-	// 攻撃の溜めモーションスピード
-	float charge_Speed_;
-	float charge_T_; 
-	// 溜めているかどうかのフラグ
-	bool chargeFlag_ = false;
-	// 降り下ろしモーション
-	float slash_Speed_;
-	float slash_T_;
-	// 溜めてあと立てるフラグ
-	bool slashFlag_ = false;
-	// 攻撃硬直
-	bool rigorFlag_ = false;
-	float rigor_Speed_;
-	float rigor_T_;
 
 	PlayerAttack* playerAttack_;
 };

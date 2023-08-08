@@ -172,6 +172,6 @@ void Enemy::HitBoxUpdate() {
 
 void Enemy::OnCollision(const OBB& obb) {
 	OBB o = obb;
-	worldTransform_.translation_ = Vector3(0.0f, 1.0f, 10.0f);
-	worldTransform_.UpdateMatrix();
+	/*worldTransform_.translation_ = Vector3(0.0f, 1.0f, 10.0f);
+	worldTransform_.UpdateMatrix();*/
 }
