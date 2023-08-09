@@ -173,14 +173,19 @@ void PlayerAttack::TripleAttackInitialize() {
 	first_T_ = 0.0f;
 	first_Speed_ = 0.1f;
 	armAngleStart_ = 0.0f;
-	armAngleMax_ =-2.0f/* DegToRad(45.0f)*/;
+	armAngleMax_ = DegToRad(90.0f);
 	armSlideStart_ = 0.0f;
 	armSlideMax_ = 0.5f;
 	bodyAngleStart_ = 0.0f;
 	bodyAngleMax_ = DegToRad(15.0f);
-	
-	second_T_=0.0f;
+
+	secondFlag = false;
+	second_T_ = 0.0f;
 	second_Speed_ = 0.1f;
+
+	thirdFlag = false;
+	third_T_ = 0.0f;
+	third_Speed_ = 0.1f;
 
 }
 
@@ -197,11 +202,10 @@ void PlayerAttack::TripleAttackUpdate() {
 		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(first_T_, 0.0f, 1.0f));
 		armWorldtramsform.rotation_.x = armrotate;
 		armWorldtramsform.translation_.z = translation;
-		float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleStart_, Clamp(first_T_, 0.0f, 1.0f));
-		motionWorldtramsform.rotation_.y = motionbodyrotate;
-
-		worldtramsform.translation_.z += armWorldtramsform.translation_.z;
 		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
+
+		float motionbodyrotate = Lerp(bodyAngleStart_,-bodyAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
+		motionWorldtramsform.rotation_.y = motionbodyrotate;
 		player_->SetWorldtransform_Motion(motionWorldtramsform);
 		// 範囲内にはいていたらホーミング
 		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
@@ -218,31 +222,30 @@ void PlayerAttack::TripleAttackUpdate() {
 			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
 				secondFlag = true;
 				firstFlag = false;
+				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
+				armWorldtramsform.rotation_= Vector3(0.0f, 0.0f, 0.0f);
+				player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
 			}
 		} 
-		if (first_T_ >= 1.5f) {
+		if (first_T_ >= 2.0f) {
 			first_T_ = 0.0f;
 			player_->SetBehavior(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
 		}
-	}
-	if (secondFlag) {
+	} else if (secondFlag) {
 		second_T_ += second_Speed_;
 		WorldTransform armWorldtramsform =
 		    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
 		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
-		WorldTransform worldtramsform = player_->GetWorldTransform();
 
 		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
 		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(second_T_, 0.0f, 1.0f));
 		armWorldtramsform.rotation_.x = armrotate;
 		armWorldtramsform.translation_.z = translation;
-		float motionbodyrotate =
-		    Lerp(bodyAngleStart_, bodyAngleStart_, Clamp(second_T_, 0.0f, 1.0f));
-		motionWorldtramsform.rotation_.y = motionbodyrotate;
-
-		worldtramsform.translation_.z += armWorldtramsform.translation_.z;
 		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARML));
+
+		float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
+		motionWorldtramsform.rotation_.y = motionbodyrotate;
 		player_->SetWorldtransform_Motion(motionWorldtramsform);
 		// 範囲内にはいていたらホーミング
 		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
@@ -253,16 +256,40 @@ void PlayerAttack::TripleAttackUpdate() {
 			player_->SetTranslation(worldTransform_.translation_);
 			player_->PlayerRotate(toEnemy);
 		}
-		if (first_T_ >= 1.0f) {
+		if (second_T_ >= 1.0f) {
 			if (Input::GetInstance()->TriggerKey(DIK_E) ||
 			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
-				secondFlag = true;
-				firstFlag = false;
+				secondFlag = false;
+				thirdFlag = true;
+				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
+				armWorldtramsform.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+				player_->SetWorldtransforms_Parts(
+				    armWorldtramsform, static_cast<int>(Player::Parts::ARML));
 			}
 		}
-		if (first_T_ >= 1.5f) {
-			first_T_ = 0.0f;
+		if (second_T_ >= 1.5f) {
+			second_T_ = 0.0f;
+			player_->SetBehavior(Player::Behavior::kRoot);
+			behaviorRequest_ = Behavior::kRoot;
+		}
+	} else if (thirdFlag) {
+		third_T_ += third_Speed_;
+		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+		float bodyrotate = Lerp(0.0f, DegToRad(720.0f), Clamp(third_T_, 0.0f, 1.0f));
+		motionWorldtramsform.rotation_.x = bodyrotate;
+		player_->SetWorldtransform_Motion(motionWorldtramsform);
+		// 範囲内にはいていたらホーミング
+		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
+			Vector3 toEnemy =
+			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
+			toEnemy.Normalize();
+			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
+			player_->SetTranslation(worldTransform_.translation_);
+			player_->PlayerRotate(toEnemy);
+		}
+		if (third_T_ >= 3.5f) {
+			third_T_ = 0.0f;
 			player_->SetBehavior(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
 		}

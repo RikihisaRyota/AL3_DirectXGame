@@ -422,6 +422,7 @@ void Player::PlayerRotate() {
 void Player::InitializeFloatGimmick() {
 	floatingParameter_ = 0.0f;
 	worldTransform_Motion_.rotation_ = {0.0f, 0.0f, 0.0f};
+	worldTransform_Motion_.translation_ = {0.0f, 0.0f, 0.0f};
 	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].translation_ = Vector3(0.0f, 0.0f, 0.0f);
 	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_ = Vector3(0.0f, 0.0f, 0.0f);
 	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].translation_ = Vector3(0.0f, 0.0f, 0.0f);

@@ -105,4 +105,8 @@ private:
 	bool secondFlag = false;
 	float second_T_;
 	float second_Speed_;
+	// 3回目
+	bool thirdFlag = false;
+	float third_T_;
+	float third_Speed_;
 };
