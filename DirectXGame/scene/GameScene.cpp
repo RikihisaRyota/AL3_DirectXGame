@@ -62,11 +62,11 @@ void GameScene::Initialize() {
 	playerAttackModel[static_cast<int>(PlayerAttack::Parts::WEAPON)].reset(
 	    Model::CreateFromOBJ("player_Weapon", true));
 	// プレイヤー初期化
-	player_->Initialize(std::move(playerModel));
-	playerAttack_->Initialize(std::move(playerAttackModel));
 	player_->SetPlayerAttack(playerAttack_.get());
 	playerAttack_->SetPlayer(player_.get());
 	playerAttack_->SetEnemy(enemy_.get());
+	player_->Initialize(std::move(playerModel));
+	playerAttack_->Initialize(std::move(playerAttackModel));
 #pragma endregion
 #pragma region 天球
 	// 天球モデル
@@ -107,6 +107,7 @@ void GameScene::Update() {
 
 	// プレイヤーの更新
 	player_->Update();
+	playerAttack_->Update();
 
 	// 敵の更新
 	enemy_->Update();

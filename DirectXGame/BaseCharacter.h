@@ -71,6 +71,7 @@ protected:
 	Vector3 max_;
 	// OBB
 	Vector3 size_;
+	Vector3 center_;
 	// Sphere
 	float radius_;
 };

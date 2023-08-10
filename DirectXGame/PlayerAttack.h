@@ -46,14 +46,14 @@ public:
 	void SetBehavior(const Behavior& behavior) { behaviorRequest_ = behavior; }
 
 private:
-	/// <summary>
-	/// 値の初期化
-	/// </summary>
+	void AttackInitialize();
 	void ChageAttackInitialize();
 	void TripleAttackInitialize();
 	void ChageAttackUpdate();
 	void TripleAttackUpdate();
 	void HitBoxUpdate() override;
+	void Homing();
+	void FlagManager();
 private:
 	Player* player_;
 	Enemy* enemy_;
@@ -65,6 +65,7 @@ private:
 	Vector3 tripleAttackMin_;
 	Vector3 tripleAttackMax_;
 	Vector3 tripleAttackSize_;
+	Vector3 center_Distance_;
 
 	// 剣のデットゾーン
 	float slashMin_;
@@ -78,21 +79,21 @@ private:
 	float charge_Speed_;
 	float charge_T_;
 	// 溜めているかどうかのフラグ
-	bool chargeFlag_ = false;
+	bool chargeFlag_;
 	// 降り下ろしモーション
 	float slash_Speed_;
 	float slash_T_;
 	// 溜めてあと立てるフラグ
-	bool slashFlag_ = false;
+	bool slashFlag_;
 	// 攻撃硬直
-	bool rigorFlag_ = false;
+	bool rigorFlag_;
 	float rigor_Speed_;
 	float rigor_T_;
 
 
 	// ３段攻撃
 	// 一回目
-	bool firstFlag = false;
+	bool firstFlag;
 	float first_T_;
 	float first_Speed_;
 	float armAngleStart_;
@@ -102,11 +103,15 @@ private:
 	float bodyAngleStart_;
 	float bodyAngleMax_;
 	// ２回目
-	bool secondFlag = false;
+	bool secondFlag;
 	float second_T_;
 	float second_Speed_;
 	// 3回目
-	bool thirdFlag = false;
+	bool thirdFlag;
 	float third_T_;
 	float third_Speed_;
+	
+
+	const uint32_t kFlagMax = 120u;
+	uint32_t kFlagCount = 0u;
 };

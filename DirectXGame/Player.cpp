@@ -105,7 +105,7 @@ void Player::BehaviorAttackInitialize() {
 }
 
 void Player::BehaviorAttackUpdate() {
-	playerAttack_->Update();
+	//playerAttack_->Update();
 }
 
 void Player::BehaviorDashInitialize() {

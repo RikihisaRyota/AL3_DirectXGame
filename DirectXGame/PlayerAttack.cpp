@@ -196,7 +196,6 @@ void PlayerAttack::TripleAttackUpdate() {
 		first_T_ += first_Speed_;
 		WorldTransform armWorldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
 		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
-		WorldTransform worldtramsform = player_->GetWorldTransform();
 
 		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
 		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(first_T_, 0.0f, 1.0f));
@@ -207,15 +206,16 @@ void PlayerAttack::TripleAttackUpdate() {
 		float motionbodyrotate = Lerp(bodyAngleStart_,-bodyAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
 		motionWorldtramsform.rotation_.y = motionbodyrotate;
 		player_->SetWorldtransform_Motion(motionWorldtramsform);
-		// 範囲内にはいていたらホーミング
-		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
-			Vector3 toEnemy =
-			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
-			toEnemy.Normalize();
-			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
-			player_->SetTranslation(worldTransform_.translation_);
-			player_->PlayerRotate(toEnemy);
+
+		// 回転行列生成
+		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+		// オフセットをカメラの回転に合わせて回転させる
+		center_ = TransformNormal(center_Distance_, rotate);
+		// ホーミング
+		if (first_T_ <= 1.0f) {
+			Homing();
 		}
+	
 		if (first_T_ >= 1.0f) {
 			if (Input::GetInstance()->TriggerKey(DIK_E) ||
 			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
@@ -228,6 +228,7 @@ void PlayerAttack::TripleAttackUpdate() {
 			}
 		} 
 		if (first_T_ >= 2.0f) {
+			firstFlag = false;
 			first_T_ = 0.0f;
 			player_->SetBehavior(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
@@ -247,14 +248,14 @@ void PlayerAttack::TripleAttackUpdate() {
 		float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
 		motionWorldtramsform.rotation_.y = motionbodyrotate;
 		player_->SetWorldtransform_Motion(motionWorldtramsform);
-		// 範囲内にはいていたらホーミング
-		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
-			Vector3 toEnemy =
-			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
-			toEnemy.Normalize();
-			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
-			player_->SetTranslation(worldTransform_.translation_);
-			player_->PlayerRotate(toEnemy);
+
+		// 回転行列生成
+		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+		// 回転に合わせて回転させる
+		center_ = TransformNormal(center_Distance_, rotate);
+		// ホーミング
+		if (second_T_ <= 1.0f) {
+			Homing();
 		}
 		if (second_T_ >= 1.0f) {
 			if (Input::GetInstance()->TriggerKey(DIK_E) ||
@@ -266,9 +267,12 @@ void PlayerAttack::TripleAttackUpdate() {
 				armWorldtramsform.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
 				player_->SetWorldtransforms_Parts(
 				    armWorldtramsform, static_cast<int>(Player::Parts::ARML));
+				motionWorldtramsform.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+				player_->SetWorldtransform_Motion(motionWorldtramsform);
 			}
 		}
 		if (second_T_ >= 1.5f) {
+			secondFlag = false;
 			second_T_ = 0.0f;
 			player_->SetBehavior(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
@@ -279,21 +283,27 @@ void PlayerAttack::TripleAttackUpdate() {
 		float bodyrotate = Lerp(0.0f, DegToRad(720.0f), Clamp(third_T_, 0.0f, 1.0f));
 		motionWorldtramsform.rotation_.x = bodyrotate;
 		player_->SetWorldtransform_Motion(motionWorldtramsform);
-		// 範囲内にはいていたらホーミング
-		if (IsCollision(*enemy_->GetAABB(), aabb_)) {
-			Vector3 toEnemy =
-			    enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
-			toEnemy.Normalize();
-			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.2f);
-			player_->SetTranslation(worldTransform_.translation_);
-			player_->PlayerRotate(toEnemy);
+		// 回転行列生成
+		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+		// 回転に合わせて回転させる
+		center_ = TransformNormal(center_Distance_, rotate);
+		// ホーミング
+		if (third_T_ <= 1.0f) {
+			Homing();
 		}
-		if (third_T_ >= 3.5f) {
+		if (third_T_ >= 2.5f) {
+			thirdFlag = false;
 			third_T_ = 0.0f;
 			player_->SetBehavior(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
 		}
 	}
+	ImGui::Begin("PlayerAttack");
+	ImGui::SliderFloat3("AABB_min", &tripleAttackMin_.x, -3.0f, 0.0f);
+	ImGui::SliderFloat3("AABB_max", &tripleAttackMax_.x, 0.0f, 6.0f);
+	ImGui::SliderFloat3("OBB_size", &tripleAttackSize_.x, 0.0f, 6.0f);
+	ImGui::SliderFloat3("center_Distance_", &center_Distance_.x, 0.0f, 3.0f);
+	ImGui::End();
 }
 
 void PlayerAttack::HitBoxUpdate() {
@@ -332,7 +342,7 @@ void PlayerAttack::HitBoxUpdate() {
 		};
 		// OBB
 		obb_ = {
-		    .center_{worldTransform_.translation_},
+		    .center_{worldTransform_.translation_ + center_},
 		    .orientations_{
 		             {1.0f, 0.0f, 0.0f},
 		             {0.0f, 1.0f, 0.0f},
@@ -351,15 +361,38 @@ void PlayerAttack::HitBoxUpdate() {
 	};
 }
 
+void PlayerAttack::Homing() {
+	// 範囲内にはいていたらホーミング
+	if (IsCollision(*enemy_->GetAABB(), aabb_)) {
+		Vector3 toEnemy = enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
+		// 長さが1.0f以上ならホーミング
+		const float kLength = 1.0f;
+		float distance = toEnemy.Length(); 
+		if (distance >= kLength) {
+			toEnemy.Normalize();
+			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.4f);
+			player_->SetTranslation(worldTransform_.translation_);
+			player_->PlayerRotate(toEnemy);
+		} else {
+			// それ以下ならプレイヤーの回転だけセットする
+			toEnemy.Normalize();
+			player_->PlayerRotate(toEnemy);
+		}
+		
+	}
+}
+
 void PlayerAttack::HitBoxInitialize() {
 	// AABB
 	min_ = {-5.1f, -0.9f, -5.1f};
 	max_ = {5.1f, 5.1f, 5.1f};
-	tripleAttackMin_ = {-3.0f, -0.9f, -3.0f};
-	tripleAttackMax_ = {3.0f, 1.0f, 3.0f};
+	tripleAttackMin_ = {-4.0f, -0.9f, -4.0f};
+	tripleAttackMax_ = {4.0f, 1.0f, 4.0f};
 	// OBB
-	size_ = {0.5f, 5.1f, 0.5f};
-	tripleAttackSize_ = {0.5f, 0.5f, 0.5f};
+	size_ = {1.0f, 5.1f, 0.5f};
+	tripleAttackSize_ = {1.0f, 1.0f, 1.0f};
+
+	center_Distance_ = {0.0f, 0.0f, 1.0f};
 	// Sphere
 	radius_ = 1.2f;
 	switch (behavior_) {

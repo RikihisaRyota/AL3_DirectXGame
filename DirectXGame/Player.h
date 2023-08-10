@@ -164,6 +164,8 @@ public: // ゲッター,セッター
 	void SetPlayerAttack(PlayerAttack* playerAttack) { playerAttack_ = playerAttack; }
 	 
 	Behavior GetBehavior() const { return behavior_; }
+
+	Vector3 GetPlayerRotate() const { return interRotate_; }
  private: // 定数系
 	// 地面から距離
 	const float kGroundDistanse = 1.0f;
