@@ -31,23 +31,36 @@ void GameScene::Initialize() {
 	// DrawLineに必要なviewProjectionをセット
 	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
 #pragma endregion
-#pragma region 敵
-	// 敵生成
+
+	// 生成
+	player_ = std::make_unique<Player>();
+	playerAttack_ = std::make_unique<PlayerAttack>();
 	enemy_ = std::make_unique<Enemy>();
+	enemyAttack_ = std::make_unique<EnemyAttack>();
+#pragma region 敵
 	// 敵モデル
 	std::vector<std::unique_ptr<Model>> enemyModel(static_cast<int>(Enemy::Parts::COUNT));
+	// 敵攻撃モデル
+	std::vector<std::unique_ptr<Model>> enemyAttackModel(
+	    static_cast<int>(EnemyAttack::Parts::COUNT));
 	// 敵モデル
 	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(
 	    Model::CreateFromOBJ("enemy_Body", true));
 	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(
 	    Model::CreateFromOBJ("enemy_Light", true));
+	// 敵攻撃モデル
+	enemyAttackModel[static_cast<int>(EnemyAttack::Parts::CIRCLE)].reset(
+	    Model::CreateFromOBJ("enemy_Attack_Circle", true));
+	enemyAttackModel[static_cast<int>(EnemyAttack::Parts::PLANE)].reset(
+	    Model::CreateFromOBJ("enemy_Attack_Plane", true));
 	// 敵初期化
 	enemy_->Initialize(std::move(enemyModel));
+	enemy_->SetEnemyAttack(enemyAttack_.get());
+	// 敵攻撃初期化
+	enemyAttack_->SetPlayerEnemy(player_.get(), enemy_.get());
+	enemyAttack_->Initialize(std::move(enemyAttackModel));
 #pragma endregion
 #pragma region プレイヤー
-	// プレイヤー生成
-	player_ = std::make_unique<Player>();
-	playerAttack_ = std::make_unique<PlayerAttack>();
 	// プレイヤーモデル
 	std::vector<std::unique_ptr<Model>> playerModel(static_cast<int>(Player::Parts::COUNT));
 	std::vector<std::unique_ptr<Model>> playerAttackModel(
@@ -111,6 +124,7 @@ void GameScene::Update() {
 
 	// 敵の更新
 	enemy_->Update();
+	enemyAttack_->Update();
 
 	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get());
 #pragma region カメラ関連
@@ -170,33 +184,24 @@ void GameScene::Draw() {
 	ground_->Draw(viewProjection_);
 	// プレイヤー描画
 	player_->Draw(viewProjection_);
+	if (player_->GetBehavior() == Player::Behavior::kAttack) {
+		playerAttack_->Draw(viewProjection_);
+	}
 
 	// 敵描画
 	enemy_->Draw(viewProjection_);
+	if (enemy_->GetBehavior() == Enemy::Behavior::kAttack) {
+		enemyAttack_->Draw(viewProjection_);
+	}
 	//////////////Debug//////////////////
 	player_->HitBoxDraw(viewProjection_);
 	if (player_->GetBehavior() == Player::Behavior::kAttack) {
 		playerAttack_->HitBoxDraw(viewProjection_);
 	}
 	enemy_->HitBoxDraw(viewProjection_);
-	DrawLine(
-	    Vector3(
-	        (player_->GetAABB()->min_.x + player_->GetAABB()->max_.x) * 0.5f, 
-			player_->GetAABB()->max_.y, 
-			player_->GetAABB()->max_.z
-		),
-	    Vector3(
-	        (enemy_->GetAABB()->min_.x + enemy_->GetAABB()->max_.x) * 0.5f, 
-			enemy_->GetAABB()->max_.y,
-			enemy_->GetAABB()->min_.z
-		),
-	    viewProjection_,
-	    Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-
-	float player = player_->GetAABB()->max_.z;
-	float enemy = enemy_->GetAABB()->min_.z;
-	float distance;
-	distance = player - enemy;
+	if (enemy_->GetBehavior() == Enemy::Behavior::kAttack) {
+		enemyAttack_->HitBoxDraw(viewProjection_);
+	}
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();

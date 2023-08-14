@@ -230,9 +230,6 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	    worldTransforms_Parts_[static_cast<int>(Parts::ARML)], viewProjection);
 	models_[static_cast<int>(Parts::ARMR)]->Draw(
 	    worldTransforms_Parts_[static_cast<int>(Parts::ARMR)], viewProjection);
-	if (behavior_ == Behavior::kAttack) {
-		playerAttack_->Draw(viewProjection);
-	}
 }
 
 void Player::HitBoxInitialize() {

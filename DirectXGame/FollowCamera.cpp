@@ -7,7 +7,7 @@ void FollowCamera::Intialize() {
 	// ビュープロジェクション初期化
 	viewProjection_.Initialize();
 	// オフセット初期化
-	offsetInitialize_ = {0.0f, 2.0f, -10.0f};
+	offsetInitialize_ = {0.0f, 2.0f, -15.0f};
 	// オフセット
 	offset_ = offsetInitialize_;
 	

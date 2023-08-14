@@ -1,0 +1,50 @@
+#pragma once
+#include <optional>
+
+#include "BaseCharacter.h"
+#include "Collider.h"
+
+#include "EnemyDash.h"
+#include "EnemyPress.h"
+
+class Enemy;
+class Player;
+class EnemyAttack : public BaseCharacter, public Collider {
+public:
+	// ふるまい
+	enum class Behavior {
+		kRoot,         // 通常
+		kPressAttack, // プレス
+		kDashAttack, // 突進
+	};
+
+	enum class Parts {
+		CIRCLE,
+		PLANE,
+		COUNT,
+	};
+
+public:
+	void Initialize(std::vector<std::unique_ptr<Model>> model) override;
+	void Initialize();
+	void Update() override;
+	void Draw(const ViewProjection& viewProjection);
+	void SetPlayerEnemy(Player* player, Enemy* enemy) { player_ = player, enemy_ = enemy; }
+	void SetBehavior(const Behavior& behavior) { behaviorRequest_ = behavior; }
+	void HitBoxDraw(const ViewProjection& viewProjection) override;
+private:
+	void HitBoxInitialize() override;
+	void HitBoxUpdate() override;
+	// 衝突を検出したら呼び出されるコールバック関数
+	void OnCollision(const OBB& obb) override;
+private:
+	Enemy* enemy_;
+	Player* player_;
+
+	std::unique_ptr<EnemyPress> press_;
+	std::unique_ptr<EnemyDash> dash_;
+
+	// ふるまい
+	Behavior behavior_ = Behavior::kRoot;
+	std::optional<Behavior> behaviorRequest_ = std::nullopt;
+};

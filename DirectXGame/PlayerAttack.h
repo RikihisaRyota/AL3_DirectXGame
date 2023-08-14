@@ -46,14 +46,12 @@ public:
 	void SetBehavior(const Behavior& behavior) { behaviorRequest_ = behavior; }
 
 private:
-	void AttackInitialize();
 	void ChageAttackInitialize();
 	void TripleAttackInitialize();
 	void ChageAttackUpdate();
 	void TripleAttackUpdate();
 	void HitBoxUpdate() override;
 	void Homing();
-	void FlagManager();
 private:
 	Player* player_;
 	Enemy* enemy_;
