@@ -23,10 +23,18 @@ struct Vector3 final {
 	Vector3 operator+(const Vector3& other) const {
 		return {x + other.x, y + other.y, z + other.z};
 	}
+	// 加算演算子のオーバーロード
+	Vector3 operator+(float other) const {
+		return {x + other, y + other, z + other};
+	}
 
 	// 減算演算子のオーバーロード
 	Vector3 operator-(const Vector3& other) const {
 		return {x - other.x, y - other.y, z - other.z};
+	}
+	// 減算演算子のオーバーロード
+	Vector3 operator-(float other) const {
+		return {x - other, y - other, z - other};
 	}
 
 	// 二項マイナス演算子のオーバーロード（引数なしの単項マイナス演算子ではない）

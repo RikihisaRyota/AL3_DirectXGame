@@ -9,7 +9,7 @@
 void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	BaseCharacter::Initialize(std::move(model));
 	// worldTransform_をずらす
-	worldTransform_.translation_ = Vector3(0.0f, 1.0f, 10.0f);
+	worldTransform_.translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
 	worldTransform_.UpdateMatrix();
 	vector_ = Normalize(worldTransform_.translation_);
 	// 変数初期化
@@ -86,7 +86,7 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 }
 
 void Enemy::EnemyRotate(const Vector3& vector1) {
-	Vector3 vector = vector1;
+	Vector3 vector =vector1;
 	if (vector != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector.Normalize();
 	}
@@ -102,10 +102,10 @@ void Enemy::EnemyRotate(const Vector3& vector1) {
 
 void Enemy::HitBoxInitialize() {
 	// AABB
-	min_ = {-1.0f, -1.0f, -1.0f};
-	max_ = {1.0f, 1.0f, 1.0f};
+	min_ = {-5.0f, -5.0f, -5.0f};
+	max_ = {5.0f, 5.0f, 5.0f};
 	// OBB
-	size_ = {0.5f, 1.0f, 0.5f};
+	size_ = {2.5f, 5.0f, 2.5f};
 	// Sphere
 	radius_ = 1.2f;
 	// AABB
@@ -139,6 +139,8 @@ void Enemy::HitBoxDraw(const ViewProjection& viewProjection) {
 
 void Enemy::RootInitialize() {
 	// 変数初期化
+	worldTransform_.translation_.y = kFloor_Distance_;
+	worldTransform_.UpdateMatrix();
 	moveRatate_ = 0.0f;
 	motionRatate_ = 0.0f;
 }
@@ -174,8 +176,6 @@ void Enemy::Motion() {
 	Base();
 	// 体
 	Body();
-	// ライト
-	Light();
 }
 
 void Enemy::Base() {
@@ -183,11 +183,6 @@ void Enemy::Base() {
 }
 
 void Enemy::Body() {}
-
-void Enemy::Light() {
-	//  Y軸回り角度(θy)
-	worldTransforms_Parts_[static_cast<int>(Parts::LIGHT)].rotation_.y += 0.08f;
-}
 
 void Enemy::HitBoxUpdate() {
 	// AABB

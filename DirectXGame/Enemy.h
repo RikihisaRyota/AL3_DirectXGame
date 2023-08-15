@@ -14,7 +14,9 @@ public:
 	// パーツ
 	enum class Parts { 
 		BODY, 
-		LIGHT, 
+		HEAD,
+		ARML,
+		ARMR,
 		COUNT
 	};
 public:
@@ -38,6 +40,8 @@ public:
 	Behavior GetBehavior() const { return behavior_; }
 	void SetEnemyAttack(EnemyAttack* enemyAttack) { enemyAttack_ = enemyAttack; }
 	void EnemyRotate(const Vector3& vector);
+	float GetFloorDistance() { return kFloor_Distance_; }
+
 private:
 	void HitBoxInitialize() override;
 	void RootInitialize();
@@ -58,19 +62,17 @@ private:
 	/// 体
 	/// </summary>
 	void Body();
-	/// <summary>
-	/// ライト
-	/// </summary>
-	void Light();
 
 	void HitBoxUpdate() override;
 
 	// 衝突を検出したら呼び出されるコールバック関数
 	void OnCollision(const OBB& obb) override;
-
 private:
 	// 振り向き速度
 	const float kTurn = 0.4f;
+
+	const float kFloor_Distance_ = 2.5f;
+
 private:
 	// 向き
 	Vector3 interRotate_;

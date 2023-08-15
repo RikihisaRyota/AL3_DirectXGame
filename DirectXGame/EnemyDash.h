@@ -25,5 +25,9 @@ private:
 	float kTarget_Speed_;
 	float kDash_Speed_;
 	WorldTransform target_;
+	WorldTransform origin_;
+	Vector3 toTarget_;
+	// どこまで追跡するか
+	float target_Distance_;
 	State state_;
 };

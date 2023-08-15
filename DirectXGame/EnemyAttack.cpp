@@ -32,6 +32,7 @@ void EnemyAttack::Initialize() {
 		switch (behavior_) {
 		case EnemyAttack::Behavior::kRoot:
 		default:
+			RootInitialize(); 
 			break;
 		case EnemyAttack::Behavior::kPressAttack:
 			press_->Initialize();
@@ -45,6 +46,13 @@ void EnemyAttack::Initialize() {
 	}
 }
 
+void EnemyAttack::RootInitialize() {
+	worldTransform_.scale_ = {4.0f, 1.0f, 4.0f};
+	worldTransform_.rotation_= {0.0f, 0.0f, 0.0f};
+	worldTransform_.translation_= {0.0f, 0.0f, 0.0f};
+	worldTransform_.UpdateMatrix();
+}
+
 void EnemyAttack::Update() {
 	if (enemy_->GetBehavior() == Enemy::Behavior::kAttack) {
 		if (behaviorRequest_) {
@@ -54,6 +62,7 @@ void EnemyAttack::Update() {
 			switch (behavior_) {
 			case EnemyAttack::Behavior::kRoot:
 			default:
+				RootInitialize(); 
 				break;
 			case EnemyAttack::Behavior::kPressAttack:
 				press_->Initialize();
@@ -118,8 +127,8 @@ void EnemyAttack::HitBoxInitialize() {
 	// AABB
 	aabb_ = {
 	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
+	    .min_{aabb_.center_ - worldTransform_.scale_},
+	    .max_{aabb_.center_ + worldTransform_.scale_},
 	};
 	// OBB
 	obb_ = {
@@ -129,7 +138,7 @@ void EnemyAttack::HitBoxInitialize() {
 	             {0.0f, 1.0f, 0.0f},
 	             {0.0f, 0.0f, 1.0f},
 	             },
-	    .size_{size_}
+	    .size_{worldTransform_.scale_}
     };
 	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 	// Sphere
@@ -164,11 +173,14 @@ void EnemyAttack::HitBoxUpdate() {
 		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 		break;
 	case EnemyAttack::Behavior::kDashAttack:
+		float size = (std::max)(
+		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
+		    worldTransform_.scale_.z);
 		// AABB
 		aabb_ = {
 		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ + min_},
-		    .max_{aabb_.center_ + max_},
+		    .min_{aabb_.center_ - size},
+		    .max_{aabb_.center_ + size},
 		};
 		// OBB
 		obb_ = {
@@ -178,7 +190,7 @@ void EnemyAttack::HitBoxUpdate() {
 		             {0.0f, 1.0f, 0.0f},
 		             {0.0f, 0.0f, 1.0f},
 		             },
-		    .size_{size_}
+		    .size_{worldTransform_.scale_}
         };
 		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 		break;

@@ -10,6 +10,9 @@
 #include "Vector4.h"
 #include "Vector2.h"
 
+
+const double PI = 3.14159265359;
+
 // ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
 

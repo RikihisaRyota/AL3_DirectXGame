@@ -448,8 +448,6 @@ Matrix4x4 Convert(const Matrix4x4& m1) {
 	return mat;
 }
 
-const double pi = 3.14159265359;
-
 float Clamp(float num, float min, float max) {
 	if (num <= min) {
 		num = min;
@@ -459,9 +457,9 @@ float Clamp(float num, float min, float max) {
 	return num;
 }
 
-float RadToDeg(float radian) { return static_cast<float>(pi) / radian; }
+float RadToDeg(float radian) { return static_cast<float>(PI) / radian; }
 
-float DegToRad(float degree) { return degree * static_cast<float>(pi) / 180.0f; }
+float DegToRad(float degree) { return degree * static_cast<float>(PI) / 180.0f; }
 
 Matrix4x4 MakeMatWolrd(const WorldTransform& worldtransform) { 
 	Matrix4x4 result = MakeIdentity4x4();

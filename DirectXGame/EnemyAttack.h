@@ -27,6 +27,7 @@ public:
 public:
 	void Initialize(std::vector<std::unique_ptr<Model>> model) override;
 	void Initialize();
+	void RootInitialize();
 	void Update() override;
 	void Draw(const ViewProjection& viewProjection);
 	void SetPlayerEnemy(Player* player, Enemy* enemy) { player_ = player, enemy_ = enemy; }

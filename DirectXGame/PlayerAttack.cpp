@@ -366,11 +366,12 @@ void PlayerAttack::Homing() {
 	if (IsCollision(*enemy_->GetAABB(), aabb_)) {
 		Vector3 toEnemy = enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
 		// 長さが1.0f以上ならホーミング
-		const float kLength = 1.0f;
+		const float kLength = player_->GetOBB()->size_.x + enemy_->GetOBB()->size_.x;
 		float distance = toEnemy.Length(); 
 		if (distance >= kLength) {
 			toEnemy.Normalize();
 			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.4f);
+			worldTransform_.translation_.y = 1.0f;
 			player_->SetTranslation(worldTransform_.translation_);
 			player_->PlayerRotate(toEnemy);
 		} else {

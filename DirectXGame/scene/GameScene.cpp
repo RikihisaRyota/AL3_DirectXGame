@@ -46,8 +46,13 @@ void GameScene::Initialize() {
 	// 敵モデル
 	enemyModel[static_cast<int>(Enemy::Parts::BODY)].reset(
 	    Model::CreateFromOBJ("enemy_Body", true));
-	enemyModel[static_cast<int>(Enemy::Parts::LIGHT)].reset(
-	    Model::CreateFromOBJ("enemy_Light", true));
+	enemyModel[static_cast<int>(Enemy::Parts::HEAD)].reset(
+	    Model::CreateFromOBJ("enemy_Head", true));
+	enemyModel[static_cast<int>(Enemy::Parts::ARML)].reset(
+	    Model::CreateFromOBJ("enemy_armL", true));
+	enemyModel[static_cast<int>(Enemy::Parts::ARMR)].reset(
+	    Model::CreateFromOBJ("enemy_armR", true));
+
 	// 敵攻撃モデル
 	enemyAttackModel[static_cast<int>(EnemyAttack::Parts::CIRCLE)].reset(
 	    Model::CreateFromOBJ("enemy_Attack_Circle", true));
