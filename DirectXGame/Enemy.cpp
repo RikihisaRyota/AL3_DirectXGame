@@ -28,13 +28,17 @@ void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 }
 
 void Enemy::Update() {
-	if (Input::GetInstance()->PushKey(DIK_1)) {
+	if (behavior_ != Enemy::Behavior::kAttack && Input::GetInstance()->PushKey(DIK_1)) {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPressAttack);
 	}
-	if (Input::GetInstance()->PushKey(DIK_2)) {
+	if (behavior_ != Enemy::Behavior::kAttack && Input::GetInstance()->PushKey(DIK_2)) {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kDashAttack);
+	}
+	if (behavior_ != Enemy::Behavior::kAttack && Input::GetInstance()->PushKey(DIK_3)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPunchAttack);
 	}
 	if (behaviorRequest_) {
 		// ふるまいを変更

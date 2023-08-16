@@ -25,6 +25,7 @@ float Lerp(float start, float end, float t) {
 	return start + ((end - start) * t);
 }
 
+
 Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	// 2つのベクトルの内積を計算
 	const float cosTheta = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -516,6 +517,40 @@ float LenpShortAngle(float a, float b, float t) {
 		diff += DegToRad(360.0f);
 	}
 	return Lerp(a, a + diff, t);
+}
+
+Vector3 LenpShortAngle(const Vector3& a, const Vector3& b, float t) { 
+	// 各軸の角度差分を求める
+	float diffX = b.x - a.x;
+	float diffY = b.y - a.y;
+	float diffZ = b.z - a.z;
+
+	// 各軸の角度[-2PI,+2PI]に補正
+	diffX = std::fmod(diffX, DegToRad(360.0f));
+	diffY = std::fmod(diffY, DegToRad(360.0f));
+	diffZ = std::fmod(diffZ, DegToRad(360.0f));
+
+	// 各軸の角度[-PI,+PI]に補正
+	if (diffX > DegToRad(180.0f)) {
+		diffX -= DegToRad(360.0f);
+	} else if (diffX < -DegToRad(180.0f)) {
+		diffX += DegToRad(360.0f);
+	}
+
+	if (diffY > DegToRad(180.0f)) {
+		diffY -= DegToRad(360.0f);
+	} else if (diffY < -DegToRad(180.0f)) {
+		diffY += DegToRad(360.0f);
+	}
+
+	if (diffZ > DegToRad(180.0f)) {
+		diffZ -= DegToRad(360.0f);
+	} else if (diffZ < -DegToRad(180.0f)) {
+		diffZ += DegToRad(360.0f);
+	}
+
+	// 補正された角度をLerpして返す
+	return Vector3(Lerp(a.x, a.x + diffX, t), Lerp(a.y, a.y + diffY, t), Lerp(a.z, a.z + diffZ, t));
 }
 
 Vector3 Perpendicular(const Vector3& vector) {

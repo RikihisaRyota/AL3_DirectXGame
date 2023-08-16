@@ -120,10 +120,16 @@
     <ClCompile Include="EnemyAttack.cpp">
       <Filter>ソース ファイル\EnemyAttack</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyPress.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="EnemyPunch.cpp">
+      <Filter>ソース ファイル\EnemyAttack</Filter>
     </ClCompile>
     <ClCompile Include="EnemyDash.cpp">
+      <Filter>ソース ファイル\EnemyAttack</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyPress.cpp">
+      <Filter>ソース ファイル\EnemyAttack</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyHP.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -278,10 +284,16 @@
     <ClInclude Include="EnemyAttack.h">
       <Filter>ヘッダー ファイル\EnemyAttack</Filter>
     </ClInclude>
+    <ClInclude Include="EnemyPunch.h">
+      <Filter>ヘッダー ファイル\EnemyAttack</Filter>
+    </ClInclude>
     <ClInclude Include="EnemyPress.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\EnemyAttack</Filter>
     </ClInclude>
     <ClInclude Include="EnemyDash.h">
+      <Filter>ヘッダー ファイル\EnemyAttack</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyHP.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

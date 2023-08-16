@@ -9,7 +9,7 @@ public:
 		kRoot,
 		kTarget,
 		kStay,
-		kDrap,
+		kAttack,
 	};
 public:
 	void Initialize() override;
@@ -18,14 +18,16 @@ private:
 	void RootUpdate();
 	void StayUpdate();
 	void TargetUpdate();
-	void DrapUpdate();
+	void AttackUpdate();
 
 private:
 	float t_;
 	float kTarget_Speed_;
 	float kStay_Speed_;
-	float kDrop_Speed_;
+	float kAttack_Speed_;
 	WorldTransform target_;
 	WorldTransform origin_;
+	// どこまで追跡するか
+	float target_Distance_;
 	State state_;
 };

@@ -117,6 +117,8 @@
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyAttack.cpp" />
     <ClCompile Include="EnemyDash.cpp" />
+    <ClCompile Include="EnemyHP.cpp" />
+    <ClCompile Include="EnemyPunch.cpp" />
     <ClCompile Include="EnemyPress.cpp" />
     <ClCompile Include="FollowCamera.cpp" />
     <ClCompile Include="GlobalVariables.cpp" />
@@ -163,6 +165,8 @@
     <ClInclude Include="EnemyAttack.h" />
     <ClInclude Include="EnemyAttakType.h" />
     <ClInclude Include="EnemyDash.h" />
+    <ClInclude Include="EnemyHP.h" />
+    <ClInclude Include="EnemyPunch.h" />
     <ClInclude Include="EnemyPress.h" />
     <ClInclude Include="FollowCamera.h" />
     <ClInclude Include="GlobalVariables.h" />

@@ -8,7 +8,7 @@ public:
 	enum class State {
 		kRoot,
 		kTarget,
-		kDash,
+		kAttack,
 	};
 
 public:
@@ -23,6 +23,8 @@ private:
 private:
 	float t_;
 	float kTarget_Speed_;
+	Vector3 kTarget_Start_Rotate_;
+	Vector3 kTarget_End_Rotate_;
 	float kDash_Speed_;
 	WorldTransform target_;
 	WorldTransform origin_;

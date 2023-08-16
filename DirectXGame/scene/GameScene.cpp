@@ -31,12 +31,12 @@ void GameScene::Initialize() {
 	// DrawLineに必要なviewProjectionをセット
 	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
 #pragma endregion
-
 	// 生成
 	player_ = std::make_unique<Player>();
 	playerAttack_ = std::make_unique<PlayerAttack>();
 	enemy_ = std::make_unique<Enemy>();
 	enemyAttack_ = std::make_unique<EnemyAttack>();
+	enemyHP_ = std::make_unique<EnemyHP>();
 #pragma region 敵
 	// 敵モデル
 	std::vector<std::unique_ptr<Model>> enemyModel(static_cast<int>(Enemy::Parts::COUNT));
@@ -64,6 +64,10 @@ void GameScene::Initialize() {
 	// 敵攻撃初期化
 	enemyAttack_->SetPlayerEnemy(player_.get(), enemy_.get());
 	enemyAttack_->Initialize(std::move(enemyAttackModel));
+	// 敵HP初期化
+	//uint32_t textureHandle = TextureManager::Load("mario.png");
+	uint32_t textureHandle = TextureManager::Load("white1x1.png");
+	enemyHP_->Initialize(textureHandle, textureHandle);
 #pragma endregion
 #pragma region プレイヤー
 	// プレイヤーモデル
@@ -130,8 +134,12 @@ void GameScene::Update() {
 	// 敵の更新
 	enemy_->Update();
 	enemyAttack_->Update();
-
+	enemyHP_->Update();
 	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get());
+
+	if (Input::GetInstance()->TriggerKey(DIK_6)) {
+		enemyHP_->SetAdd(10);
+	}
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;
@@ -219,7 +227,8 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
-
+	enemyHP_->Draw();
+	//test->Draw();
 	// スプライト描画後処理
 	Sprite::PostDraw();
 

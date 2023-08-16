@@ -5,6 +5,7 @@
 #include "DirectXCommon.h"
 #include "Enemy.h"
 #include "EnemyAttack.h"
+#include "EnemyHP.h"
 #include "FollowCamera.h"
 #include "Input.h"
 #include "Model.h"
@@ -86,5 +87,6 @@ private: // メンバ変数
 	// 敵
 	std::unique_ptr<Enemy> enemy_;
 	std::unique_ptr<EnemyAttack> enemyAttack_;
+	std::unique_ptr<EnemyHP> enemyHP_;
 #pragma endregion
 };

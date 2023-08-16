@@ -22,6 +22,9 @@ void EnemyAttack::Initialize(std::vector<std::unique_ptr<Model>> model) {
 
 	dash_ = std::make_unique<EnemyDash>();
 	dash_->SetPlayerEnemy(player_, enemy_, this);
+
+	punch_ = std::make_unique<EnemyPunch>();
+	punch_->SetPlayerEnemy(player_, enemy_, this);
 }
 
 void EnemyAttack::Initialize() {
@@ -39,6 +42,9 @@ void EnemyAttack::Initialize() {
 			break;
 		case EnemyAttack::Behavior::kDashAttack:
 			dash_->Initialize();
+			break;
+		case EnemyAttack::Behavior::kPunchAttack:
+			punch_->Initialize();
 			break;
 		}
 		// ふるまいリクエストをリセット
@@ -70,6 +76,9 @@ void EnemyAttack::Update() {
 			case EnemyAttack::Behavior::kDashAttack:
 				dash_->Initialize();
 				break;
+			case EnemyAttack::Behavior::kPunchAttack:
+				punch_->Initialize();
+				break;
 			}
 			// ふるまいリクエストをリセット
 			behaviorRequest_ = std::nullopt;
@@ -91,6 +100,12 @@ void EnemyAttack::Update() {
 				behaviorRequest_ = EnemyAttack::Behavior::kRoot;
 			}
 			break;
+		case EnemyAttack::Behavior::kPunchAttack:
+			punch_->Update();
+			if (!punch_->GetWorking()) {
+				behaviorRequest_ = EnemyAttack::Behavior::kRoot;
+			}
+			break;
 		}
 		BaseCharacter::Update();
 		HitBoxUpdate();
@@ -109,6 +124,10 @@ void EnemyAttack::Draw(const ViewProjection& viewProjection) {
 	case EnemyAttack::Behavior::kDashAttack:
 		models_[static_cast<int>(EnemyAttack::Parts::PLANE)]->Draw(
 		    worldTransforms_Parts_[static_cast<int>(EnemyAttack::Parts::PLANE)], viewProjection);
+		break;
+	case EnemyAttack::Behavior::kPunchAttack:
+		models_[static_cast<int>(EnemyAttack::Parts::CIRCLE)]->Draw(
+		    worldTransforms_Parts_[static_cast<int>(EnemyAttack::Parts::CIRCLE)], viewProjection);
 		break;
 	}
 	
@@ -172,7 +191,8 @@ void EnemyAttack::HitBoxUpdate() {
         };
 		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 		break;
-	case EnemyAttack::Behavior::kDashAttack:
+	case EnemyAttack::Behavior::kDashAttack: 
+	{
 		float size = (std::max)(
 		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
 		    worldTransform_.scale_.z);
@@ -194,6 +214,32 @@ void EnemyAttack::HitBoxUpdate() {
         };
 		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
 		break;
+	}
+	case EnemyAttack::Behavior::kPunchAttack: 
+	{
+		float size = (std::max)(
+		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
+		    worldTransform_.scale_.z);
+		// AABB
+		aabb_ = {
+		    .center_{worldTransform_.translation_},
+		    .min_{aabb_.center_ - size},
+		    .max_{aabb_.center_ + size},
+		};
+		// OBB
+		obb_ = {
+		    .center_{worldTransform_.translation_},
+		    .orientations_{
+		             {1.0f, 0.0f, 0.0f},
+		             {0.0f, 1.0f, 0.0f},
+		             {0.0f, 0.0f, 1.0f},
+		             },
+		    .size_{worldTransform_.scale_}
+        };
+		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+		break;
+	}
+		
 	}
 }
 

@@ -123,6 +123,7 @@ void ChackHitBox(
 /// <param name="t">t</param>
 /// <returns></returns>
 float LenpShortAngle(float a, float b, float t);
+Vector3 LenpShortAngle(const Vector3& a, const Vector3& b, float t);
 
 Vector3 Perpendicular(const Vector3& vector);
 
