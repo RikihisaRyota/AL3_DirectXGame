@@ -5,7 +5,7 @@
 
 #include "Sprite.h"
 
-class EnemyHP {
+class PlayerHP {
 public:
 	void Initialize(uint32_t now_TextureHandle, uint32_t delay_TextureHandle);
 	void Update();
@@ -14,6 +14,7 @@ public:
 
 private:
 	float Conversion(uint32_t num);
+
 private:
 	const uint32_t kMax_HP_ = 1000;
 	const Vector2 position_ = {60.0f, 20.0f};

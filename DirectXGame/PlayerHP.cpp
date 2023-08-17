@@ -1,11 +1,11 @@
-#include "EnemyHP.h"
+#include "PlayerHP.h"
 
 #include "ImGuiManager.h"
 #include "MyMath.h"
 
-uint32_t EnemyHP::add_HP_;
+uint32_t PlayerHP::add_HP_;
 
-void EnemyHP::Initialize(uint32_t now_TextureHandle, uint32_t delay_TextureHandle) {
+void PlayerHP::Initialize(uint32_t now_TextureHandle, uint32_t delay_TextureHandle) {
 	now_HP_ = kMax_HP_;
 	delay_HP_ = kMax_HP_;
 	add_HP_ = 0;
@@ -17,7 +17,7 @@ void EnemyHP::Initialize(uint32_t now_TextureHandle, uint32_t delay_TextureHandl
 	    Sprite::Create(delay_TextureHandle, position_, Vector4(0.0f, 0.0f, 1.0f, 0.8f)));
 }
 
-void EnemyHP::Update() { 
+void PlayerHP::Update() {
 	if (now_HP_ > 0) {
 		now_HP_ -= add_HP_;
 	} else {
@@ -25,11 +25,9 @@ void EnemyHP::Update() {
 	}
 	now_HP_Sprite_->SetSize(Vector2(Conversion(now_HP_), kHeight_));
 	delay_HP_ = static_cast<uint32_t>(
-	    Lerp(static_cast<float>(delay_HP_), 
-			static_cast<float>(now_HP_), 
-			0.02f));
+	    Lerp(static_cast<float>(delay_HP_), static_cast<float>(now_HP_), 0.02f));
 	delay_HP_Sprite_->SetSize(Vector2(Conversion(delay_HP_), kHeight_));
-	// ãƒªã‚»ãƒƒãƒˆ
+	// ƒŠƒZƒbƒg
 	add_HP_ = 0;
 	ImGui::Begin("HP");
 	float now_HP_float = static_cast<float>(now_HP_);
@@ -42,12 +40,12 @@ void EnemyHP::Update() {
 	ImGui::End();
 }
 
-void EnemyHP::Draw() { 
+void PlayerHP::Draw() {
 	delay_HP_Sprite_->Draw();
 	now_HP_Sprite_->Draw();
 }
 
-float EnemyHP::Conversion(uint32_t num) { 	
+float PlayerHP::Conversion(uint32_t num) {
 	float hp_Max = static_cast<float>(kMax_HP_);
 	float width = kWidth_;
 	return static_cast<float>(num) * width / hp_Max;

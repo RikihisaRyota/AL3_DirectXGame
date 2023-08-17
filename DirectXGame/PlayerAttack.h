@@ -65,6 +65,8 @@ private:
 	Vector3 tripleAttackSize_;
 	Vector3 center_Distance_;
 
+	bool hitFlag_ = false;
+
 	// 剣のデットゾーン
 	float slashMin_;
 	float slashMax_;

@@ -3,6 +3,7 @@
 #include "Collision.h"
 #include "Draw.h"
 #include "Enemy.h"
+#include "EnemyHP.h"
 #include "ImGuiManager.h"
 #include "Input.h"
 #include "MyMath.h"
@@ -25,6 +26,7 @@ void PlayerAttack::Initialize() {
 		// 各ふるまいごとの初期化を実行
 		switch (behavior_) {
 		case PlayerAttack::Behavior::kRoot:
+			hitFlag_ = false;
 		default:
 			break;
 		case PlayerAttack::Behavior::kChargeAttack:
@@ -37,6 +39,7 @@ void PlayerAttack::Initialize() {
 		// ふるまいリクエストをリセット
 		behaviorRequest_ = std::nullopt;
 	}
+	hitFlag_ = false;
 }
 
 void PlayerAttack::Update() {
@@ -44,6 +47,7 @@ void PlayerAttack::Update() {
 	switch (behavior_) {
 	case PlayerAttack::Behavior::kRoot:
 	default:
+		hitFlag_ = false;
 		break;
 	case PlayerAttack::Behavior::kChargeAttack:
 		ChageAttackUpdate();
@@ -109,6 +113,8 @@ void PlayerAttack::ChageAttackUpdate() {
 		if (Input::GetInstance()->PushKey(DIK_Q) ||
 		    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 		     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
+			// チャージ中は攻撃判定なし
+			hitFlag_ = true; 
 			charge_T_ += charge_Speed_;
 			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
 			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
@@ -122,9 +128,11 @@ void PlayerAttack::ChageAttackUpdate() {
 			    worldtramsform, static_cast<int>(Player::Parts::ARMR));
 		} else {
 			// チャージ終わり
+			hitFlag_ = false;
 			chargeFlag_ = false;
 			slashFlag_ = true;
-			charge_T_ = 0.0f;
+			// 下に移動	
+			//charge_T_ = 0.0f;
 			slash_Attack_Start_ =
 			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
 			slash_ArmAngle_Start_ =
@@ -145,6 +153,7 @@ void PlayerAttack::ChageAttackUpdate() {
 		player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARMR));
 		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >=
 		    slashMax_ - 0.00005f) {
+			charge_T_ = 0.0f;
 			slashFlag_ = false;
 			slash_T_ = 0.0f;
 			rigorFlag_ = true;
@@ -220,6 +229,9 @@ void PlayerAttack::TripleAttackUpdate() {
 			if (Input::GetInstance()->TriggerKey(DIK_E) ||
 			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
+				// 攻撃のフラグを立てる
+				hitFlag_ = false;
+
 				secondFlag = true;
 				firstFlag = false;
 				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
@@ -261,6 +273,9 @@ void PlayerAttack::TripleAttackUpdate() {
 			if (Input::GetInstance()->TriggerKey(DIK_E) ||
 			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
+				// 攻撃のフラグを立てる
+				hitFlag_ = false;
+
 				secondFlag = false;
 				thirdFlag = true;
 				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
@@ -303,6 +318,7 @@ void PlayerAttack::TripleAttackUpdate() {
 	ImGui::SliderFloat3("AABB_max", &tripleAttackMax_.x, 0.0f, 6.0f);
 	ImGui::SliderFloat3("OBB_size", &tripleAttackSize_.x, 0.0f, 6.0f);
 	ImGui::SliderFloat3("center_Distance_", &center_Distance_.x, 0.0f, 3.0f);
+	ImGui::Text("hitFlag:%d", hitFlag_);
 	ImGui::End();
 }
 
@@ -447,4 +463,31 @@ void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
-void PlayerAttack::OnCollision(const OBB& obb) { OBB a = obb; }
+void PlayerAttack::OnCollision(const OBB& obb) { 
+	OBB a = obb;
+	switch (behavior_) {
+	case PlayerAttack::Behavior::kRoot:
+	default:
+		break;
+	case PlayerAttack::Behavior::kChargeAttack:
+		if (!hitFlag_) {
+			EnemyHP::SetAdd(static_cast<uint32_t>(30 * (charge_T_ + 1.0f)));
+			hitFlag_ = true;
+		}
+		
+		break;
+	case PlayerAttack::Behavior::kTripleAttack:
+		if (!hitFlag_ && firstFlag) {
+			EnemyHP::SetAdd(5);
+			hitFlag_ = true;
+		} else if (!hitFlag_ && secondFlag) {
+			EnemyHP::SetAdd(5);
+			hitFlag_ = true;
+		} else if (!hitFlag_ && thirdFlag) {
+			EnemyHP::SetAdd(10);
+			hitFlag_ = true;
+		}
+		break;
+	}
+	
+}

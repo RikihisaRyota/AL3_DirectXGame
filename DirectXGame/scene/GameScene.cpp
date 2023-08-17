@@ -137,7 +137,7 @@ void GameScene::Update() {
 	enemyHP_->Update();
 	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get());
 
-	if (Input::GetInstance()->TriggerKey(DIK_6)) {
+	if (Input::GetInstance()->PushKey(DIK_6)) {
 		enemyHP_->SetAdd(10);
 	}
 #pragma region カメラ関連
