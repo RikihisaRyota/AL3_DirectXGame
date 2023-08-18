@@ -27,7 +27,7 @@ void PlayerHP::Update() {
 	delay_HP_ = static_cast<uint32_t>(
 	    Lerp(static_cast<float>(delay_HP_), static_cast<float>(now_HP_), 0.02f));
 	delay_HP_Sprite_->SetSize(Vector2(Conversion(delay_HP_), kHeight_));
-	// ƒŠƒZƒbƒg
+	// ãƒªã‚»ãƒƒãƒˆ
 	add_HP_ = 0;
 	ImGui::Begin("HP");
 	float now_HP_float = static_cast<float>(now_HP_);

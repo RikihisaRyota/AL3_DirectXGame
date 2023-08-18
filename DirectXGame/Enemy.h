@@ -66,7 +66,8 @@ private:
 	void HitBoxUpdate() override;
 
 	// 衝突を検出したら呼び出されるコールバック関数
-	void OnCollision(const OBB& obb) override;
+	void OnCollision(const OBB& obb, uint32_t type) override;
+
 private:
 	// 振り向き速度
 	const float kTurn = 0.4f;

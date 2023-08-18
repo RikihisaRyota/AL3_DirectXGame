@@ -148,7 +148,7 @@ private: // メンバ関数
 	void SetGlobalVariables();
 	void GetGlobalVariables();
 	// 衝突を検出したら呼び出されるコールバック関数
-	void OnCollision(const OBB& obb) override;
+	void OnCollision(const OBB& obb, uint32_t type) override;
 
 public: // ゲッター,セッター
 	/// <summary>

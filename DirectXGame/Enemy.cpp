@@ -6,6 +6,8 @@
 #include "MyMath.h"
 #include "EnemyAttack.h"
 
+#include "RandomNumberGenerator.h"
+
 void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	BaseCharacter::Initialize(std::move(model));
 	// worldTransform_をずらす
@@ -150,6 +152,19 @@ void Enemy::RootInitialize() {
 }
 
 void Enemy::RootUpdate() {
+	RandomNumberGenerator rnd;
+	int i = rnd.NextUIntRange(0, 2);
+	if (i == 0) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPressAttack);
+	} else if (i == 1) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kDashAttack);
+	} else {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPunchAttack);
+	}
+	
 	// 移動
 	Move();
 	// 動き
@@ -213,6 +228,8 @@ void Enemy::HitBoxUpdate() {
 	};
 }
 
-void Enemy::OnCollision(const OBB& obb) {
+void Enemy::OnCollision(const OBB& obb, uint32_t type) {
 	OBB o = obb;
+	uint32_t i = type;
+	i;
 }

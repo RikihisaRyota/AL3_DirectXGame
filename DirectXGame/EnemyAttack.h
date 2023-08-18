@@ -39,7 +39,8 @@ private:
 	void HitBoxInitialize() override;
 	void HitBoxUpdate() override;
 	// 衝突を検出したら呼び出されるコールバック関数
-	void OnCollision(const OBB& obb) override;
+	void OnCollision(const OBB& obb, uint32_t type) override;
+
 private:
 	Enemy* enemy_;
 	Player* player_;

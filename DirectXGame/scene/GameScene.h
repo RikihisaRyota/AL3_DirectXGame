@@ -11,6 +11,7 @@
 #include "Model.h"
 #include "Player.h"
 #include "PlayerAttack.h"
+#include "PlayerHP.h"
 #include "SafeDelete.h"
 #include "Skydome.h"
 #include "Sprite.h"
@@ -70,6 +71,7 @@ private: // メンバ変数
 	// プレイヤー
 	std::unique_ptr<Player> player_;
 	std::unique_ptr<PlayerAttack> playerAttack_;
+	std::unique_ptr<PlayerHP> playerHP_;
 #pragma endregion
 #pragma region 天球
 	// 天球

@@ -50,7 +50,9 @@ void EnemyPunch::Initialize() {
 #pragma endregion
 	// 設定
 	SetWorking(true);
-	state_ = EnemyPunch::State::kTarget;
+	SetAttack(false);
+	SetHit(false);
+	state_ = State::kTarget;
 }
 
 void EnemyPunch::Update() {
@@ -115,7 +117,10 @@ void EnemyPunch::AttackUpdate() {
 	worldTransform.rotation_ = Lerp(kAttack_Start_Radius_, kAttack_End_Radius_, Clamp(t_, 0.0f, 1.0f));
 	worldTransform.translation_ = Lerp(kAttack_Start_Transform_, kAttack_End_Transform_, Clamp(t_, 0.0f, 1.0f));
 	GetEnemy()->SetWorldtransforms_Parts(worldTransform, static_cast<int>(Enemy::Parts::ARML));
-	if (t_ >= 2.5f) {
+	if (t_ >= 0.8) {
+		UpdateHit();
+	}
+	if (t_ >= 1.5f) {
 		state_ = State::kRoot;
 		t_ = 0.0f;
 	}

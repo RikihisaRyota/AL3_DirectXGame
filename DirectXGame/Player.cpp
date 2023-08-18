@@ -66,7 +66,7 @@ void Player::Update() {
 	}
 
 	HitBoxUpdate();
-	
+
 	// 転送
 	BaseCharacter::Update();
 
@@ -100,12 +100,10 @@ void Player::BehaviorRootUpdate() {
 	Motion();
 }
 
-void Player::BehaviorAttackInitialize() {
-	playerAttack_->Initialize();
-}
+void Player::BehaviorAttackInitialize() { playerAttack_->Initialize(); }
 
 void Player::BehaviorAttackUpdate() {
-	//playerAttack_->Update();
+	// playerAttack_->Update();
 }
 
 void Player::BehaviorDashInitialize() {
@@ -186,39 +184,41 @@ void Player::GetGlobalVariables() {
 	BaseCharacter::Update();
 }
 
-void Player::OnCollision(const OBB& obb) {
-	// OBB同士が衝突していると仮定して、重なり領域を計算する
-	// ここでは、OBB同士の各軸方向での重なりの幅を計算し、最小値を取得する
-	Vector3 distance = obb.center_ - obb_.center_;
+void Player::OnCollision(const OBB& obb, uint32_t type) {
+	if (type == static_cast<uint32_t>(Collider::Type::PlayerToEnemy)) {
+		// OBB同士が衝突していると仮定して、重なり領域を計算する
+		// ここでは、OBB同士の各軸方向での重なりの幅を計算し、最小値を取得する
+		Vector3 distance = obb.center_ - obb_.center_;
 
-	// 当たり判定が成功したので押し戻し処理を行う
-	float overlapX = obb_.size_.x + obb.size_.x - std::abs(distance.x);
-	float overlapY = obb_.size_.y + obb.size_.y - std::abs(distance.y);
-	float overlapZ = obb_.size_.z + obb.size_.z - std::abs(distance.z);
+		// 当たり判定が成功したので押し戻し処理を行う
+		float overlapX = obb_.size_.x + obb.size_.x - std::abs(distance.x);
+		float overlapY = obb_.size_.y + obb.size_.y - std::abs(distance.y);
+		float overlapZ = obb_.size_.z + obb.size_.z - std::abs(distance.z);
 
-	if (overlapX < overlapY && overlapX < overlapZ) {
-		if (distance.x < 0.0f) {
-			obb_.center_ += Vector3{overlapX, 0, 0};
+		if (overlapX < overlapY && overlapX < overlapZ) {
+			if (distance.x < 0.0f) {
+				obb_.center_ += Vector3{overlapX, 0, 0};
+			} else {
+				obb_.center_ += Vector3{-overlapX, 0, 0};
+			}
+		} else if (overlapY < overlapX && overlapY < overlapZ) {
+			if (distance.y < 0.0f) {
+				obb_.center_ += Vector3{0, overlapY, 0};
+			} else {
+				obb_.center_ += Vector3{0, -overlapY, 0};
+			}
 		} else {
-			obb_.center_ += Vector3{-overlapX, 0, 0};
+			if (distance.z < 0.0f) {
+				obb_.center_ += Vector3{0, 0, overlapZ};
+			} else {
+				obb_.center_ += Vector3{0, 0, -overlapZ};
+			}
 		}
-	} else if (overlapY < overlapX && overlapY < overlapZ) {
-		if (distance.y < 0.0f) {
-			obb_.center_ += Vector3{0, overlapY, 0};
-		} else {
-			obb_.center_ += Vector3{0, -overlapY, 0};
-		}
-	} else {
-		if (distance.z < 0.0f) {
-			obb_.center_ += Vector3{0, 0, overlapZ};
-		} else {
-			obb_.center_ += Vector3{0, 0, -overlapZ};
-		}
+		worldTransform_.translation_ = obb_.center_;
+		// 転送
+		BaseCharacter::Update();
+		HitBoxUpdate();
 	}
-	worldTransform_.translation_ = obb_.center_;
-	// 転送
-	BaseCharacter::Update();
-	HitBoxUpdate();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {

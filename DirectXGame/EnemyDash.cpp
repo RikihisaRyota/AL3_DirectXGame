@@ -48,8 +48,11 @@ void EnemyDash::Initialize() {
 	worldTransform.translation_ = transform; 
 	GetEnemyAttack()->SetWorldtransform(worldTransform);
 
+	// 設定
 	SetWorking(true);
-	state_ = EnemyDash::State::kTarget;
+	SetAttack(false);
+	SetHit(false);
+	state_ = State::kTarget;
 }
 
 void EnemyDash::Update() {
@@ -91,7 +94,8 @@ void EnemyDash::DrapUpdate() {
 	    origin_.translation_, origin_.translation_ + toTarget_ * target_Distance_,
 	    Clamp(t_, 0.0f, 1.0f));
 	GetEnemy()->SetTranslation(move);
-	if (t_ >= 1.0f) {
+	UpdateHit();
+	if (t_ >= 1.5f) {
 		state_ = State::kRoot;
 		t_ = 0.0f;
 	}

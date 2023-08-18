@@ -17,8 +17,8 @@ private:
 
 private:
 	const uint32_t kMax_HP_ = 1000;
-	const Vector2 position_ = {60.0f, 20.0f};
-	const float kWidth_ = 1280.0f - position_.x * 2.0f;
+	const Vector2 position_ = {60.0f, 680.0f};
+	const float kWidth_ = 600.0f;
 	const float kHeight_ = 30.0f;
 	std::unique_ptr<Sprite> now_HP_Sprite_;
 	std::unique_ptr<Sprite> delay_HP_Sprite_;

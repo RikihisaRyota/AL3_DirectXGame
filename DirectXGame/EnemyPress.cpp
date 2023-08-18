@@ -10,16 +10,20 @@ void EnemyPress::Initialize() {
 	t_ = 0.0f;
 	kTarget_Speed_ = 0.05f;
 	kStay_Speed_ = 0.01f;
-	kAttack_Speed_ = 0.02f;
+	kAttack_Speed_ = 0.05f;
 	target_ = GetPlayer()->GetWorldTransform();
 	origin_ = GetEnemy()->GetWorldTransform();
 	// 落下地点をセット
+	const float scale = 5.0f;
+	GetEnemyAttack()->SetScale(Vector3(scale, 1.0f, scale));
 	GetEnemyAttack()->SetTranslation(Vector3(target_.translation_.x, 0.01f, target_.translation_.z));
 	// 上空にするため
-	const float Up = 6.0f;
+	const float Up = 10.0f;
 	target_.translation_.y += Up;
 	// 設定
 	SetWorking(true);
+	SetAttack(false);
+	SetHit(false);
 	state_ = EnemyPress::State::kTarget;
 }
 
@@ -72,6 +76,7 @@ void EnemyPress::StayUpdate() {
 	rotate.y = Lerp(origin_.rotation_.y, origin_.rotation_.y + DegToRad(720.0f), T);
 	GetEnemy()->SetRotation(rotate);
 	if (t_ >= 1.0f) {
+		origin_ = target_;
 		state_ = State::kAttack;
 		t_ = 0.0f;
 	}
@@ -79,10 +84,12 @@ void EnemyPress::StayUpdate() {
 
 void EnemyPress::AttackUpdate() {
 	t_ += kAttack_Speed_;
-	Vector3 move = GetEnemy()->GetWorldTransform().translation_;
-	move.y = Lerp(move.y, GetEnemy()->GetFloorDistance(), t_);
-	GetEnemy()->SetTranslation(move);
-	if (t_ >= 1.0f) {
+	origin_.translation_.y = Lerp(origin_.translation_.y, GetEnemy()->GetFloorDistance(), Clamp(t_, 0.0f, 1.0f));
+	GetEnemy()->SetWorldtransform(origin_);
+	if (t_ >= 0.8) {
+		UpdateHit();
+	}
+	if (t_ >= 1.5f) {
 		state_ = State::kRoot;
 		t_ = 0.0f;
 	}

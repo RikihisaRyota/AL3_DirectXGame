@@ -13,9 +13,9 @@ void PlayerAttack::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	// 基底クラス
 	BaseCharacter::Initialize(std::move(model));
 	// 衝突属性を設定
-	SetCollisionAttribute(kCollisionAttributePlayer);
+	SetCollisionAttribute(kCollisionAttributePlayerAttack);
 	// 衝突対象を自分以外に設定
-	SetCollisionMask(~kCollisionAttributePlayer);
+	SetCollisionMask(~kCollisionAttributePlayerAttack);
 	HitBoxInitialize();
 }
 
@@ -463,8 +463,10 @@ void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
-void PlayerAttack::OnCollision(const OBB& obb) { 
+void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) { 
 	OBB a = obb;
+	uint32_t i = type;
+	i;
 	switch (behavior_) {
 	case PlayerAttack::Behavior::kRoot:
 	default:

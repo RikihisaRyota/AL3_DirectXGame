@@ -34,6 +34,7 @@ void GameScene::Initialize() {
 	// 生成
 	player_ = std::make_unique<Player>();
 	playerAttack_ = std::make_unique<PlayerAttack>();
+	playerHP_ = std::make_unique<PlayerHP>();
 	enemy_ = std::make_unique<Enemy>();
 	enemyAttack_ = std::make_unique<EnemyAttack>();
 	enemyHP_ = std::make_unique<EnemyHP>();
@@ -65,7 +66,6 @@ void GameScene::Initialize() {
 	enemyAttack_->SetPlayerEnemy(player_.get(), enemy_.get());
 	enemyAttack_->Initialize(std::move(enemyAttackModel));
 	// 敵HP初期化
-	//uint32_t textureHandle = TextureManager::Load("mario.png");
 	uint32_t textureHandle = TextureManager::Load("white1x1.png");
 	enemyHP_->Initialize(textureHandle, textureHandle);
 #pragma endregion
@@ -89,6 +89,7 @@ void GameScene::Initialize() {
 	playerAttack_->SetEnemy(enemy_.get());
 	player_->Initialize(std::move(playerModel));
 	playerAttack_->Initialize(std::move(playerAttackModel));
+	playerHP_->Initialize(textureHandle, textureHandle);
 #pragma endregion
 #pragma region 天球
 	// 天球モデル
@@ -130,16 +131,14 @@ void GameScene::Update() {
 	// プレイヤーの更新
 	player_->Update();
 	playerAttack_->Update();
-
+	playerHP_->Update();
 	// 敵の更新
 	enemy_->Update();
 	enemyAttack_->Update();
 	enemyHP_->Update();
-	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get());
 
-	if (Input::GetInstance()->PushKey(DIK_6)) {
-		enemyHP_->SetAdd(10);
-	}
+	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get(),enemyAttack_.get());
+
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;
@@ -227,6 +226,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
+	playerHP_->Draw();
 	enemyHP_->Draw();
 	//test->Draw();
 	// スプライト描画後処理

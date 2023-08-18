@@ -10,14 +10,25 @@
 const uint32_t kCollisionAttributePlayer = 0b1;
 // 敵陣営
 const uint32_t kCollisionAttributeEnemy = 0b1 << 1;
+// 敵の攻撃属性
+const uint32_t kCollisionAttributeEnemyAttack = 0b1 << 2;
+// プレイヤーの攻撃属性
+const uint32_t kCollisionAttributePlayerAttack = 0b1 << 3;
+
 struct Vector3;
 /// <summary>
 /// 衝突判定オブジェクト
 /// </summary>
 class Collider {
 public:
+	enum class Type {
+		PlayerToEnemy,
+		PlayerToEnemyAttack,
+		EnemyToPlayerAttack,
+	};
+
 	// 衝突時に呼ばれる関数
-	virtual void OnCollision(const OBB& obb) = 0;
+	virtual void OnCollision(const OBB& obb , uint32_t type) = 0;
 
 	// 衝突属性の取得
 	virtual uint32_t GetCollisionAttribute() { return collisionAttribute_; }

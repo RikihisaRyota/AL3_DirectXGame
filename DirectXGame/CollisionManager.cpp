@@ -5,13 +5,14 @@
 
 #include "ImGuiManager.h"
 
-void CollisionManager::Update(Player* player, PlayerAttack* playerAttack, Enemy* enemy) {
+void CollisionManager::Update(
+    Player* player, PlayerAttack* playerAttack, Enemy* enemy, EnemyAttack* enemyAttack) {
 	colliders_.clear();
-	CheckAllCollisions(player, playerAttack, enemy);
+	CheckAllCollisions(player, playerAttack, enemy, enemyAttack);
 }
 
 void CollisionManager::CheckAllCollisions(
-    Player* player, PlayerAttack* playerAttack, Enemy* enemy) {
+    Player* player, PlayerAttack* playerAttack, Enemy* enemy, EnemyAttack* enemyAttack) {
 	// プレイヤーをリストに追加
 	colliders_.emplace_back(player);
 	if (player->GetBehavior() == Player::Behavior::kAttack) {
@@ -19,6 +20,9 @@ void CollisionManager::CheckAllCollisions(
 	}
 	// 敵をリストに追加
 	colliders_.emplace_back(enemy);
+	if (enemy->GetBehavior() == Enemy::Behavior::kAttack) {
+		colliders_.emplace_back(enemyAttack);
+	}
 
 	// リスト内総当たり
 	std::list<Collider*>::iterator itrA = colliders_.begin();
@@ -37,32 +41,45 @@ void CollisionManager::CheckAllCollisions(
 }
 
 void CollisionManager::CheakCollisionPair(Collider* colliderA, Collider* colliderB) {
+	uint32_t collisionAttributeA = colliderA->GetCollisionAttribute();
+	uint32_t collisionAttributeB = colliderB->GetCollisionAttribute();
 	// 衝突フィルタリング
-	if ((colliderA->GetCollisionAttribute() & colliderB->GetCollisionMask()) ||
-	    (colliderB->GetCollisionAttribute() & colliderA->GetCollisionMask())) {
+	if ((collisionAttributeA & kCollisionAttributeEnemy &&
+	     collisionAttributeB & kCollisionAttributeEnemyAttack) ||
+	    (collisionAttributeB & kCollisionAttributeEnemy &&
+	     collisionAttributeA & kCollisionAttributeEnemyAttack) ||
+	    (collisionAttributeA & kCollisionAttributePlayer &&
+	     collisionAttributeB & kCollisionAttributePlayerAttack) ||
+	    (collisionAttributeB & kCollisionAttributePlayer &&
+	     collisionAttributeA & kCollisionAttributePlayerAttack)) {
 		return;
 	}
 	AABB* aabbA = colliderA->GetAABB();
 	AABB* aabbB = colliderB->GetAABB();
-	ImGui::Begin("AABB");
-	ImGui::Text("AABB_center x:%f,y:%f,z:%f", aabbA->center_.x, aabbA->center_.y, aabbA->center_.z);
-	ImGui::Text("AABB_min x:%f,y:%f,z:%f", aabbA->min_.x, aabbA->min_.y, aabbA->min_.z);
-	ImGui::Text("AABB_max x:%f,y:%f,z:%f", aabbA->max_.x, aabbA->max_.y, aabbA->max_.z);
-	ImGui::Text(
-	    "AABBB_center x:%f,y:%f,z:%f", aabbB->center_.x, aabbB->center_.y, aabbB->center_.z);
-	ImGui::Text("AABBB_mix x:%f,y:%f,z:%f", aabbB->min_.x, aabbB->min_.y, aabbB->min_.z);
-	ImGui::Text("AABBB_max x:%f,y:%f,z:%f", aabbB->max_.x, aabbB->max_.y, aabbB->max_.z);
-	ImGui::End();
 	// AABBで当たり判定
 	if (IsCollision(*aabbA, *aabbB)) {
 		OBB* obbA = colliderA->GetOBB();
 		OBB* obbB = colliderB->GetOBB();
 		// OBBで当たり判定
 		if (IsCollision(*obbA, *obbB)) {
-			// 自キャラの衝突時コールバックを呼び出す
-			colliderA->OnCollision(*obbB);
-			// 敵弾の衝突時コールバックを呼び出す
-			colliderB->OnCollision(*obbA);
+			// プレイヤーと敵の攻撃
+			if ((collisionAttributeA & kCollisionAttributePlayer) &&
+			    (collisionAttributeB & kCollisionAttributeEnemyAttack)) {
+				colliderA->OnCollision(*obbB, static_cast<uint32_t>(Collider::Type::PlayerToEnemyAttack));
+				colliderB->OnCollision(*obbA, static_cast<uint32_t>(Collider::Type::PlayerToEnemyAttack));
+			}
+			// 敵とプレイヤーの攻撃
+			else if (
+			    (collisionAttributeA & kCollisionAttributeEnemy) &&
+			    (collisionAttributeB & kCollisionAttributePlayerAttack)) {
+				colliderA->OnCollision(*obbB, static_cast<uint32_t>(Collider::Type::EnemyToPlayerAttack));
+				colliderB->OnCollision(*obbA, static_cast<uint32_t>(Collider::Type::EnemyToPlayerAttack));
+			}
+			else {
+				// プレイヤーと敵の衝突
+				colliderA->OnCollision(*obbB, static_cast<uint32_t>(Collider::Type::PlayerToEnemy));
+				colliderB->OnCollision(*obbA, static_cast<uint32_t>(Collider::Type::PlayerToEnemy));
+			}
 		}
 	}
 }
