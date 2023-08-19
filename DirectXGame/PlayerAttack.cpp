@@ -480,7 +480,7 @@ void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) {
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
 		if (!hitFlag_ && firstFlag) {
-			EnemyHP::SetAdd(5);
+			EnemyHP::SetAdd(350);
 			hitFlag_ = true;
 		} else if (!hitFlag_ && secondFlag) {
 			EnemyHP::SetAdd(5);

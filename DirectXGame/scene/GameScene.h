@@ -50,7 +50,7 @@ public: // メンバ関数
 	void Draw();
 private: // メンバ変数
 #pragma region 初期設定
-	     // 初期設定
+	// 初期設定
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;

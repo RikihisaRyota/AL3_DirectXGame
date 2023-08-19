@@ -32,7 +32,7 @@ void FollowCamera::Update() {
 		// ビュー行列の更新
 		viewProjection_.UpdateMatrix();
 	}
-//#ifdef DEBUG
+#ifdef DEBUG
 	ImGui::Begin("camera");
 	ImGui::Text(
 	    " viewProjection_.translation_::x:%f,y:%f,z:%f", viewProjection_.translation_.x, viewProjection_.translation_.y,
@@ -47,7 +47,7 @@ void FollowCamera::Update() {
 	    "target_->rotation_::x:%f,y:%f,z:%f", target_->rotation_.x, target_->rotation_.y, target_->rotation_.z);
 	ImGui::Text("IsTargetCamera  : %d", IsTargetCamera_);
 	ImGui::End();
-//#endif // DEBUG
+#endif // DEBUG
 }
 
 void FollowCamera::SetTarget(const WorldTransform* target) { 

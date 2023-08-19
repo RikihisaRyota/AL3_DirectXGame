@@ -121,6 +121,8 @@
     <ClCompile Include="EnemyPunch.cpp" />
     <ClCompile Include="EnemyPress.cpp" />
     <ClCompile Include="FollowCamera.cpp" />
+    <ClCompile Include="GameClear.cpp" />
+    <ClCompile Include="GameOver.cpp" />
     <ClCompile Include="GlobalVariables.cpp" />
     <ClCompile Include="Ground.cpp" />
     <ClCompile Include="main.cpp" />
@@ -128,8 +130,10 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerAttack.cpp" />
     <ClCompile Include="PlayerHP.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="scene\GameScene.cpp" />
     <ClCompile Include="Skydome.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
     <ClCompile Include="WorldTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -170,6 +174,8 @@
     <ClInclude Include="EnemyPunch.h" />
     <ClInclude Include="EnemyPress.h" />
     <ClInclude Include="FollowCamera.h" />
+    <ClInclude Include="GameClear.h" />
+    <ClInclude Include="GameOver.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Ground.h" />
     <ClInclude Include="input\Input.h" />
@@ -185,9 +191,11 @@
     <ClInclude Include="PlayerAttack.h" />
     <ClInclude Include="PlayerHP.h" />
     <ClInclude Include="RandomNumberGenerator.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="scene\GameScene.h" />
     <ClInclude Include="Skydome.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="TitleScene.h" />
     <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>

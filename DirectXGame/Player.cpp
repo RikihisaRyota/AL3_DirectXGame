@@ -16,6 +16,8 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	BaseCharacter::Initialize(std::move(model));
 	// SetGlobalVariables();
 	GetGlobalVariables();
+	worldTransform_.translation_.y = kGroundDistanse;
+	worldTransform_.UpdateMatrix();
 	// 方向
 	interRotate_ = {0.0f, 0.0f, 1.0f};
 	// ジャンプフラグ

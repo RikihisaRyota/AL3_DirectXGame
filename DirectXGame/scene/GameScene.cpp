@@ -6,8 +6,6 @@
 #include "TextureManager.h"
 
 #include "Draw.h"
-
-// テスト
 #include "PrimitiveDrawer.h"
 
 GameScene::GameScene() {}
@@ -122,12 +120,15 @@ void GameScene::Initialize() {
 	followCamera_->SetEnemy(&enemy_->GetWorldTransform());
 	// プレイヤーにビュープロジェクションをセット
 	player_->SetViewProjection(followCamera_->GetViewProjection());
+	//// 一回だけアップデート
+	// 追従カメラの更新
+	followCamera_->Update();
+	viewProjection_.SetViewProjection(followCamera_->GetViewProjection());
+	viewProjection_.TransferMatrix();
 #pragma endregion
 }
 
 void GameScene::Update() {
-	// audio_->PlayWave(soundHandle_);
-
 	// プレイヤーの更新
 	player_->Update();
 	playerAttack_->Update();

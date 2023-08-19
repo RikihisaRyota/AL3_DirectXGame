@@ -2,8 +2,9 @@
 
 #include "ImGuiManager.h"
 #include "MyMath.h"
+#include "SceneManager.h"
 
-uint32_t PlayerHP::add_HP_;
+int32_t PlayerHP::add_HP_;
 
 void PlayerHP::Initialize(uint32_t now_TextureHandle, uint32_t delay_TextureHandle) {
 	now_HP_ = kMax_HP_;
@@ -22,9 +23,10 @@ void PlayerHP::Update() {
 		now_HP_ -= add_HP_;
 	} else {
 		now_HP_ = 0;
+		SceneManager::SetState(SceneManager::State::GAMEOVER);
 	}
 	now_HP_Sprite_->SetSize(Vector2(Conversion(now_HP_), kHeight_));
-	delay_HP_ = static_cast<uint32_t>(
+	delay_HP_ = static_cast<int32_t>(
 	    Lerp(static_cast<float>(delay_HP_), static_cast<float>(now_HP_), 0.02f));
 	delay_HP_Sprite_->SetSize(Vector2(Conversion(delay_HP_), kHeight_));
 	// リセット
@@ -32,7 +34,7 @@ void PlayerHP::Update() {
 	ImGui::Begin("HP");
 	float now_HP_float = static_cast<float>(now_HP_);
 	ImGui::SliderFloat("hp", &now_HP_float, 0.0f, static_cast<float>(kMax_HP_));
-	now_HP_ = static_cast<uint32_t>(now_HP_float);
+	now_HP_ = static_cast<int32_t>(now_HP_float);
 	if (ImGui::Button("reset")) {
 		now_HP_ = kMax_HP_;
 		delay_HP_ = kMax_HP_;
@@ -45,7 +47,7 @@ void PlayerHP::Draw() {
 	now_HP_Sprite_->Draw();
 }
 
-float PlayerHP::Conversion(uint32_t num) {
+float PlayerHP::Conversion(int32_t num) {
 	float hp_Max = static_cast<float>(kMax_HP_);
 	float width = kWidth_;
 	return static_cast<float>(num) * width / hp_Max;

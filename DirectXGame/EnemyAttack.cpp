@@ -261,7 +261,7 @@ void EnemyAttack::OnCollision(const OBB& obb, uint32_t type) {
 		if (press_->GetAttack()) {
 			if (IsCollision(
 			    OBB(*player_->GetOBB()), Sphere(GetOBB()->center_, GetOBB()->size_.z))) {
-				PlayerHP::SetAdd(50);
+				PlayerHP::SetAdd(700);
 				press_->SetHit(true);
 			}
 		}
