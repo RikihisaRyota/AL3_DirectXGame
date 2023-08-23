@@ -29,6 +29,26 @@ void GameScene::Initialize() {
 	// DrawLineに必要なviewProjectionをセット
 	PrimitiveDrawer::GetInstance()->SetViewProjection(&viewProjection_);
 #pragma endregion
+#pragma region 天球
+	// 天球モデル
+	std::unique_ptr<Model> skydomeModel;
+	// 天球のモデル
+	skydomeModel.reset(Model::CreateFromOBJ("sky", true));
+	// 天球生成
+	skydome_ = std::make_unique<Skydome>();
+	// 天球初期化
+	skydome_->Initialize(std::move(skydomeModel));
+#pragma endregion
+#pragma region 地面
+	// 地面モデル
+	std::unique_ptr<Model> groundModel;
+	// 地面のモデル
+	groundModel.reset(Model::CreateFromOBJ("ground", true));
+	// 地面生成
+	ground_ = std::make_unique<Ground>();
+	// 地面初期化
+	ground_->Initialize(std::move(groundModel));
+#pragma endregion
 	// 生成
 	player_ = std::make_unique<Player>();
 	playerAttack_ = std::make_unique<PlayerAttack>();
@@ -83,31 +103,17 @@ void GameScene::Initialize() {
 	    Model::CreateFromOBJ("player_Weapon", true));
 	// プレイヤー初期化
 	player_->SetPlayerAttack(playerAttack_.get());
+	player_->SetGround(ground_.get());
+	uint32_t chage_Handle = TextureManager::Load("chageAttack.png");
+	uint32_t triple_Handle = TextureManager::Load("tripleAttack.png");
+	uint32_t dash_Handle = TextureManager::Load("dash.png");
+	uint32_t white_Handle = TextureManager::Load("white1x1.png");
+	player_->SetSprite(chage_Handle, triple_Handle, dash_Handle, white_Handle);
 	playerAttack_->SetPlayer(player_.get());
 	playerAttack_->SetEnemy(enemy_.get());
 	player_->Initialize(std::move(playerModel));
 	playerAttack_->Initialize(std::move(playerAttackModel));
 	playerHP_->Initialize(textureHandle, textureHandle);
-#pragma endregion
-#pragma region 天球
-	// 天球モデル
-	std::unique_ptr<Model> skydomeModel;
-	// 天球のモデル
-	skydomeModel.reset(Model::CreateFromOBJ("sky", true));
-	// 天球生成
-	skydome_ = std::make_unique<Skydome>();
-	// 天球初期化
-	skydome_->Initialize(std::move(skydomeModel));
-#pragma endregion
-#pragma region 地面
-	// 地面モデル
-	std::unique_ptr<Model> groundModel;
-	// 地面のモデル
-	groundModel.reset(Model::CreateFromOBJ("ground", true));
-	// 地面生成
-	ground_ = std::make_unique<Skydome>();
-	// 地面初期化
-	ground_->Initialize(std::move(groundModel));
 #pragma endregion
 #pragma region 追従カメラ
 	// 追従カメラ生成
@@ -130,16 +136,18 @@ void GameScene::Initialize() {
 
 void GameScene::Update() {
 	// プレイヤーの更新
-	player_->Update();
 	playerAttack_->Update();
 	playerHP_->Update();
+	player_->Update();
 	// 敵の更新
-	enemy_->Update();
 	enemyAttack_->Update();
 	enemyHP_->Update();
+	enemy_->Update();
 
 	collisionManager.Update(player_.get(), playerAttack_.get(), enemy_.get(),enemyAttack_.get());
 
+	skydome_->Update();
+	ground_->Update();
 #pragma region カメラ関連
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		debugCameraFlag_ ^= true;
@@ -227,6 +235,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
+	player_->DrawUI();
 	playerHP_->Draw();
 	enemyHP_->Draw();
 	//test->Draw();

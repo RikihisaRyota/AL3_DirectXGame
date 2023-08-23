@@ -19,7 +19,8 @@ public:
 	/// 描画
 	/// </summary>
 	void Draw(ViewProjection& viewProjection);
-
+	
+	float scale_;
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

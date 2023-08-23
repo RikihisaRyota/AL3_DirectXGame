@@ -7,6 +7,7 @@
 #include "EnemyAttack.h"
 #include "EnemyHP.h"
 #include "FollowCamera.h"
+#include "Ground.h"
 #include "Input.h"
 #include "Model.h"
 #include "Player.h"
@@ -79,7 +80,7 @@ private: // メンバ変数
 #pragma endregion
 #pragma region 地面
 	// 地面
-	std::unique_ptr<Skydome> ground_;
+	std::unique_ptr<Ground> ground_;
 #pragma endregion
 #pragma region 追従カメラ
 	// 追従カメラ

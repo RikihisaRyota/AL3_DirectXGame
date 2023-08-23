@@ -18,7 +18,8 @@ void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	interRotate_ = worldTransform_.rotation_;
 	moveRatate_ = 0.0f;
 	motionRatate_ = 0.0f;
-
+	// 転送
+	BaseCharacter::Update();
 #pragma region 当たり判定
 	// 衝突属性を設定
 	SetCollisionAttribute(kCollisionAttributeEnemy);
@@ -153,7 +154,7 @@ void Enemy::RootInitialize() {
 
 void Enemy::RootUpdate() {
 	RandomNumberGenerator rnd;
-	int i = rnd.NextUIntRange(0, 2);
+	/*int i = rnd.NextUIntRange(0, 2);
 	if (i == 0) {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPressAttack);
@@ -163,22 +164,42 @@ void Enemy::RootUpdate() {
 	} else {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPunchAttack);
-	}
+	}*/
 	
+	if (Input::GetInstance()->TriggerKey(DIK_1)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPressAttack);
+	}
+	if (Input::GetInstance()->TriggerKey(DIK_2)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kDashAttack);
+	} 
+	if (Input::GetInstance()->TriggerKey(DIK_3)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPunchAttack);
+	}
 	// 移動
 	Move();
 	// 動き
 	Motion();
 }
-
+bool move = false;
 void Enemy::Move() {
 	vector_ = {0.0f, 0.0f, 0.0f};
-	// 円運動の計算
-	float radius = 5.0f;
-	float x = radius * std::cos(angle_);
-	float z = radius * std::sin(angle_);
-	vector_ = {x, 0.0f, z};
-	vector_.Normalize();
+	if (ImGui::Button("move")) {
+		move ^= true;
+	}
+	if (move) {
+		// 円運動の計算
+		float radius = 5.0f;
+		float x = radius * std::cos(angle_);
+		float z = radius * std::sin(angle_);
+		vector_ = {x, 0.0f, z};
+		vector_.Normalize();
+	} else {
+		worldTransform_.translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
+		worldTransform_.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+	}
 	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector_.Normalize();

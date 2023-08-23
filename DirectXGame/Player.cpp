@@ -7,9 +7,23 @@
 #include "ImGuiManager.h"
 #include "MyMath.h"
 #include "PlayerAttack.h"
+#include "TextureManager.h"
 
 // テスト
 #include "PrimitiveDrawer.h"
+
+void Player::SetSpritePos() {
+	chage_Position_ = {test_pos_.x, test_pos_.y - distance_Y};
+	triple_Position_ = {test_pos_.x + distance_X, test_pos_.y + distance_Y};
+	dash_Position_ = {test_pos_.x - distance_X, test_pos_.y + distance_Y};
+
+	chage_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	triple_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	dash_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	chage_Sprite_->SetPosition(chage_Position_);
+	triple_Sprite_->SetPosition(triple_Position_);
+	dash_Sprite_->SetPosition(dash_Position_);
+}
 
 void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	// 基底クラス
@@ -18,6 +32,8 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	GetGlobalVariables();
 	worldTransform_.translation_.y = kGroundDistanse;
 	worldTransform_.UpdateMatrix();
+	// 転送
+	BaseCharacter::Update();
 	// 方向
 	interRotate_ = {0.0f, 0.0f, 1.0f};
 	// ジャンプフラグ
@@ -66,7 +82,8 @@ void Player::Update() {
 		BehaviorDashUpdate();
 		break;
 	}
-
+	SpriteUpdate();
+	ChackTranslation();
 	HitBoxUpdate();
 
 	// 転送
@@ -74,7 +91,13 @@ void Player::Update() {
 
 	// #ifdef DEBUG
 	ImGui::Begin("Player");
-	ImGui::Text(
+	ImGui::SliderFloat("pos_X", &test_pos_.x, 0.0f, 1280.0f);
+	ImGui::SliderFloat("pos_Y", &test_pos_.y, 0.0f, 720.0f);
+	ImGui::SliderFloat("distance_X", &distance_X, 0.0f, 200.0f);
+	ImGui::SliderFloat("distance_Y", &distance_Y, 0.0f, 200.0f);
+	ImGui::SliderFloat("scale", &test_Scale_, 0.0f, 300.0f);
+
+	/*ImGui::Text(
 	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
 	    worldTransform_.translation_.y, worldTransform_.translation_.z);
 	ImGui::Text(
@@ -90,9 +113,10 @@ void Player::Update() {
 
 	ImGui::SliderFloat3("AABB_min", &min_.x, -3.0f, 0.0f);
 	ImGui::SliderFloat3("AABB_max", &max_.x, 0.0f, 3.0f);
-	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);
+	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);*/
 	ImGui::End();
 	// #endif // DEBUG
+	SetSpritePos();
 }
 
 void Player::BehaviorRootUpdate() {
@@ -223,6 +247,52 @@ void Player::OnCollision(const OBB& obb, uint32_t type) {
 	}
 }
 
+void Player::SpriteUpdate() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
+#pragma region Chage
+	if (Input::GetInstance()->TriggerKey(DIK_Q) ||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_Y))) {
+		chage_Sprite_->SetColor(Vector4(1.0f,0.0f,0.0f,1.0f));
+	} else {
+		chage_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+#pragma endregion
+#pragma region Triple
+	// 背景
+	Vector2 size = triple_Back_Sprite_->GetSize();
+	float t = static_cast<float>(playerAttack_->GetTripleAttackCount()) /
+	          static_cast<float>(playerAttack_->GetTripleCoolTimeAttackCount());
+	size.y = Lerp(test_Scale_,0.0f, t);
+	triple_Back_Sprite_->SetSize(size);
+	if (t <= 0.0f) {
+		// 攻撃できる
+		triple_Back_Sprite_->SetColor(Vector4(1.0f, 0.2f, 0.0f, 0.8f));
+		triple_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	} else {
+		// できない
+		triple_Back_Sprite_->SetColor(Vector4(0.8f, 0.3f, 0.3f, 0.5f));
+		triple_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+	}
+	if ((playerAttack_->GetTripleAttackFlag()) &&
+	    (Input::GetInstance()->TriggerKey(DIK_E) ||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B)))) {
+		triple_Sprite_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	}
+#pragma endregion
+
+	// ダッシュ開始
+	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
+		dash_Sprite_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	} else {
+		dash_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+}
+
 void Player::Draw(const ViewProjection& viewProjection) {
 	models_[static_cast<int>(Parts::HEAD)]->Draw(
 	    worldTransforms_Parts_[static_cast<int>(Parts::HEAD)], viewProjection);
@@ -232,6 +302,13 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	    worldTransforms_Parts_[static_cast<int>(Parts::ARML)], viewProjection);
 	models_[static_cast<int>(Parts::ARMR)]->Draw(
 	    worldTransforms_Parts_[static_cast<int>(Parts::ARMR)], viewProjection);
+}
+
+void Player::DrawUI() { 
+	chage_Sprite_->Draw();
+	triple_Sprite_->Draw();
+	triple_Back_Sprite_->Draw();
+	dash_Sprite_->Draw();
 }
 
 void Player::HitBoxInitialize() {
@@ -288,6 +365,52 @@ void Player::PlayerRotate(const Vector3& vector1) {
 	interRotate_ = rotate;
 }
 
+void Player::SetSprite(uint32_t chageTextureHandle, uint32_t tripleTextureHandle, uint32_t dashTextureHandle,uint32_t whiteTextureHandle) {
+	chage_Position_ = {test_pos_.x, test_pos_.y - distance_Y};
+	triple_Position_ = {test_pos_.x + distance_X, test_pos_.y + distance_Y};
+	dash_Position_ = {test_pos_.x - distance_X, test_pos_.y + distance_Y};
+
+
+	chage_Sprite_ = std::make_unique<Sprite>();
+	triple_Sprite_ = std::make_unique<Sprite>();
+	triple_Back_Sprite_ = std::make_unique<Sprite>();
+	dash_Sprite_ = std::make_unique<Sprite>();
+	chage_Sprite_.reset(Sprite::Create(chageTextureHandle, chage_Position_));
+	triple_Sprite_.reset(Sprite::Create(tripleTextureHandle, triple_Position_));
+	triple_Back_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(triple_Position_.x, triple_Position_.y+test_Scale_),
+	    Vector4(1.0f, 0.0f, 0.0f, 0.5f),
+	    Vector2(0.0f, 0.0f), false, true));
+	dash_Sprite_.reset(Sprite::Create(dashTextureHandle, dash_Position_));
+
+	chage_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	triple_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	triple_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	dash_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+}
+
+void Player::BehaviorInitialize() {
+	if (behaviorRequest_) {
+		// ふるまいを変更
+		behavior_ = behaviorRequest_.value();
+		// 各ふるまいごとの初期化を実行
+		switch (behavior_) {
+		case Player::Behavior::kRoot:
+		default:
+			BehaviorRootInitialize();
+			break;
+		case Player::Behavior::kAttack:
+			BehaviorAttackInitialize();
+			break;
+		case Player::Behavior::kDash:
+			BehaviorDashInitialize();
+			break;
+		}
+		// ふるまいリクエストをリセット
+		behaviorRequest_ = std::nullopt;
+	}
+}
+
 void Player::GamePadInput() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
@@ -296,7 +419,7 @@ void Player::GamePadInput() {
 	// 攻撃開始
 	if (Input::GetInstance()->TriggerKey(DIK_Q) ||
 	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_Y))) {
 		behaviorRequest_ = Behavior::kAttack;
 		playerAttack_->SetBehavior(PlayerAttack::Behavior::kChargeAttack);
 	}
@@ -308,9 +431,8 @@ void Player::GamePadInput() {
 	}
 	// ダッシュ開始
 	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
-	    (Input::GetInstance()->GetJoystickState(0, joyState) && (joyState.Gamepad.bRightTrigger)) &&
-	        (Input::GetInstance()->GetJoystickStatePrevious(0, joyState) &&
-	         (!joyState.Gamepad.bRightTrigger))) {
+	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
 		behaviorRequest_ = Behavior::kDash;
 	}
 	// ジャンプ
@@ -405,6 +527,19 @@ void Player::Gravity() {
 		isJump = false;
 	}
 }
+void Player::ChackTranslation() {
+	if (worldTransform_.translation_.x - worldTransform_.scale_.x <= -ground_->GetEdge()) {
+		worldTransform_.translation_.x = -ground_->GetEdge() + worldTransform_.scale_.x;
+	} else if (worldTransform_.translation_.x + worldTransform_.scale_.x >= ground_->GetEdge()) {
+		worldTransform_.translation_.x = ground_->GetEdge() - worldTransform_.scale_.x;
+	}
+	if (worldTransform_.translation_.z - worldTransform_.scale_.z <= -ground_->GetEdge()) {
+		worldTransform_.translation_.z = -ground_->GetEdge() + worldTransform_.scale_.z;
+	} else if (worldTransform_.translation_.z + worldTransform_.scale_.z >= ground_->GetEdge()) {
+		worldTransform_.translation_.z = ground_->GetEdge() - worldTransform_.scale_.z;
+	}
+
+}
 void Player::PlayerRotate() {
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
 		vector_.Normalize();
@@ -426,6 +561,7 @@ void Player::InitializeFloatGimmick() {
 	worldTransforms_Parts_[static_cast<int>(Parts::ARMR)].rotation_ = Vector3(0.0f, 0.0f, 0.0f);
 	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].translation_ = Vector3(0.0f, 0.0f, 0.0f);
 	worldTransforms_Parts_[static_cast<int>(Parts::ARML)].rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+	BaseCharacter::Update();
 }
 void Player::Motion() {
 	// 全体

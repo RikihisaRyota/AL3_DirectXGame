@@ -43,12 +43,15 @@ public:
 	}
 	void SetWorldtransform(const WorldTransform& worldtransfrom) {
 		worldTransform_ = worldtransfrom;
+		worldTransform_.UpdateMatrix();
 	}
 	void SetWorldtransform_Motion(const WorldTransform& worldtransfrom) {
 		worldTransform_Motion_ = worldtransfrom;
+		worldTransform_Motion_.UpdateMatrix();
 	}
 	void SetWorldtransforms_Parts(const WorldTransform& worldtransfrom, int count) {
 		worldTransforms_Parts_[count] = worldtransfrom;
+		worldTransforms_Parts_[count].UpdateMatrix();
 	}
 
 protected:

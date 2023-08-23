@@ -65,7 +65,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ゲームシーンの初期化
 	uint32_t textureHandle = TextureManager::Load("white1x1.png");
 	sceneManager = new SceneManager(textureHandle);
-	//sceneManager->Initialize();
 
 
 	// メインループ

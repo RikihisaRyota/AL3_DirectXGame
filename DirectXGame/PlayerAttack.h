@@ -20,6 +20,13 @@ public:
 		kTripleAttack,   // ３段攻撃中
 	};
 
+	enum class TripleAttack {
+		kRoot,
+		kFirst,
+		kSecond,
+		kThird,
+	};
+
 public:
 	/// <summary>
 	/// 初期化（モデル代入）
@@ -45,11 +52,34 @@ public:
 	void SetEnemy(Enemy* enmey) { enemy_ =enmey; }
 	void SetBehavior(const Behavior& behavior) { behaviorRequest_ = behavior; }
 
+	int32_t GetChageAttackCount() { return kChageAttackCount; }
+	int32_t GetChageAttackCoolTimrCount() { return kChageAttackCoolTime; }
+
+	int32_t GetTripleAttackCount() { return kTripleAttackCount; }
+	int32_t GetTripleCoolTimeAttackCount() { 
+	if (IsTripleAttack_) {
+			return kTripleAttack_Count;
+		} 
+		return kTripleAttackCoolTime;
+		
+	}
+	bool GetChageAttackFlag() { return IsChageAttack_; }
+	bool GetTripleAttackFlag() { return IsTripleAttack_; }
+
 private:
 	void ChageAttackInitialize();
 	void TripleAttackInitialize();
+	void RootUpdate();
 	void ChageAttackUpdate();
 	void TripleAttackUpdate();
+
+	void FirstInitialize();
+	void SecondInitialize();
+	void ThirdInitialize();
+	void FirstUpdate();
+	void SecondUpdate();
+	void ThirdUpdate();
+
 	void HitBoxUpdate() override;
 	void Homing();
 private:
@@ -92,9 +122,8 @@ private:
 
 
 	// ３段攻撃
+	float t_;
 	// 一回目
-	bool firstFlag;
-	float first_T_;
 	float first_Speed_;
 	float armAngleStart_;
 	float armAngleMax_;
@@ -103,15 +132,21 @@ private:
 	float bodyAngleStart_;
 	float bodyAngleMax_;
 	// ２回目
-	bool secondFlag;
-	float second_T_;
 	float second_Speed_;
 	// 3回目
-	bool thirdFlag;
-	float third_T_;
 	float third_Speed_;
 	
+	// 三段攻撃
+	TripleAttack tripleAttack_Behavior_ = TripleAttack::kRoot;
 
-	const uint32_t kFlagMax = 120u;
-	uint32_t kFlagCount = 0u;
+	bool IsChageAttack_ = true;
+	bool ISChageAttack_Count_Start_ = false;
+	bool IsTripleAttack_ = true;
+	bool ISTripleAttack_Count_Start_ = false;
+
+	const int32_t kChageAttackCoolTime = 360;
+	int32_t kChageAttackCount;
+	const int32_t kTripleAttackCoolTime = 60;
+	const int32_t kTripleAttack_Count = 120;
+	int32_t kTripleAttackCount;
 };

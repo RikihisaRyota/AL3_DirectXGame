@@ -21,6 +21,9 @@ public:
 	/// </summary>
 	void Draw(ViewProjection& viewProjection);
 
+	float GetEdge() { return worldTransform_.scale_.x; }
+	float scale_;
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

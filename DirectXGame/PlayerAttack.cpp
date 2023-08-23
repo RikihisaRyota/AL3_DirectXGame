@@ -26,14 +26,36 @@ void PlayerAttack::Initialize() {
 		// 各ふるまいごとの初期化を実行
 		switch (behavior_) {
 		case PlayerAttack::Behavior::kRoot:
+			if (ISChageAttack_Count_Start_) {
+				kChageAttackCount = kChageAttackCoolTime;
+				ISChageAttack_Count_Start_ = false;
+			}
+			if (ISTripleAttack_Count_Start_) {
+				if (IsTripleAttack_) {
+					kTripleAttackCount = kTripleAttack_Count;
+				} else {
+					kTripleAttackCount = kTripleAttackCoolTime;
+				}
+				ISTripleAttack_Count_Start_ = false;
+			}
 			hitFlag_ = false;
 		default:
 			break;
 		case PlayerAttack::Behavior::kChargeAttack:
-			ChageAttackInitialize();
+			if (IsChageAttack_) {
+				ChageAttackInitialize();
+			} else {
+				player_->SetBehavior(Player::Behavior::kRoot);
+				behavior_ = Behavior::kRoot;
+			}
 			break;
 		case PlayerAttack::Behavior::kTripleAttack:
-			TripleAttackInitialize();
+			if (IsTripleAttack_) {
+				TripleAttackInitialize();
+			} else {
+				player_->SetBehavior(Player::Behavior::kRoot);
+				behavior_ = Behavior::kRoot;
+			}
 			break;
 		}
 		// ふるまいリクエストをリセット
@@ -47,7 +69,7 @@ void PlayerAttack::Update() {
 	switch (behavior_) {
 	case PlayerAttack::Behavior::kRoot:
 	default:
-		hitFlag_ = false;
+		RootUpdate();
 		break;
 	case PlayerAttack::Behavior::kChargeAttack:
 		ChageAttackUpdate();
@@ -58,6 +80,12 @@ void PlayerAttack::Update() {
 	}
 	BaseCharacter::Update();
 	HitBoxUpdate();
+	ImGui::Begin("PlayerAttack");
+	ImGui::Text("t_:%f", t_);
+	ImGui::Text("ChageAttackCount:%d", kChageAttackCount);
+	ImGui::Text("TripleAttackCount:%d", kTripleAttackCount);
+	ImGui::Text("hitFlag:%d", hitFlag_);
+	ImGui::End();
 }
 
 void PlayerAttack::Draw(const ViewProjection& viewProjection) {
@@ -102,6 +130,8 @@ void PlayerAttack::ChageAttackInitialize() {
 	rigorFlag_ = false;
 	rigor_Speed_ = 0.1f;
 	rigor_T_ = 0.0f;
+
+	IsChageAttack_ = false;
 }
 
 void PlayerAttack::ChageAttackUpdate() {
@@ -112,9 +142,9 @@ void PlayerAttack::ChageAttackUpdate() {
 	if (chargeFlag_) {
 		if (Input::GetInstance()->PushKey(DIK_Q) ||
 		    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-		     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
+		     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_Y))) {
 			// チャージ中は攻撃判定なし
-			hitFlag_ = true; 
+			hitFlag_ = true;
 			charge_T_ += charge_Speed_;
 			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
 			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
@@ -131,8 +161,8 @@ void PlayerAttack::ChageAttackUpdate() {
 			hitFlag_ = false;
 			chargeFlag_ = false;
 			slashFlag_ = true;
-			// 下に移動	
-			//charge_T_ = 0.0f;
+			// 下に移動
+			// charge_T_ = 0.0f;
 			slash_Attack_Start_ =
 			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
 			slash_ArmAngle_Start_ =
@@ -157,14 +187,16 @@ void PlayerAttack::ChageAttackUpdate() {
 			slashFlag_ = false;
 			slash_T_ = 0.0f;
 			rigorFlag_ = true;
+			ISChageAttack_Count_Start_ = true;
 		}
 	}
 	// 攻撃硬直
 	if (rigorFlag_) {
 		rigor_T_ += rigor_Speed_;
 		if (rigor_T_ >= 1.0f) {
-			player_->SetBehavior(Player::Behavior::kRoot);
+			player_->SetBehaviorRequest(Player::Behavior::kRoot);
 			behaviorRequest_ = Behavior::kRoot;
+			Initialize();
 			rigorFlag_ = false;
 		}
 	}
@@ -177,9 +209,62 @@ void PlayerAttack::ChageAttackUpdate() {
 }
 
 void PlayerAttack::TripleAttackInitialize() {
+	t_ = 0.0f;
+	switch (tripleAttack_Behavior_) {
+	case PlayerAttack::TripleAttack::kRoot:
+		FirstInitialize();
+		break;
+	case PlayerAttack::TripleAttack::kFirst:
+		SecondInitialize();
+		break;
+	case PlayerAttack::TripleAttack::kSecond:
+		ThirdInitialize();
+		break;
+	case PlayerAttack::TripleAttack::kThird:
+
+		break;
+	default:
+		break;
+	}
+}
+
+void PlayerAttack::RootUpdate() {
+	if (!ISChageAttack_Count_Start_) {
+		if (kChageAttackCount > 0) {
+			kChageAttackCount--;
+		} else {
+			IsChageAttack_ = true;
+		}
+	}
+	if (!ISTripleAttack_Count_Start_) {
+		if (kTripleAttackCount > 0) {
+			kTripleAttackCount--;
+		} else {
+			tripleAttack_Behavior_ = TripleAttack::kRoot;
+			IsTripleAttack_ = true;
+		}
+	}
+}
+
+void PlayerAttack::TripleAttackUpdate() {
+
+	switch (tripleAttack_Behavior_) {
+	case PlayerAttack::TripleAttack::kFirst:
+		FirstUpdate();
+		break;
+	case PlayerAttack::TripleAttack::kSecond:
+		SecondUpdate();
+		break;
+	case PlayerAttack::TripleAttack::kThird:
+		ThirdUpdate();
+		break;
+	default:
+		break;
+	}
+}
+
+void PlayerAttack::FirstInitialize() {
 	worldTransform_ = player_->GetWorldTransform();
-	firstFlag = true;
-	first_T_ = 0.0f;
 	first_Speed_ = 0.1f;
 	armAngleStart_ = 0.0f;
 	armAngleMax_ = DegToRad(90.0f);
@@ -187,139 +272,121 @@ void PlayerAttack::TripleAttackInitialize() {
 	armSlideMax_ = 0.5f;
 	bodyAngleStart_ = 0.0f;
 	bodyAngleMax_ = DegToRad(15.0f);
-
-	secondFlag = false;
-	second_T_ = 0.0f;
-	second_Speed_ = 0.1f;
-
-	thirdFlag = false;
-	third_T_ = 0.0f;
-	third_Speed_ = 0.1f;
-
+	tripleAttack_Behavior_ = TripleAttack::kFirst;
 }
 
-void PlayerAttack::TripleAttackUpdate() {
+void PlayerAttack::SecondInitialize() {
+	worldTransform_ = player_->GetWorldTransform();
+	second_Speed_ = 0.1f;
+	armAngleStart_ = 0.0f;
+	armAngleMax_ = DegToRad(90.0f);
+	armSlideStart_ = 0.0f;
+	armSlideMax_ = 0.5f;
+	bodyAngleStart_ = 0.0f;
+	bodyAngleMax_ = DegToRad(15.0f);
+	tripleAttack_Behavior_ = TripleAttack::kSecond;
+}
+
+void PlayerAttack::ThirdInitialize() {
+	worldTransform_ = player_->GetWorldTransform();
+	third_Speed_ = 0.1f;
+	tripleAttack_Behavior_ = TripleAttack::kThird;
+}
+
+void PlayerAttack::FirstUpdate() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
-	if (firstFlag) {
-		first_T_ += first_Speed_;
-		WorldTransform armWorldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
-		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+	t_ += first_Speed_;
+	WorldTransform armWorldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
+	WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
 
-		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
-		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(first_T_, 0.0f, 1.0f));
-		armWorldtramsform.rotation_.x = armrotate;
-		armWorldtramsform.translation_.z = translation;
-		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
+	float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(t_, 0.0f, 1.0f));
+	float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(t_, 0.0f, 1.0f));
+	armWorldtramsform.rotation_.x = armrotate;
+	armWorldtramsform.translation_.z = translation;
+	player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
 
-		float motionbodyrotate = Lerp(bodyAngleStart_,-bodyAngleMax_, Clamp(first_T_, 0.0f, 1.0f));
-		motionWorldtramsform.rotation_.y = motionbodyrotate;
-		player_->SetWorldtransform_Motion(motionWorldtramsform);
+	float motionbodyrotate = Lerp(bodyAngleStart_, -bodyAngleMax_, Clamp(t_, 0.0f, 1.0f));
+	motionWorldtramsform.rotation_.y = motionbodyrotate;
+	player_->SetWorldtransform_Motion(motionWorldtramsform);
 
-		// 回転行列生成
-		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
-		// オフセットをカメラの回転に合わせて回転させる
-		center_ = TransformNormal(center_Distance_, rotate);
-		// ホーミング
-		if (first_T_ <= 1.0f) {
-			Homing();
-		}
-	
-		if (first_T_ >= 1.0f) {
-			if (Input::GetInstance()->TriggerKey(DIK_E) ||
-			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
-				// 攻撃のフラグを立てる
-				hitFlag_ = false;
-
-				secondFlag = true;
-				firstFlag = false;
-				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
-				armWorldtramsform.rotation_= Vector3(0.0f, 0.0f, 0.0f);
-				player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARMR));
-			}
-		} 
-		if (first_T_ >= 2.0f) {
-			firstFlag = false;
-			first_T_ = 0.0f;
-			player_->SetBehavior(Player::Behavior::kRoot);
-			behaviorRequest_ = Behavior::kRoot;
-		}
-	} else if (secondFlag) {
-		second_T_ += second_Speed_;
-		WorldTransform armWorldtramsform =
-		    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
-		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
-
-		float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
-		float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(second_T_, 0.0f, 1.0f));
-		armWorldtramsform.rotation_.x = armrotate;
-		armWorldtramsform.translation_.z = translation;
-		player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARML));
-
-		float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleMax_, Clamp(second_T_, 0.0f, 1.0f));
-		motionWorldtramsform.rotation_.y = motionbodyrotate;
-		player_->SetWorldtransform_Motion(motionWorldtramsform);
-
-		// 回転行列生成
-		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
-		// 回転に合わせて回転させる
-		center_ = TransformNormal(center_Distance_, rotate);
-		// ホーミング
-		if (second_T_ <= 1.0f) {
-			Homing();
-		}
-		if (second_T_ >= 1.0f) {
-			if (Input::GetInstance()->TriggerKey(DIK_E) ||
-			    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-			     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B))) {
-				// 攻撃のフラグを立てる
-				hitFlag_ = false;
-
-				secondFlag = false;
-				thirdFlag = true;
-				armWorldtramsform.translation_ = Vector3(0.0f, 0.0f, 0.0f);
-				armWorldtramsform.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
-				player_->SetWorldtransforms_Parts(
-				    armWorldtramsform, static_cast<int>(Player::Parts::ARML));
-				motionWorldtramsform.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
-				player_->SetWorldtransform_Motion(motionWorldtramsform);
-			}
-		}
-		if (second_T_ >= 1.5f) {
-			secondFlag = false;
-			second_T_ = 0.0f;
-			player_->SetBehavior(Player::Behavior::kRoot);
-			behaviorRequest_ = Behavior::kRoot;
-		}
-	} else if (thirdFlag) {
-		third_T_ += third_Speed_;
-		WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
-		float bodyrotate = Lerp(0.0f, DegToRad(720.0f), Clamp(third_T_, 0.0f, 1.0f));
-		motionWorldtramsform.rotation_.x = bodyrotate;
-		player_->SetWorldtransform_Motion(motionWorldtramsform);
-		// 回転行列生成
-		Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
-		// 回転に合わせて回転させる
-		center_ = TransformNormal(center_Distance_, rotate);
-		// ホーミング
-		if (third_T_ <= 1.0f) {
-			Homing();
-		}
-		if (third_T_ >= 2.5f) {
-			thirdFlag = false;
-			third_T_ = 0.0f;
-			player_->SetBehavior(Player::Behavior::kRoot);
-			behaviorRequest_ = Behavior::kRoot;
-		}
+	// 回転行列生成
+	Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+	// オフセットをカメラの回転に合わせて回転させる
+	center_ = TransformNormal(center_Distance_, rotate);
+	// ホーミング
+	if (t_ <= 1.0f) {
+		Homing();
 	}
-	ImGui::Begin("PlayerAttack");
-	ImGui::SliderFloat3("AABB_min", &tripleAttackMin_.x, -3.0f, 0.0f);
-	ImGui::SliderFloat3("AABB_max", &tripleAttackMax_.x, 0.0f, 6.0f);
-	ImGui::SliderFloat3("OBB_size", &tripleAttackSize_.x, 0.0f, 6.0f);
-	ImGui::SliderFloat3("center_Distance_", &center_Distance_.x, 0.0f, 3.0f);
-	ImGui::Text("hitFlag:%d", hitFlag_);
-	ImGui::End();
+	if (t_ >= 2.0f) {
+		t_ = 0.0f;
+		player_->SetBehaviorRequest(Player::Behavior::kRoot);
+		behaviorRequest_ = Behavior::kRoot;
+		ISTripleAttack_Count_Start_ = true;
+		Initialize();
+	}
+}
+
+void PlayerAttack::SecondUpdate() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
+	t_ += second_Speed_;
+	WorldTransform armWorldtramsform =
+	    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
+	WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+
+	float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(t_, 0.0f, 1.0f));
+	float translation = Lerp(armSlideStart_, armSlideMax_, Clamp(t_, 0.0f, 1.0f));
+	armWorldtramsform.rotation_.x = armrotate;
+	armWorldtramsform.translation_.z = translation;
+	player_->SetWorldtransforms_Parts(armWorldtramsform, static_cast<int>(Player::Parts::ARML));
+
+	float motionbodyrotate = Lerp(bodyAngleStart_, bodyAngleMax_, Clamp(t_, 0.0f, 1.0f));
+	motionWorldtramsform.rotation_.y = motionbodyrotate;
+	player_->SetWorldtransform_Motion(motionWorldtramsform);
+
+	// 回転行列生成
+	Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+	// 回転に合わせて回転させる
+	center_ = TransformNormal(center_Distance_, rotate);
+	// ホーミング
+	if (t_ <= 1.0f) {
+		Homing();
+	}
+	if (t_ >= 1.5f) {
+		t_ = 0.0f;
+		player_->SetBehaviorRequest(Player::Behavior::kRoot);
+		behaviorRequest_ = Behavior::kRoot;
+		ISTripleAttack_Count_Start_ = true;
+		Initialize();
+	}
+}
+
+void PlayerAttack::ThirdUpdate() {
+	// ゲームパットの状態を得る変数
+	XINPUT_STATE joyState{};
+	t_ += third_Speed_;
+	WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
+	float bodyrotate = Lerp(0.0f, DegToRad(720.0f), Clamp(t_, 0.0f, 1.0f));
+	motionWorldtramsform.rotation_.x = bodyrotate;
+	player_->SetWorldtransform_Motion(motionWorldtramsform);
+	// 回転行列生成
+	Matrix4x4 rotate = MakeRotateYMatrix(player_->GetWorldTransform().rotation_.y);
+	// 回転に合わせて回転させる
+	center_ = TransformNormal(center_Distance_, rotate);
+	// ホーミング
+	if (t_ <= 1.0f) {
+		Homing();
+	}
+	if (t_ >= 2.5f) {
+		t_ = 0.0f;
+		player_->SetBehaviorRequest(Player::Behavior::kRoot);
+		behaviorRequest_ = Behavior::kRoot;
+		tripleAttack_Behavior_ = TripleAttack::kRoot;
+		IsTripleAttack_ = false;
+		ISTripleAttack_Count_Start_ = true;
+		Initialize();
+	}
 }
 
 void PlayerAttack::HitBoxUpdate() {
@@ -383,7 +450,7 @@ void PlayerAttack::Homing() {
 		Vector3 toEnemy = enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
 		// 長さが1.0f以上ならホーミング
 		const float kLength = player_->GetOBB()->size_.x + enemy_->GetOBB()->size_.x;
-		float distance = toEnemy.Length(); 
+		float distance = toEnemy.Length();
 		if (distance >= kLength) {
 			toEnemy.Normalize();
 			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.4f);
@@ -395,7 +462,6 @@ void PlayerAttack::Homing() {
 			toEnemy.Normalize();
 			player_->PlayerRotate(toEnemy);
 		}
-		
 	}
 }
 
@@ -463,7 +529,7 @@ void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
-void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) { 
+void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) {
 	OBB a = obb;
 	uint32_t i = type;
 	i;
@@ -476,20 +542,32 @@ void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) {
 			EnemyHP::SetAdd(static_cast<uint32_t>(30 * (charge_T_ + 1.0f)));
 			hitFlag_ = true;
 		}
-		
+
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
-		if (!hitFlag_ && firstFlag) {
-			EnemyHP::SetAdd(350);
-			hitFlag_ = true;
-		} else if (!hitFlag_ && secondFlag) {
-			EnemyHP::SetAdd(5);
-			hitFlag_ = true;
-		} else if (!hitFlag_ && thirdFlag) {
-			EnemyHP::SetAdd(10);
-			hitFlag_ = true;
+
+		switch (tripleAttack_Behavior_) {
+		case PlayerAttack::TripleAttack::kFirst:
+			if (!hitFlag_) {
+				EnemyHP::SetAdd(5);
+				hitFlag_ = true;
+			}
+			break;
+		case PlayerAttack::TripleAttack::kSecond:
+			if (!hitFlag_) {
+				EnemyHP::SetAdd(10);
+				hitFlag_ = true;
+			}
+			break;
+		case PlayerAttack::TripleAttack::kThird:
+			if (!hitFlag_) {
+				EnemyHP::SetAdd(15);
+				hitFlag_ = true;
+			}
+			break;
+		default:
+			break;
 		}
 		break;
 	}
-	
 }

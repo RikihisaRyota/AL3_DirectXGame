@@ -4,7 +4,9 @@
 #include <optional>
 
 #include "BaseCharacter.h"
+#include "Ground.h"
 #include "Model.h"
+#include "Sprite.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "input/Input.h"
@@ -12,6 +14,13 @@
 class PlayerAttack;
 class Player : public BaseCharacter, public Collider {
 public:
+	// ててて
+	Vector2 test_pos_ = {1109.0f, 559.0f};
+	float distance_X = 54.0f;
+	float distance_Y = 29.0f;
+	float test_Scale_ = 58.0f;
+
+	void SetSpritePos();
 	// 体のパーツ
 	enum class Parts { 
 		HEAD, 
@@ -50,12 +59,19 @@ public: // メンバ関数
 	/// 描画
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection);
+	void DrawUI();
 	void HitBoxInitialize() override;
 	void HitBoxDraw(const ViewProjection& viewProjection) override;
 	/// <summary>
 	/// プレイヤーの体の回転
 	/// </summary>
 	void PlayerRotate(const Vector3& vector);
+
+	void SetSprite(
+	    uint32_t chageTextureHandle, uint32_t tripleTextureHandle, uint32_t dashTextureHandle,
+	    uint32_t whiteTextureHandle);
+
+	void BehaviorInitialize();
 
 private: // メンバ関数
 #pragma region 移動系
@@ -75,6 +91,8 @@ private: // メンバ関数
 	/// 重力
 	/// </summary>
 	void Gravity();
+
+	void ChackTranslation();
 #pragma endregion
 #pragma region Motion系
 	/// <summary>
@@ -150,6 +168,9 @@ private: // メンバ関数
 	// 衝突を検出したら呼び出されるコールバック関数
 	void OnCollision(const OBB& obb, uint32_t type) override;
 
+
+	void SpriteUpdate();
+
 public: // ゲッター,セッター
 	/// <summary>
 	/// ViewProjectionのセッター
@@ -158,14 +179,19 @@ public: // ゲッター,セッター
 	void SetViewProjection(const ViewProjection* viewprojection) {
 		viewProjection_ = viewprojection;
 	}
-	void SetBehavior(const std::optional<Behavior>& behaviorRequest) {
+	void SetBehaviorRequest(const std::optional<Behavior>& behaviorRequest) {
 		behaviorRequest_ = behaviorRequest;
+	}
+	void SetBehavior(const Behavior& behavior) {
+		behavior_ = behavior;
 	}
 	void SetPlayerAttack(PlayerAttack* playerAttack) { playerAttack_ = playerAttack; }
 	 
 	Behavior GetBehavior() const { return behavior_; }
 
 	Vector3 GetPlayerRotate() const { return interRotate_; }
+
+	void SetGround(Ground* ground) { ground_ = ground; }
  private: // 定数系
 	// 地面から距離
 	const float kGroundDistanse = 1.0f;
@@ -204,4 +230,14 @@ private: // メンバ変数
 	std::optional<Behavior> behaviorRequest_ = std::nullopt;
 
 	PlayerAttack* playerAttack_;
+	Ground* ground_;
+
+	Vector2 chage_Position_;
+	Vector2 triple_Position_;
+	Vector2 dash_Position_;
+
+	std::unique_ptr<Sprite> chage_Sprite_;
+	std::unique_ptr<Sprite> triple_Sprite_;
+	std::unique_ptr<Sprite> triple_Back_Sprite_;
+	std::unique_ptr<Sprite> dash_Sprite_;
 };
