@@ -298,7 +298,7 @@ void Player::SpriteUpdate() {
 	chage_Back_Sprite_->SetSize(size);
 	if (t <= 0.0f) {
 		// 攻撃できる
-		chage_Back_Sprite_->SetColor(Vector4(0.7f, 0.3f, 0.3f, 0.8f));
+		chage_Back_Sprite_->SetColor(Vector4(0.0f, 0.7f, 1.0f, 0.8f));
 		chage_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		y_Buttan_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	} else {
@@ -352,12 +352,12 @@ void Player::SpriteUpdate() {
 	dash_Back_Sprite_->SetSize(size);
 	if (t <= 0.0f) {
 		// 攻撃できる
-		dash_Back_Sprite_->SetColor(Vector4(1.0f, 0.2f, 0.0f, 0.8f));
+		dash_Back_Sprite_->SetColor(Vector4(0.4f, 1.0f, 0.0f, 0.8f));
 		dash_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		x_Buttan_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	} else {
 		// できない
-		dash_Back_Sprite_->SetColor(Vector4(0.8f, 0.3f, 0.3f, 0.5f));
+		dash_Back_Sprite_->SetColor(Vector4(0.1f, 0.8f, 0.1f, 0.5f));
 		dash_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 		x_Buttan_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 	}

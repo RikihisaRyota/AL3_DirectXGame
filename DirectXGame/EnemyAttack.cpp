@@ -27,6 +27,9 @@ void EnemyAttack::Initialize(std::vector<std::unique_ptr<Model>> model) {
 
 	punch_ = std::make_unique<EnemyPunch>();
 	punch_->SetPlayerEnemy(player_, enemy_, this);
+
+	tornade_ = std::make_unique<EnemyTornado>();
+	tornade_->SetPlayerEnemy(player_, enemy_, this);
 }
 
 void EnemyAttack::Initialize() {
@@ -47,6 +50,9 @@ void EnemyAttack::Initialize() {
 			break;
 		case EnemyAttack::Behavior::kPunchAttack:
 			punch_->Initialize();
+			break;
+		case EnemyAttack::Behavior::kTornadoAttack:
+			tornade_->Initialize();
 			break;
 		}
 		// ふるまいリクエストをリセット
@@ -81,6 +87,9 @@ void EnemyAttack::Update() {
 			case EnemyAttack::Behavior::kPunchAttack:
 				punch_->Initialize();
 				break;
+			case EnemyAttack::Behavior::kTornadoAttack:
+				tornade_->Initialize();
+			break;
 			}
 			// ふるまいリクエストをリセット
 			behaviorRequest_ = std::nullopt;
@@ -108,6 +117,12 @@ void EnemyAttack::Update() {
 				behaviorRequest_ = EnemyAttack::Behavior::kRoot;
 			}
 			break;
+		case EnemyAttack::Behavior::kTornadoAttack:
+			tornade_->Update();
+			if (!tornade_->GetWorking()) {
+				behaviorRequest_ = EnemyAttack::Behavior::kRoot;
+			}
+			break;
 		}
 		BaseCharacter::Update();
 		HitBoxUpdate();
@@ -130,6 +145,9 @@ void EnemyAttack::Draw(const ViewProjection& viewProjection) {
 	case EnemyAttack::Behavior::kPunchAttack:
 		models_[static_cast<int>(EnemyAttack::Parts::CIRCLE)]->Draw(
 		    worldTransforms_Parts_[static_cast<int>(EnemyAttack::Parts::CIRCLE)], viewProjection);
+	case EnemyAttack::Behavior::kTornadoAttack:
+		models_[static_cast<int>(EnemyAttack::Parts::CIRCLE)]->Draw(
+			worldTransforms_Parts_[static_cast<int>(EnemyAttack::Parts::CIRCLE)], viewProjection);
 		break;
 	}
 }
@@ -167,81 +185,100 @@ void EnemyAttack::HitBoxInitialize() {
 }
 
 void EnemyAttack::HitBoxUpdate() {
-	switch (behavior_) {
-	case EnemyAttack::Behavior::kRoot:
-	default:
-		break;
-	case EnemyAttack::Behavior::kPressAttack: 
-	{
-		float size = (std::max)(
-		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
-		    worldTransform_.scale_.z);
-		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ - size},
-		    .max_{aabb_.center_ + size},
-		};
-		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{worldTransform_.scale_}
-        };
-		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
-		break;
-	}
-	case EnemyAttack::Behavior::kDashAttack: {
-		float size = (std::max)(
-		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
-		    worldTransform_.scale_.z);
-		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ - size},
-		    .max_{aabb_.center_ + size},
-		};
-		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{worldTransform_.scale_}
-        };
-		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
-		break;
-	}
-	case EnemyAttack::Behavior::kPunchAttack: {
-		float size = (std::max)(
-		    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
-		    worldTransform_.scale_.z);
-		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ - size},
-		    .max_{aabb_.center_ + size},
-		};
-		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{worldTransform_.scale_}
-        };
-		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
-		break;
-	}
-	}
+	float size = (std::max)(
+		(std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y), worldTransform_.scale_.z);
+	// AABB
+	aabb_ = {
+		.center_{worldTransform_.translation_},
+		.min_{aabb_.center_ - size},
+		.max_{aabb_.center_ + size},
+	};
+	// OBB
+	obb_ = {
+		.center_{worldTransform_.translation_},
+		.orientations_{
+		         {1.0f, 0.0f, 0.0f},
+		         {0.0f, 1.0f, 0.0f},
+		         {0.0f, 0.0f, 1.0f},
+		         },
+		.size_{worldTransform_.scale_}
+    };
+	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	//switch (behavior_) {
+	//case EnemyAttack::Behavior::kRoot:
+	//default:
+	//	break;
+	//case EnemyAttack::Behavior::kPressAttack: 
+	//{
+	//	float size = (std::max)(
+	//	    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
+	//	    worldTransform_.scale_.z);
+	//	// AABB
+	//	aabb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .min_{aabb_.center_ - size},
+	//	    .max_{aabb_.center_ + size},
+	//	};
+	//	// OBB
+	//	obb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .orientations_{
+	//	             {1.0f, 0.0f, 0.0f},
+	//	             {0.0f, 1.0f, 0.0f},
+	//	             {0.0f, 0.0f, 1.0f},
+	//	             },
+	//	    .size_{worldTransform_.scale_}
+ //       };
+	//	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	//	break;
+	//}
+	//case EnemyAttack::Behavior::kDashAttack: {
+	//	float size = (std::max)(
+	//	    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
+	//	    worldTransform_.scale_.z);
+	//	// AABB
+	//	aabb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .min_{aabb_.center_ - size},
+	//	    .max_{aabb_.center_ + size},
+	//	};
+	//	// OBB
+	//	obb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .orientations_{
+	//	             {1.0f, 0.0f, 0.0f},
+	//	             {0.0f, 1.0f, 0.0f},
+	//	             {0.0f, 0.0f, 1.0f},
+	//	             },
+	//	    .size_{worldTransform_.scale_}
+ //       };
+	//	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	//	break;
+	//}
+	//case EnemyAttack::Behavior::kPunchAttack: {
+	//	float size = (std::max)(
+	//	    (std::max)(worldTransform_.scale_.x, worldTransform_.scale_.y),
+	//	    worldTransform_.scale_.z);
+	//	// AABB
+	//	aabb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .min_{aabb_.center_ - size},
+	//	    .max_{aabb_.center_ + size},
+	//	};
+	//	// OBB
+	//	obb_ = {
+	//	    .center_{worldTransform_.translation_},
+	//	    .orientations_{
+	//	             {1.0f, 0.0f, 0.0f},
+	//	             {0.0f, 1.0f, 0.0f},
+	//	             {0.0f, 0.0f, 1.0f},
+	//	             },
+	//	    .size_{worldTransform_.scale_}
+ //       };
+	//	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	//	break;
+	//}
+	//}
 }
 
 void EnemyAttack::HitBoxDraw(const ViewProjection& viewProjection) {
@@ -278,6 +315,12 @@ void EnemyAttack::OnCollision(const OBB& obb, uint32_t type) {
 		if (punch_->GetAttack()) {
 			PlayerHP::SetAdd(30);
 			punch_->SetHit(true);
+		}
+		break;
+	case EnemyAttack::Behavior::kTornadoAttack:
+		if (tornade_->GetAttack()) {
+			PlayerHP::SetAdd(30);
+			tornade_->SetHit(true);
 		}
 		break;
 	}

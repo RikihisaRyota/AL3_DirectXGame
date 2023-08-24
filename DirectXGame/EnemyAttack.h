@@ -7,6 +7,7 @@
 #include "EnemyDash.h"
 #include "EnemyPress.h"
 #include "EnemyPunch.h"
+#include "EnemyTornado.h"
 
 class Enemy;
 class Player;
@@ -17,7 +18,8 @@ public:
 		kRoot,         // 通常
 		kPressAttack, // プレス
 		kDashAttack, // 突進
-		kPunchAttack,
+		kPunchAttack, // パンチ
+		kTornadoAttack // 回転
 	};
 
 	enum class Parts {
@@ -50,6 +52,7 @@ private:
 	std::unique_ptr<EnemyPress> press_;
 	std::unique_ptr<EnemyDash> dash_;
 	std::unique_ptr<EnemyPunch> punch_;
+	std::unique_ptr<EnemyTornado> tornade_;
 
 	// ふるまい
 	Behavior behavior_ = Behavior::kRoot;

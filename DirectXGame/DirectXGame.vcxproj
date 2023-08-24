@@ -120,6 +120,7 @@
     <ClCompile Include="EnemyHP.cpp" />
     <ClCompile Include="EnemyPunch.cpp" />
     <ClCompile Include="EnemyPress.cpp" />
+    <ClCompile Include="EnemyTornado.cpp" />
     <ClCompile Include="FollowCamera.cpp" />
     <ClCompile Include="GameClear.cpp" />
     <ClCompile Include="GameOver.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="EnemyHP.h" />
     <ClInclude Include="EnemyPunch.h" />
     <ClInclude Include="EnemyPress.h" />
+    <ClInclude Include="EnemyTornado.h" />
     <ClInclude Include="FollowCamera.h" />
     <ClInclude Include="GameClear.h" />
     <ClInclude Include="GameOver.h" />

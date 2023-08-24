@@ -178,6 +178,10 @@ void Enemy::RootUpdate() {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kPunchAttack);
 	}
+	if (Input::GetInstance()->TriggerKey(DIK_4)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kTornadoAttack);
+	}
 	// 移動
 	Move();
 	// 動き
