@@ -15,10 +15,15 @@ class PlayerAttack;
 class Player : public BaseCharacter, public Collider {
 public:
 	// ててて
-	Vector2 test_pos_ = {1109.0f, 559.0f};
-	float distance_X = 54.0f;
-	float distance_Y = 29.0f;
-	float test_Scale_ = 58.0f;
+	Vector2 test_pos_ = {1075.0f, 564.0f};
+	float distance_X = 61.0f;
+	float distance_Y = 30.0f;
+	float test_Scale_ = 61.0f;
+
+	Vector2 test_buttan_pos_ = {1094.0f, 616.0f};
+	float distance_buttan_X = 13.0f;
+	float distance_buttan_Y = 12.0f;
+	float test_buttan_Scale_ = 24.0f;
 
 	void SetSpritePos();
 	// 体のパーツ
@@ -69,7 +74,8 @@ public: // メンバ関数
 
 	void SetSprite(
 	    uint32_t chageTextureHandle, uint32_t tripleTextureHandle, uint32_t dashTextureHandle,
-	    uint32_t whiteTextureHandle);
+	    uint32_t whiteTextureHandle, 
+		uint32_t y_buttan_TextureHandle, uint32_t b_buttan_TextureHandle, uint32_t x_buttan_TextureHandle);
 
 	void BehaviorInitialize();
 
@@ -213,12 +219,22 @@ public: // ゲッター,セッター
 	const float kGravity = 0.01f;
 	// ジャンプ
 	const float kJumpPower = 0.2f;
+	// ダッシュの時間<frame>
+	const uint32_t kDashTime = 15;
+	// ダッシュのクールタイム
+	const int32_t kDash_CoolTime_ = 30;
 	// 摩擦
 private: // メンバ変数
 	// 最終的に向きたい方向
 	Vector3 destinationAngle_;
 	// ダッシュ用方向
 	Vector3 dashAngle_;
+	// ダッシュできるか
+	bool IsDash_;
+	// ダッシュのクールタイムのカウントフラグ
+	bool dash_Count_Start_Flag_;
+	// ダッシュのクールタイム
+	int32_t dash_Count_;
 	// 向き
 	Vector3 interRotate_;
 	// ジャンプフラグ
@@ -236,8 +252,24 @@ private: // メンバ変数
 	Vector2 triple_Position_;
 	Vector2 dash_Position_;
 
+	Vector2 y_Position_;
+	Vector2 b_Position_;
+	Vector2 x_Position_;
+
 	std::unique_ptr<Sprite> chage_Sprite_;
+	std::unique_ptr<Sprite> chage_Back_Sprite_;
+	std::unique_ptr<Sprite> chage_Back_Black_Sprite_;
 	std::unique_ptr<Sprite> triple_Sprite_;
 	std::unique_ptr<Sprite> triple_Back_Sprite_;
+	std::unique_ptr<Sprite> triple_Back_Black_Sprite_;
 	std::unique_ptr<Sprite> dash_Sprite_;
+	std::unique_ptr<Sprite> dash_Back_Sprite_;
+	std::unique_ptr<Sprite> dash_Back_Black_Sprite_;
+	
+	std::unique_ptr<Sprite> center_Back_Sprite_;
+
+	
+	std::unique_ptr<Sprite> x_Buttan_Sprite_;
+	std::unique_ptr<Sprite> b_Buttan_Sprite_;
+	std::unique_ptr<Sprite> y_Buttan_Sprite_;
 };

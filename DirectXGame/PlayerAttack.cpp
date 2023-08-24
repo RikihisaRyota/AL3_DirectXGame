@@ -61,7 +61,6 @@ void PlayerAttack::Initialize() {
 		// ふるまいリクエストをリセット
 		behaviorRequest_ = std::nullopt;
 	}
-	hitFlag_ = false;
 }
 
 void PlayerAttack::Update() {

@@ -48,6 +48,7 @@ private:
 	float t_;
 	WorldTransform target_;
 	WorldTransform origin_;
+
 	// どこまで追跡するか
 	float target_Distance_;
 	State state_;

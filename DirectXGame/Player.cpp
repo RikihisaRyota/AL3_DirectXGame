@@ -17,12 +17,33 @@ void Player::SetSpritePos() {
 	triple_Position_ = {test_pos_.x + distance_X, test_pos_.y + distance_Y};
 	dash_Position_ = {test_pos_.x - distance_X, test_pos_.y + distance_Y};
 
+	y_Position_ = {test_buttan_pos_.x, test_buttan_pos_.y - distance_buttan_Y};
+	b_Position_ = {test_buttan_pos_.x + distance_buttan_X, test_buttan_pos_.y + distance_buttan_Y};
+	x_Position_ = {test_buttan_pos_.x - distance_buttan_X, test_buttan_pos_.y + distance_buttan_Y};
+
 	chage_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
 	triple_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
 	dash_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	
+	/*triple_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	chage_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	dash_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));*/
+
 	chage_Sprite_->SetPosition(chage_Position_);
 	triple_Sprite_->SetPosition(triple_Position_);
 	dash_Sprite_->SetPosition(dash_Position_);
+
+	/*chage_Back_Sprite_->SetPosition(Vector2(chage_Position_.x, chage_Position_.y + test_Scale_));
+	triple_Back_Sprite_->SetPosition(Vector2(triple_Position_.x, triple_Position_.y + test_Scale_));
+	dash_Back_Sprite_->SetPosition(Vector2(dash_Position_.x, dash_Position_.y + test_Scale_));*/
+	
+	x_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_, test_buttan_Scale_));
+	b_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_, test_buttan_Scale_));
+	y_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_, test_buttan_Scale_));
+
+	x_Buttan_Sprite_->SetPosition(x_Position_);
+	b_Buttan_Sprite_->SetPosition(b_Position_);
+	y_Buttan_Sprite_->SetPosition(y_Position_);
 }
 
 void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
@@ -38,6 +59,8 @@ void Player::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	interRotate_ = {0.0f, 0.0f, 1.0f};
 	// ジャンプフラグ
 	isJump = false;
+	// ダッシュフラグ
+	IsDash_ = false;
 	// 浮遊アニメーションの初期化
 	InitializeFloatGimmick();
 #pragma region 当たり判定
@@ -96,6 +119,7 @@ void Player::Update() {
 	ImGui::SliderFloat("distance_X", &distance_X, 0.0f, 200.0f);
 	ImGui::SliderFloat("distance_Y", &distance_Y, 0.0f, 200.0f);
 	ImGui::SliderFloat("scale", &test_Scale_, 0.0f, 300.0f);
+	
 
 	/*ImGui::Text(
 	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
@@ -115,6 +139,13 @@ void Player::Update() {
 	ImGui::SliderFloat3("AABB_max", &max_.x, 0.0f, 3.0f);
 	ImGui::SliderFloat("Sphere_radius", &radius_, 0.0f, 3.0f);*/
 	ImGui::End();
+	ImGui::Begin("Buttan");
+	ImGui::SliderFloat("buttan_pos_X", &test_buttan_pos_.x, 0.0f, 1280.0f);
+	ImGui::SliderFloat("buttan_pos_Y", &test_buttan_pos_.y, 0.0f, 720.0f);
+	ImGui::SliderFloat("buttan_distance_X", &distance_buttan_X, 0.0f, 200.0f);
+	ImGui::SliderFloat("buttan_distance_Y", &distance_buttan_Y, 0.0f, 200.0f);
+	ImGui::SliderFloat("buttan_scale", &test_buttan_Scale_, 0.0f, 300.0f);
+	ImGui::End();
 	// #endif // DEBUG
 	SetSpritePos();
 }
@@ -124,6 +155,14 @@ void Player::BehaviorRootUpdate() {
 	GamePadInput();
 	// プレイヤーモーションの更新
 	Motion();
+	// ダッシュのクールタイム
+	if (dash_Count_Start_Flag_) {
+		dash_Count_--;
+		if (dash_Count_ <= 0) {
+			dash_Count_Start_Flag_ = false;
+			IsDash_ = false;
+		}
+	}
 }
 
 void Player::BehaviorAttackInitialize() { playerAttack_->Initialize(); }
@@ -136,6 +175,9 @@ void Player::BehaviorDashInitialize() {
 	workDash_.dashParameter_ = 0;
 	worldTransform_.rotation_.y = std::atan2(destinationAngle_.x, destinationAngle_.z);
 	acceleration_.y = 0.0f;
+	IsDash_ = true;
+	dash_Count_Start_Flag_ = true;
+	dash_Count_ = kDash_CoolTime_;
 }
 
 void Player::BehaviorDashUpdate() {
@@ -145,25 +187,21 @@ void Player::BehaviorDashUpdate() {
 	velocity_ = destinationAngle_ * kDashSpeed;
 	worldTransform_.translation_ += velocity_;
 
-	// ダッシュの時間<frame>
-	const uint32_t behaviorDashTime = 15;
-
 	// 基底の時間経過で通常行動に戻る
-	if (++workDash_.dashParameter_ >= behaviorDashTime) {
+	if (++workDash_.dashParameter_ >= kDashTime) {
 		behaviorRequest_ = Behavior::kRoot;
 	}
 
 	worldTransform_Motion_.rotation_.x = Lerp(
 	    DegToRad(0.0f), DegToRad(360.0f),
-	    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
-	if (workDash_.dashParameter_ < behaviorDashTime * 0.5f) {
+	    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(kDashTime));
+	if (workDash_.dashParameter_ < kDashTime * 0.5f) {
 		worldTransform_Motion_.translation_.y = Lerp(
-		    0, 0.5f,
-		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
+		    0, 0.5f, static_cast<float>(workDash_.dashParameter_) / static_cast<float>(kDashTime));
 	} else {
 		worldTransform_Motion_.translation_.y = Lerp(
 		    0.5f, 0.0f,
-		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(behaviorDashTime));
+		    static_cast<float>(workDash_.dashParameter_) / static_cast<float>(kDashTime));
 	}
 }
 
@@ -251,15 +289,35 @@ void Player::SpriteUpdate() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 #pragma region Chage
-	if (Input::GetInstance()->TriggerKey(DIK_Q) ||
-	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_Y))) {
-		chage_Sprite_->SetColor(Vector4(1.0f,0.0f,0.0f,1.0f));
-	} else {
+	{
+	// 背景
+	Vector2 size = chage_Back_Sprite_->GetSize();
+	float t = static_cast<float>(playerAttack_->GetChageAttackCount()) /
+	          static_cast<float>(playerAttack_->GetChageAttackCoolTimrCount());
+	size.y = Lerp(test_Scale_, 0.0f, t);
+	chage_Back_Sprite_->SetSize(size);
+	if (t <= 0.0f) {
+		// 攻撃できる
+		chage_Back_Sprite_->SetColor(Vector4(0.7f, 0.3f, 0.3f, 0.8f));
 		chage_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		y_Buttan_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	} else {
+		// できない
+		chage_Back_Sprite_->SetColor(Vector4(0.2f, 0.5f, 0.7f, 0.5f));
+		chage_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+		y_Buttan_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+	}
+	if ((playerAttack_->GetChageAttackFlag()) &&
+	    (Input::GetInstance()->TriggerKey(DIK_Q) ||
+	     (Input::GetInstance()->GetJoystickState(0, joyState) &&
+	      (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_Y)))) {
+		chage_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+		y_Buttan_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+	}
 	}
 #pragma endregion
 #pragma region Triple
+	{
 	// 背景
 	Vector2 size = triple_Back_Sprite_->GetSize();
 	float t = static_cast<float>(playerAttack_->GetTripleAttackCount()) /
@@ -270,26 +328,45 @@ void Player::SpriteUpdate() {
 		// 攻撃できる
 		triple_Back_Sprite_->SetColor(Vector4(1.0f, 0.2f, 0.0f, 0.8f));
 		triple_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		b_Buttan_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	} else {
 		// できない
 		triple_Back_Sprite_->SetColor(Vector4(0.8f, 0.3f, 0.3f, 0.5f));
 		triple_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+		b_Buttan_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 	}
 	if ((playerAttack_->GetTripleAttackFlag()) &&
 	    (Input::GetInstance()->TriggerKey(DIK_E) ||
 	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
 	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_B)))) {
-		triple_Sprite_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		triple_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+		b_Buttan_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+	}
 	}
 #pragma endregion
-
-	// ダッシュ開始
-	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
-	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
-		dash_Sprite_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-	} else {
+	{
+	// 背景
+	Vector2 size = dash_Back_Sprite_->GetSize();
+	float t = static_cast<float>(dash_Count_) / static_cast<float>(kDash_CoolTime_);
+	size.y = Lerp(test_Scale_, 0.0f, t);
+	dash_Back_Sprite_->SetSize(size);
+	if (t <= 0.0f) {
+		// 攻撃できる
+		dash_Back_Sprite_->SetColor(Vector4(1.0f, 0.2f, 0.0f, 0.8f));
 		dash_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		x_Buttan_Sprite_->SetColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	} else {
+		// できない
+		dash_Back_Sprite_->SetColor(Vector4(0.8f, 0.3f, 0.3f, 0.5f));
+		dash_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+		x_Buttan_Sprite_->SetColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+	}
+	if ((!IsDash_) && (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
+		               (Input::GetInstance()->GetJoystickState(0, joyState) &&
+		                (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X)))) {
+		dash_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+		x_Buttan_Sprite_->SetColor(Vector4(0.8f, 0.0f, 0.0f, 1.0f));
+	}
 	}
 }
 
@@ -305,10 +382,22 @@ void Player::Draw(const ViewProjection& viewProjection) {
 }
 
 void Player::DrawUI() { 
+	center_Back_Sprite_->Draw();
+
+	chage_Back_Black_Sprite_->Draw();
+	chage_Back_Sprite_->Draw();
 	chage_Sprite_->Draw();
-	triple_Sprite_->Draw();
+	triple_Back_Black_Sprite_->Draw();
 	triple_Back_Sprite_->Draw();
+	triple_Sprite_->Draw();
+	dash_Back_Black_Sprite_->Draw();
+	dash_Back_Sprite_->Draw();
 	dash_Sprite_->Draw();
+
+	y_Buttan_Sprite_->Draw();
+	b_Buttan_Sprite_->Draw();
+	x_Buttan_Sprite_->Draw();
+
 }
 
 void Player::HitBoxInitialize() {
@@ -365,28 +454,81 @@ void Player::PlayerRotate(const Vector3& vector1) {
 	interRotate_ = rotate;
 }
 
-void Player::SetSprite(uint32_t chageTextureHandle, uint32_t tripleTextureHandle, uint32_t dashTextureHandle,uint32_t whiteTextureHandle) {
+void Player::SetSprite(
+    uint32_t chageTextureHandle, uint32_t tripleTextureHandle, uint32_t dashTextureHandle,
+    uint32_t whiteTextureHandle, uint32_t y_buttan_TextureHandle, uint32_t b_buttan_TextureHandle,
+    uint32_t x_buttan_TextureHandle) {
 	chage_Position_ = {test_pos_.x, test_pos_.y - distance_Y};
 	triple_Position_ = {test_pos_.x + distance_X, test_pos_.y + distance_Y};
 	dash_Position_ = {test_pos_.x - distance_X, test_pos_.y + distance_Y};
 
+	y_Position_ = {test_buttan_pos_.x, test_buttan_pos_.y - distance_buttan_Y};
+	b_Position_ = {test_buttan_pos_.x + distance_buttan_X, test_buttan_pos_.y + distance_buttan_Y};
+	x_Position_ = {test_buttan_pos_.x - distance_buttan_X, test_buttan_pos_.y + distance_buttan_Y};
 
 	chage_Sprite_ = std::make_unique<Sprite>();
+	chage_Back_Sprite_ = std::make_unique<Sprite>();
+	chage_Back_Black_Sprite_ = std::make_unique<Sprite>();
 	triple_Sprite_ = std::make_unique<Sprite>();
 	triple_Back_Sprite_ = std::make_unique<Sprite>();
+	triple_Back_Black_Sprite_ = std::make_unique<Sprite>();
 	dash_Sprite_ = std::make_unique<Sprite>();
+	dash_Back_Sprite_ = std::make_unique<Sprite>();
+	dash_Back_Black_Sprite_ = std::make_unique<Sprite>();
+
+	center_Back_Sprite_ = std::make_unique<Sprite>();
+	
+	x_Buttan_Sprite_ = std::make_unique<Sprite>();
+	b_Buttan_Sprite_ = std::make_unique<Sprite>();
+	y_Buttan_Sprite_ = std::make_unique<Sprite>();
+	
 	chage_Sprite_.reset(Sprite::Create(chageTextureHandle, chage_Position_));
+	chage_Back_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(chage_Position_.x, chage_Position_.y + test_Scale_),
+	    Vector4(0.7f, 0.3f, 0.3f, 0.8f),
+	    Vector2(0.0f, 0.0f), false, true));
+	chage_Back_Black_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(chage_Position_.x, chage_Position_.y + test_Scale_),
+	    Vector4(0.0f, 0.0f, 0.0f, 0.8f), Vector2(0.0f, 0.0f), false, true));
 	triple_Sprite_.reset(Sprite::Create(tripleTextureHandle, triple_Position_));
 	triple_Back_Sprite_.reset(Sprite::Create(
 	    whiteTextureHandle, Vector2(triple_Position_.x, triple_Position_.y+test_Scale_),
+	   Vector4(1.0f, 0.2f, 0.0f, 0.8f),
+	    Vector2(0.0f, 0.0f), false, true));
+	triple_Back_Black_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(triple_Position_.x, triple_Position_.y + test_Scale_),
+	    Vector4(0.0f, 0.0f, 0.0f, 0.8f), Vector2(0.0f, 0.0f), false, true));
+	dash_Sprite_.reset(Sprite::Create(dashTextureHandle, dash_Position_));
+	dash_Back_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(dash_Position_.x, dash_Position_.y + test_Scale_),
 	    Vector4(1.0f, 0.0f, 0.0f, 0.5f),
 	    Vector2(0.0f, 0.0f), false, true));
-	dash_Sprite_.reset(Sprite::Create(dashTextureHandle, dash_Position_));
+	dash_Back_Black_Sprite_.reset(Sprite::Create(
+	    whiteTextureHandle, Vector2(dash_Position_.x, dash_Position_.y + test_Scale_),
+	    Vector4(0.0f, 0.0f, 0.0f, 0.8f), Vector2(0.0f, 0.0f), false, true));
+
+	center_Back_Sprite_.reset(Sprite::Create(whiteTextureHandle, Vector2(test_pos_.x, test_pos_.y + distance_Y)));
+
+	x_Buttan_Sprite_.reset(Sprite::Create(x_buttan_TextureHandle, x_Position_));
+	b_Buttan_Sprite_.reset(Sprite::Create(b_buttan_TextureHandle, b_Position_));
+	y_Buttan_Sprite_.reset(Sprite::Create(y_buttan_TextureHandle, y_Position_));
 
 	chage_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
 	triple_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
-	triple_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
 	dash_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+
+	chage_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	triple_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	dash_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+
+	chage_Back_Black_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	triple_Back_Black_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	dash_Back_Black_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+	center_Back_Sprite_->SetSize(Vector2(test_Scale_, test_Scale_));
+
+	x_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_,test_buttan_Scale_));
+	b_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_,test_buttan_Scale_));
+	y_Buttan_Sprite_->SetSize(Vector2(test_buttan_Scale_,test_buttan_Scale_));
 }
 
 void Player::BehaviorInitialize() {
@@ -430,9 +572,10 @@ void Player::GamePadInput() {
 		playerAttack_->SetBehavior(PlayerAttack::Behavior::kTripleAttack);
 	}
 	// ダッシュ開始
-	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
+	if ((!IsDash_) && 
+		(Input::GetInstance()->TriggerKey(DIK_LSHIFT) ||
 	    (Input::GetInstance()->GetJoystickState(0, joyState) &&
-	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X))) {
+	     (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_X)))) {
 		behaviorRequest_ = Behavior::kDash;
 	}
 	// ジャンプ

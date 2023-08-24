@@ -108,7 +108,13 @@ void GameScene::Initialize() {
 	uint32_t triple_Handle = TextureManager::Load("tripleAttack.png");
 	uint32_t dash_Handle = TextureManager::Load("dash.png");
 	uint32_t white_Handle = TextureManager::Load("white1x1.png");
-	player_->SetSprite(chage_Handle, triple_Handle, dash_Handle, white_Handle);
+	uint32_t y_buttan_Handle = TextureManager::Load("y_buttan.png");
+	uint32_t b_buttan_Handle = TextureManager::Load("b_buttan.png");
+	uint32_t x_buttan_Handle = TextureManager::Load("x_buttan.png");
+	player_->SetSprite(
+	    chage_Handle, triple_Handle, dash_Handle, 
+		white_Handle, 
+		y_buttan_Handle, b_buttan_Handle,x_buttan_Handle);
 	playerAttack_->SetPlayer(player_.get());
 	playerAttack_->SetEnemy(enemy_.get());
 	player_->Initialize(std::move(playerModel));
@@ -230,16 +236,25 @@ void GameScene::Draw() {
 
 #pragma region 前景スプライト描画
 	// 前景スプライト描画前処理
-	Sprite::PreDraw(commandList);
+	Sprite::PreDraw(commandList, Sprite::BlendMode::kNormal);
 
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
 	player_->DrawUI();
-	playerHP_->Draw();
-	enemyHP_->Draw();
 	//test->Draw();
 	// スプライト描画後処理
+	Sprite::PostDraw();
+	// 前景スプライト描画前処理
+	Sprite::PreDraw(commandList);
+
+	/// <summary>
+	/// ここに前景スプライトの描画処理を追加できる
+	/// </summary>
+	playerHP_->Draw();
+	enemyHP_->Draw();
+	// test->Draw();
+	//  スプライト描画後処理
 	Sprite::PostDraw();
 
 #pragma endregion
