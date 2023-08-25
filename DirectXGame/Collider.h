@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 #include "AABB.h"
 #include "Sphere.h"
@@ -49,15 +50,16 @@ public:
 	virtual void HitBoxUpdate() = 0;
 	virtual void HitBoxDraw(const ViewProjection& viewProjection) = 0;
 
-	AABB* GetAABB() { return &aabb_; }
-	OBB* GetOBB() { return &obb_; }
-	Sphere* GetSphere() { return &sphere_; }
+	AABB* GetAABB(size_t index = 0) { return &aabb_.at(index); }
+	OBB* GetOBB(size_t index = 0) { return &obb_.at(index); }
+	size_t GetAABBSize() { return aabb_.size(); }
+	size_t GetOBBSize() { return obb_.size(); }
 
 protected:
 	// AABB
-	AABB aabb_;
+	std::vector<AABB> aabb_;
 	// OBB
-	OBB obb_;
+	std::vector<OBB> obb_;
 	// Sphere
 	Sphere sphere_;
 	// 衝突属性(自分)

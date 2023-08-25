@@ -11,11 +11,14 @@
 void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	BaseCharacter::Initialize(std::move(model));
 	// worldTransform_をずらす
-	worldTransform_.translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
-	worldTransform_.UpdateMatrix();
-	vector_ = Normalize(worldTransform_.translation_);
+	worldTransform_.at(0).translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
+	vector_ = Normalize(worldTransform_.at(0).translation_);
+	// AABBのサイズ
+	size_t size = worldTransform_.size();
+	aabb_.resize(size);
+	obb_.resize(size);
 	// 変数初期化
-	interRotate_ = worldTransform_.rotation_;
+	interRotate_ = worldTransform_.at(0).rotation_;
 	moveRatate_ = 0.0f;
 	motionRatate_ = 0.0f;
 	// 転送
@@ -74,11 +77,12 @@ void Enemy::Update() {
 //#ifdef DEBUG
 	ImGui::Begin("Enemy");
 	ImGui::Text(
-	    "translation_ x:%f,y:%f,z:%f", worldTransform_.translation_.x,
-	    worldTransform_.translation_.y, worldTransform_.translation_.z);
+	    "translation_ x:%f,y:%f,z:%f", worldTransform_.at(0).translation_.x,
+	    worldTransform_.at(0).translation_.y, worldTransform_.at(0).translation_.z);
 	ImGui::Text(
-	    "rotate_ x:%f,y:%f,z:%f", worldTransform_.rotation_.x, worldTransform_.rotation_.y,
-	    worldTransform_.rotation_.z);
+	    "rotate_ x:%f,y:%f,z:%f", worldTransform_.at(0).rotation_.x,
+	    worldTransform_.at(0).rotation_.y,
+	    worldTransform_.at(0).rotation_.z);
 	ImGui::Text("vector_x:%f,y:%f,z:%f", vector_.x, vector_.y, vector_.z);
 	ImGui::Text("velocity_:%f,y:%f,z:%f", velocity_.x, velocity_.y, velocity_.z);
 	ImGui::Text("acceleration_:%f,y:%f,z:%f", acceleration_.x, acceleration_.y, acceleration_.z);
@@ -87,8 +91,8 @@ void Enemy::Update() {
 }
 
 void Enemy::Draw(const ViewProjection& viewProjection) {
-	for (size_t i = 0; i < worldTransforms_Parts_.size(); i++) {
-		models_[i]->Draw(worldTransforms_Parts_[i], viewProjection);
+	for (size_t i = 0; i < worldTransforms_Parts_.at(0).size(); i++) {
+		models_[i]->Draw(worldTransforms_Parts_.at(0)[i], viewProjection);
 	}
 }
 
@@ -102,7 +106,7 @@ void Enemy::EnemyRotate(const Vector3& vector1) {
 	}
 	Vector3 rotate = Lerp(interRotate_, vector, kTurn);
 	//  Y軸回り角度(θy)
-	worldTransform_.rotation_.y = std::atan2(rotate.x, rotate.z);
+	worldTransform_.at(0).rotation_.y = std::atan2(rotate.x, rotate.z);
 	// プレイヤーの向いている方向
 	interRotate_ = rotate;
 }
@@ -116,14 +120,14 @@ void Enemy::HitBoxInitialize() {
 	// Sphere
 	radius_ = 1.2f;
 	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
+	aabb_.at(0) = {
+	    .center_{worldTransform_.at(0).translation_},
+	    .min_{aabb_.at(0).center_ + min_},
+	    .max_{aabb_.at(0).center_ + max_},
 	};
 	// OBB
-	obb_ = {
-	    .center_{worldTransform_.translation_},
+	obb_.at(0) = {
+	    .center_{worldTransform_.at(0).translation_},
 	    .orientations_{
 	             {1.0f, 0.0f, 0.0f},
 	             {0.0f, 1.0f, 0.0f},
@@ -131,23 +135,23 @@ void Enemy::HitBoxInitialize() {
 	             },
 	    .size_{size_}
     };
-	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
 	// Sphere
 	sphere_ = {
-	    .center_{worldTransform_.translation_},
+	    .center_{worldTransform_.at(0).translation_},
 	    .radius_{radius_},
 	};
 }
 
 void Enemy::HitBoxDraw(const ViewProjection& viewProjection) {
-	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 0.5f, 0.25f, 1.0f));
-	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	DrawAABB(aabb_.at(0), viewProjection, Vector4(0.0f, 0.5f, 0.25f, 1.0f));
+	DrawOBB(obb_.at(0), viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void Enemy::RootInitialize() {
 	// 変数初期化
-	worldTransform_.translation_.y = kFloor_Distance_;
-	worldTransform_.UpdateMatrix();
+	worldTransform_.at(0).translation_.y = kFloor_Distance_;
+	BaseCharacter::Update();
 	moveRatate_ = 0.0f;
 	motionRatate_ = 0.0f;
 }
@@ -201,8 +205,8 @@ void Enemy::Move() {
 		vector_ = {x, 0.0f, z};
 		vector_.Normalize();
 	} else {
-		worldTransform_.translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
-		worldTransform_.rotation_ = Vector3(0.0f, 0.0f, 0.0f);
+		worldTransform_.at(0).translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
+		worldTransform_.at(0).rotation_ = Vector3(0.0f, 0.0f, 0.0f);
 	}
 	// 移動量に速さを反映
 	if (vector_ != Vector3(0.0f, 0.0f, 0.0f)) {
@@ -210,7 +214,7 @@ void Enemy::Move() {
 	}
 	velocity_ = vector_ * 0.1f;
 	velocity_ += acceleration_;
-	worldTransform_.translation_ += velocity_;
+	worldTransform_.at(0).translation_ += velocity_;
 	// 角度の更新
 	angle_ += 0.02f;
 }
@@ -230,14 +234,14 @@ void Enemy::Body() {}
 
 void Enemy::HitBoxUpdate() {
 	// AABB
-	aabb_ = {
-	    .center_{worldTransform_.translation_},
-	    .min_{aabb_.center_ + min_},
-	    .max_{aabb_.center_ + max_},
+	aabb_.at(0) = {
+	    .center_{worldTransform_.at(0).translation_},
+	    .min_{aabb_.at(0).center_ + min_},
+	    .max_{aabb_.at(0).center_ + max_},
 	};
 	// OBB
-	obb_ = {
-	    .center_{worldTransform_.translation_},
+	obb_.at(0) = {
+	    .center_{worldTransform_.at(0).translation_},
 	    .orientations_{
 	             {1.0f, 0.0f, 0.0f},
 	             {0.0f, 1.0f, 0.0f},
@@ -245,10 +249,10 @@ void Enemy::HitBoxUpdate() {
 	             },
 	    .size_{size_}
     };
-	obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+	obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
 	// Sphere
 	sphere_ = {
-	    .center_{worldTransform_.translation_},
+	    .center_{worldTransform_.at(0).translation_},
 	    .radius_{radius_},
 	};
 }

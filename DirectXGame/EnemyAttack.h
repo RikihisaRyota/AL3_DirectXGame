@@ -47,8 +47,6 @@ private:
 	Enemy* enemy_;
 	Player* player_;
 
-	std::vector<WorldTransform> collisionWorldTransform_;
-
 	std::unique_ptr<EnemyPress> press_;
 	std::unique_ptr<EnemyDash> dash_;
 	std::unique_ptr<EnemyPunch> punch_;

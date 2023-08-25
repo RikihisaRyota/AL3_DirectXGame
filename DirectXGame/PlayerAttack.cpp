@@ -94,7 +94,7 @@ void PlayerAttack::Draw(const ViewProjection& viewProjection) {
 		break;
 	case PlayerAttack::Behavior::kChargeAttack:
 		models_[static_cast<int>(Parts::WEAPON)]->Draw(
-		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)], viewProjection);
+		    worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)], viewProjection);
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
 
@@ -103,8 +103,8 @@ void PlayerAttack::Draw(const ViewProjection& viewProjection) {
 }
 
 void PlayerAttack::ChageAttackInitialize() {
-	worldTransform_ = player_->GetWorldTransform();
-	worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
+	worldTransform_.at(0) = player_->GetWorldTransform();
+	worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_.x = 0.0f;
 
 	// 剣のデットゾーン
 	slashMin_ = DegToRad(-45.0f);
@@ -136,7 +136,7 @@ void PlayerAttack::ChageAttackInitialize() {
 void PlayerAttack::ChageAttackUpdate() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
-	worldTransform_ = player_->GetWorldTransform();
+	worldTransform_.at(0) = player_->GetWorldTransform();
 	// チャージ中
 	if (chargeFlag_) {
 		if (Input::GetInstance()->PushKey(DIK_Q) ||
@@ -145,7 +145,7 @@ void PlayerAttack::ChageAttackUpdate() {
 			// チャージ中は攻撃判定なし
 			hitFlag_ = true;
 			charge_T_ += charge_Speed_;
-			worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x =
+			worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_.x =
 			    Lerp(slash_Attack_Start_, slashMin_, Clamp(charge_T_, 0.0f, 1.0f));
 			WorldTransform worldtramsform =
 			    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
@@ -163,7 +163,7 @@ void PlayerAttack::ChageAttackUpdate() {
 			// 下に移動
 			// charge_T_ = 0.0f;
 			slash_Attack_Start_ =
-			    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x;
+			    worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_.x;
 			slash_ArmAngle_Start_ =
 			    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML))
 			        .rotation_.x;
@@ -173,14 +173,14 @@ void PlayerAttack::ChageAttackUpdate() {
 	if (slashFlag_) {
 		slash_T_ += slash_Speed_;
 		float rotate = Lerp(slash_Attack_Start_, slashMax_, Clamp(slash_T_, 0.0f, 1.0f));
-		worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x = rotate;
+		worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_.x = rotate;
 		WorldTransform worldtramsform =
 		    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARML));
 		rotate = Lerp(slash_ArmAngle_Start_, slash_Attack_Max_, Clamp(slash_T_, 0.0f, 1.0f));
 		worldtramsform.rotation_.x = rotate;
 		player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARML));
 		player_->SetWorldtransforms_Parts(worldtramsform, static_cast<int>(Player::Parts::ARMR));
-		if (worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_.x >=
+		if (worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_.x >=
 		    slashMax_ - 0.00005f) {
 			charge_T_ = 0.0f;
 			slashFlag_ = false;
@@ -263,7 +263,7 @@ void PlayerAttack::TripleAttackUpdate() {
 }
 
 void PlayerAttack::FirstInitialize() {
-	worldTransform_ = player_->GetWorldTransform();
+	worldTransform_.at(0) = player_->GetWorldTransform();
 	first_Speed_ = 0.1f;
 	armAngleStart_ = 0.0f;
 	armAngleMax_ = DegToRad(90.0f);
@@ -275,7 +275,7 @@ void PlayerAttack::FirstInitialize() {
 }
 
 void PlayerAttack::SecondInitialize() {
-	worldTransform_ = player_->GetWorldTransform();
+	worldTransform_.at(0) = player_->GetWorldTransform();
 	second_Speed_ = 0.1f;
 	armAngleStart_ = 0.0f;
 	armAngleMax_ = DegToRad(90.0f);
@@ -287,7 +287,7 @@ void PlayerAttack::SecondInitialize() {
 }
 
 void PlayerAttack::ThirdInitialize() {
-	worldTransform_ = player_->GetWorldTransform();
+	worldTransform_.at(0) = player_->GetWorldTransform();
 	third_Speed_ = 0.1f;
 	tripleAttack_Behavior_ = TripleAttack::kThird;
 }
@@ -396,14 +396,14 @@ void PlayerAttack::HitBoxUpdate() {
 		break;
 	case PlayerAttack::Behavior::kChargeAttack:
 		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ + min_},
-		    .max_{aabb_.center_ + max_},
+		aabb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
+		    .min_{aabb_.at(0).center_ + min_},
+		    .max_{aabb_.at(0).center_ + max_},
 		};
 		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
+		obb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
 		    .orientations_{
 		             {1.0f, 0.0f, 0.0f},
 		             {0.0f, 1.0f, 0.0f},
@@ -411,20 +411,20 @@ void PlayerAttack::HitBoxUpdate() {
 		             },
 		    .size_{size_}
         };
-		obb_ = OBBSetRotate(
-		    obb_, worldTransform_.rotation_,
-		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+		obb_.at(0) = OBBSetRotate(
+		    obb_.at(0), worldTransform_.at(0).rotation_,
+		    worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_);
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
 		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ + tripleAttackMin_},
-		    .max_{aabb_.center_ + tripleAttackMax_},
+		aabb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
+		    .min_{aabb_.at(0).center_ + tripleAttackMin_},
+		    .max_{aabb_.at(0).center_ + tripleAttackMax_},
 		};
 		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_ + center_},
+		obb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_ + center_},
 		    .orientations_{
 		             {1.0f, 0.0f, 0.0f},
 		             {0.0f, 1.0f, 0.0f},
@@ -432,29 +432,30 @@ void PlayerAttack::HitBoxUpdate() {
 		             },
 		    .size_{tripleAttackSize_}
         };
-		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+		obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
 		break;
 	}
 
 	// Sphere
 	sphere_ = {
-	    .center_{worldTransform_.translation_},
+	    .center_{worldTransform_.at(0).translation_},
 	    .radius_{radius_},
 	};
 }
 
 void PlayerAttack::Homing() {
 	// 範囲内にはいていたらホーミング
-	if (IsCollision(*enemy_->GetAABB(), aabb_)) {
-		Vector3 toEnemy = enemy_->GetWorldTransform().translation_ - worldTransform_.translation_;
+	if (IsCollision(*enemy_->GetAABB(), aabb_.at(0))) {
+		Vector3 toEnemy =
+		    enemy_->GetWorldTransform().translation_ - worldTransform_.at(0).translation_;
 		// 長さが1.0f以上ならホーミング
 		const float kLength = player_->GetOBB()->size_.x + enemy_->GetOBB()->size_.x;
 		float distance = toEnemy.Length();
 		if (distance >= kLength) {
 			toEnemy.Normalize();
-			worldTransform_.translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.4f);
-			worldTransform_.translation_.y = 1.0f;
-			player_->SetTranslation(worldTransform_.translation_);
+			worldTransform_.at(0).translation_ += Lerp(Vector3(0.0f, 0.0f, 0.0f), toEnemy, 0.4f);
+			worldTransform_.at(0).translation_.y = 1.0f;
+			player_->SetTranslation(worldTransform_.at(0).translation_);
 			player_->PlayerRotate(toEnemy);
 		} else {
 			// それ以下ならプレイヤーの回転だけセットする
@@ -483,14 +484,14 @@ void PlayerAttack::HitBoxInitialize() {
 		break;
 	case PlayerAttack::Behavior::kChargeAttack:
 		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ + min_},
-		    .max_{aabb_.center_ + max_},
+		aabb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
+		    .min_{aabb_.at(0).center_ + min_},
+		    .max_{aabb_.at(0).center_ + max_},
 		};
 		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
+		obb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
 		    .orientations_{
 		             {1.0f, 0.0f, 0.0f},
 		             {0.0f, 1.0f, 0.0f},
@@ -498,20 +499,20 @@ void PlayerAttack::HitBoxInitialize() {
 		             },
 		    .size_{size_}
         };
-		obb_ = OBBSetRotate(
-		    obb_, worldTransform_.rotation_,
-		    worldTransforms_Parts_[static_cast<int>(Parts::WEAPON)].rotation_);
+		obb_.at(0) = OBBSetRotate(
+		    obb_.at(0), worldTransform_.at(0).rotation_,
+		    worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_);
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
 		// AABB
-		aabb_ = {
-		    .center_{worldTransform_.translation_},
-		    .min_{aabb_.center_ + tripleAttackMin_},
-		    .max_{aabb_.center_ + tripleAttackMax_},
+		aabb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
+		    .min_{aabb_.at(0).center_ + tripleAttackMin_},
+		    .max_{aabb_.at(0).center_ + tripleAttackMax_},
 		};
 		// OBB
-		obb_ = {
-		    .center_{worldTransform_.translation_},
+		obb_.at(0) = {
+		    .center_{worldTransform_.at(0).translation_},
 		    .orientations_{
 		             {1.0f, 0.0f, 0.0f},
 		             {0.0f, 1.0f, 0.0f},
@@ -519,13 +520,13 @@ void PlayerAttack::HitBoxInitialize() {
 		             },
 		    .size_{tripleAttackSize_}
         };
-		obb_ = OBBSetRotate(obb_, worldTransform_.rotation_);
+		obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
 		break;
 	}
 }
 void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
-	DrawAABB(aabb_, viewProjection, Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-	DrawOBB(obb_, viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	DrawAABB(aabb_.at(0), viewProjection, Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+	DrawOBB(obb_.at(0), viewProjection, Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void PlayerAttack::OnCollision(const OBB& obb, uint32_t type) {

@@ -21,48 +21,67 @@ public:
 
 public:
 	/// <summary>
-	/// ワールド変換データを取得
+	/// 
 	/// </summary>
-	/// <returns>ワールド変換データ</returns>
-	const WorldTransform& GetWorldTransform() const { return worldTransform_; }
+	/// <param name="count"></param>
+	//void Resize(size_t count);
+
 	/// <summary>
 	/// ワールド変換データを取得
 	/// </summary>
 	/// <returns>ワールド変換データ</returns>
-	const WorldTransform& GetWorldTransform_Motion() const { return worldTransform_Motion_; }
+	const WorldTransform& GetWorldTransform(size_t count = 0) const {
+		return worldTransform_.at(count);
+	}
 	/// <summary>
 	/// ワールド変換データを取得
 	/// </summary>
 	/// <returns>ワールド変換データ</returns>
-	const WorldTransform& GetWorldTransforms_Parts(int count) const { return worldTransforms_Parts_[count];}
-	void SetScale(const Vector3& scale) { worldTransform_.scale_ = scale;
+	const WorldTransform& GetWorldTransform_Motion(size_t count = 0) const {
+		return worldTransform_Motion_.at(count);
 	}
-	void SetRotation(const Vector3& rotation) { worldTransform_.rotation_ = rotation;
+	/// <summary>
+	/// ワールド変換データを取得
+	/// </summary>
+	/// <returns>ワールド変換データ</returns>
+	const WorldTransform& GetWorldTransforms_Parts(int parts, size_t count = 0) const {
+		return worldTransforms_Parts_.at(count).at(parts);
 	}
-	void SetTranslation(const Vector3& translation) { worldTransform_.translation_ = translation;
+	void SetScale(const Vector3& scale, size_t count = 0) { 
+		worldTransform_.at(count).scale_ = scale;
+		worldTransform_.at(count).UpdateMatrix();
 	}
-	void SetWorldtransform(const WorldTransform& worldtransfrom) {
-		worldTransform_ = worldtransfrom;
-		worldTransform_.UpdateMatrix();
+	void SetRotation(const Vector3& rotation, size_t count = 0) {
+		worldTransform_.at(count).rotation_ = rotation;
+		worldTransform_.at(count).UpdateMatrix();
 	}
-	void SetWorldtransform_Motion(const WorldTransform& worldtransfrom) {
-		worldTransform_Motion_ = worldtransfrom;
-		worldTransform_Motion_.UpdateMatrix();
+	void SetTranslation(const Vector3& translation, size_t count = 0) {
+		worldTransform_.at(count).translation_ = translation;
+		worldTransform_.at(count).UpdateMatrix();
 	}
-	void SetWorldtransforms_Parts(const WorldTransform& worldtransfrom, int count) {
-		worldTransforms_Parts_[count] = worldtransfrom;
-		worldTransforms_Parts_[count].UpdateMatrix();
+	void SetWorldtransform(const WorldTransform& worldtransfrom, size_t count = 0) {
+		worldTransform_.at(count) = worldtransfrom;
+		worldTransform_.at(count).UpdateMatrix();
+	}
+	void SetWorldtransform_Motion(const WorldTransform& worldtransfrom, size_t count = 0) {
+		worldTransform_Motion_.at(count) = worldtransfrom;
+		worldTransform_Motion_.at(count).UpdateMatrix();
+	}
+	void SetWorldtransforms_Parts(
+	    const WorldTransform& worldtransfrom, int parts, size_t count = 0) {
+		worldTransforms_Parts_.at(count).at(parts) = worldtransfrom;
+		worldTransforms_Parts_.at(count).at(parts).UpdateMatrix();
 	}
 
 protected:
 	// モデルデータ配列
 	std::vector<std::unique_ptr<Model>> models_;
 	// ワールドトランスフォーム
-	WorldTransform worldTransform_;
+	std::vector<WorldTransform> worldTransform_;
 	// ワールドトランスフォーム(アニメーション用)
-	WorldTransform worldTransform_Motion_;
+	std::vector<WorldTransform> worldTransform_Motion_;
 	// ワールドトランスフォームパーツごと
-	std::vector<WorldTransform> worldTransforms_Parts_;
+	std::vector<std::vector<WorldTransform>> worldTransforms_Parts_;
 	// ベクトル
 	Vector3 vector_;
 	// 速度
