@@ -4,6 +4,8 @@
 
 #include "ImGuiManager.h"
 
+float Ground::scale_;
+
 void Ground::Initialize(std::unique_ptr<Model> model) {
 	// NULLポインタチェック
 	assert(model);

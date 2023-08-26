@@ -118,6 +118,7 @@
     <ClCompile Include="EnemyAttack.cpp" />
     <ClCompile Include="EnemyDash.cpp" />
     <ClCompile Include="EnemyHP.cpp" />
+    <ClCompile Include="EnemyMeteo.cpp" />
     <ClCompile Include="EnemyPunch.cpp" />
     <ClCompile Include="EnemyPress.cpp" />
     <ClCompile Include="EnemyTornado.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="EnemyAttakType.h" />
     <ClInclude Include="EnemyDash.h" />
     <ClInclude Include="EnemyHP.h" />
+    <ClInclude Include="EnemyMeteo.h" />
     <ClInclude Include="EnemyPunch.h" />
     <ClInclude Include="EnemyPress.h" />
     <ClInclude Include="EnemyTornado.h" />

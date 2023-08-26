@@ -130,6 +130,8 @@ void PlayerAttack::ChageAttackInitialize() {
 	rigor_Speed_ = 0.1f;
 	rigor_T_ = 0.0f;
 
+	// チャージ中は攻撃判定なし
+	hitFlag_ = true;
 	IsChageAttack_ = false;
 }
 
@@ -296,7 +298,8 @@ void PlayerAttack::FirstUpdate() {
 	// ゲームパットの状態を得る変数
 	XINPUT_STATE joyState{};
 	t_ += first_Speed_;
-	WorldTransform armWorldtramsform = player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
+	WorldTransform armWorldtramsform =
+	    player_->GetWorldTransforms_Parts(static_cast<int>(Player::Parts::ARMR));
 	WorldTransform motionWorldtramsform = player_->GetWorldTransform_Motion();
 
 	float armrotate = Lerp(armAngleStart_, armAngleMax_, Clamp(t_, 0.0f, 1.0f));
@@ -417,30 +420,25 @@ void PlayerAttack::HitBoxUpdate() {
 		break;
 	case PlayerAttack::Behavior::kTripleAttack:
 		// AABB
-		aabb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_},
-		    .min_{aabb_.at(0).center_ + tripleAttackMin_},
-		    .max_{aabb_.at(0).center_ + tripleAttackMax_},
-		};
+		 aabb_.at(0) = {
+		     .center_{worldTransform_.at(0).translation_},
+		     .min_{aabb_.at(0).center_ + tripleAttackMin_},
+		     .max_{aabb_.at(0).center_ + tripleAttackMax_},
+		 };
 		// OBB
-		obb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_ + center_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{tripleAttackSize_}
-        };
-		obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
+		 obb_.at(0) = {
+		     .center_{worldTransform_.at(0).translation_ + center_},
+		     .orientations_{
+		              {1.0f, 0.0f, 0.0f},
+		              {0.0f, 1.0f, 0.0f},
+		              {0.0f, 0.0f, 1.0f},
+		              },
+		     .size_{tripleAttackSize_}
+		      };
+		 obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
+
 		break;
 	}
-
-	// Sphere
-	sphere_ = {
-	    .center_{worldTransform_.at(0).translation_},
-	    .radius_{radius_},
-	};
 }
 
 void PlayerAttack::Homing() {
@@ -478,51 +476,12 @@ void PlayerAttack::HitBoxInitialize() {
 	center_Distance_ = {0.0f, 0.0f, 1.0f};
 	// Sphere
 	radius_ = 1.2f;
-	switch (behavior_) {
-	case PlayerAttack::Behavior::kRoot:
-	default:
-		break;
-	case PlayerAttack::Behavior::kChargeAttack:
-		// AABB
-		aabb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_},
-		    .min_{aabb_.at(0).center_ + min_},
-		    .max_{aabb_.at(0).center_ + max_},
-		};
-		// OBB
-		obb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{size_}
-        };
-		obb_.at(0) = OBBSetRotate(
-		    obb_.at(0), worldTransform_.at(0).rotation_,
-		    worldTransforms_Parts_.at(0)[static_cast<int>(Parts::WEAPON)].rotation_);
-		break;
-	case PlayerAttack::Behavior::kTripleAttack:
-		// AABB
-		aabb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_},
-		    .min_{aabb_.at(0).center_ + tripleAttackMin_},
-		    .max_{aabb_.at(0).center_ + tripleAttackMax_},
-		};
-		// OBB
-		obb_.at(0) = {
-		    .center_{worldTransform_.at(0).translation_},
-		    .orientations_{
-		             {1.0f, 0.0f, 0.0f},
-		             {0.0f, 1.0f, 0.0f},
-		             {0.0f, 0.0f, 1.0f},
-		             },
-		    .size_{tripleAttackSize_}
-        };
-		obb_.at(0) = OBBSetRotate(obb_.at(0), worldTransform_.at(0).rotation_);
-		break;
-	}
+	// AABB
+	AABB aabb;
+	aabb_.emplace_back(aabb);
+	// OBB
+	OBB obb;
+	obb_.emplace_back(obb);
 }
 void PlayerAttack::HitBoxDraw(const ViewProjection& viewProjection) {
 	DrawAABB(aabb_.at(0), viewProjection, Vector4(0.0f, 1.0f, 0.0f, 1.0f));

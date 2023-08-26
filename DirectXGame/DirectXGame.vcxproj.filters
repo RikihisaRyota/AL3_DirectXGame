@@ -150,6 +150,9 @@
     <ClCompile Include="EnemyTornado.cpp">
       <Filter>ソース ファイル\EnemyAttack</Filter>
     </ClCompile>
+    <ClCompile Include="EnemyMeteo.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3d\ViewProjection.h">
@@ -334,6 +337,9 @@
     </ClInclude>
     <ClInclude Include="EnemyTornado.h">
       <Filter>ヘッダー ファイル\EnemyAttack</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyMeteo.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

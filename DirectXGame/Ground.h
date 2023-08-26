@@ -21,12 +21,12 @@ public:
 	/// </summary>
 	void Draw(ViewProjection& viewProjection);
 
-	float GetEdge() { return worldTransform_.scale_.x; }
-	float scale_;
+	static float GetEdge() { return scale_; }
 
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// モデル
 	std::unique_ptr<Model> model_ = nullptr;
+	static  float scale_;
 };

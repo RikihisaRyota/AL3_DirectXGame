@@ -5,6 +5,7 @@
 #include "Collider.h"
 
 #include "EnemyDash.h"
+#include "EnemyMeteo.h"
 #include "EnemyPress.h"
 #include "EnemyPunch.h"
 #include "EnemyTornado.h"
@@ -16,15 +17,17 @@ public:
 	// ふるまい
 	enum class Behavior {
 		kRoot,         // 通常
-		kPressAttack, // プレス
-		kDashAttack, // 突進
-		kPunchAttack, // パンチ
-		kTornadoAttack // 回転
+		kPressAttack,  // プレス
+		kDashAttack,   // 突進
+		kPunchAttack,  // パンチ
+		kTornadoAttack, // 回転
+		kMeteoAttack, // メテオ
 	};
 
 	enum class Parts {
 		CIRCLE,
 		PLANE,
+		METEO,
 		COUNT,
 	};
 
@@ -51,6 +54,7 @@ private:
 	std::unique_ptr<EnemyDash> dash_;
 	std::unique_ptr<EnemyPunch> punch_;
 	std::unique_ptr<EnemyTornado> tornade_;
+	std::unique_ptr<EnemyMeteo> meteo_;
 
 	// ふるまい
 	Behavior behavior_ = Behavior::kRoot;

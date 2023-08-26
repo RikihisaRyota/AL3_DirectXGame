@@ -72,6 +72,9 @@ public:
 		worldTransforms_Parts_.at(count).at(parts) = worldtransfrom;
 		worldTransforms_Parts_.at(count).at(parts).UpdateMatrix();
 	}
+	void AddWorldtransform(const WorldTransform& worldtransfrom);
+
+	void ResetCount();
 
 protected:
 	// モデルデータ配列

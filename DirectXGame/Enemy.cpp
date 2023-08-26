@@ -14,9 +14,10 @@ void Enemy::Initialize(std::vector<std::unique_ptr<Model>> model) {
 	worldTransform_.at(0).translation_ = Vector3(0.0f, kFloor_Distance_, 10.0f);
 	vector_ = Normalize(worldTransform_.at(0).translation_);
 	// AABBのサイズ
-	size_t size = worldTransform_.size();
-	aabb_.resize(size);
-	obb_.resize(size);
+	AABB aabb;
+	OBB obb;
+	aabb_.emplace_back(aabb);
+	obb_.emplace_back(obb);
 	// 変数初期化
 	interRotate_ = worldTransform_.at(0).rotation_;
 	moveRatate_ = 0.0f;
@@ -185,6 +186,10 @@ void Enemy::RootUpdate() {
 	if (Input::GetInstance()->TriggerKey(DIK_4)) {
 		behaviorRequest_ = Behavior::kAttack;
 		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kTornadoAttack);
+	}
+	if (Input::GetInstance()->TriggerKey(DIK_5)) {
+		behaviorRequest_ = Behavior::kAttack;
+		enemyAttack_->SetBehavior(EnemyAttack::Behavior::kMeteoAttack);
 	}
 	// 移動
 	Move();

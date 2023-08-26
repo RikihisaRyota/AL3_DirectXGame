@@ -77,6 +77,8 @@ void GameScene::Initialize() {
 	    Model::CreateFromOBJ("enemy_Attack_Circle", true));
 	enemyAttackModel[static_cast<int>(EnemyAttack::Parts::PLANE)].reset(
 	    Model::CreateFromOBJ("enemy_Attack_Plane", true));
+	enemyAttackModel[static_cast<int>(EnemyAttack::Parts::METEO)].reset(
+	    Model::CreateFromOBJ("enemy_Meteo", true));
 	// 敵初期化
 	enemy_->Initialize(std::move(enemyModel));
 	enemy_->SetEnemyAttack(enemyAttack_.get());
