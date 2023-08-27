@@ -74,6 +74,8 @@ public:
 	}
 	void AddWorldtransform(const WorldTransform& worldtransfrom);
 
+	size_t GetWorldtransformSize() { return worldTransform_.size(); }
+
 	void ResetCount();
 
 protected:

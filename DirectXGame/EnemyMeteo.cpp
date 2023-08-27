@@ -22,17 +22,17 @@ void EnemyMeteo::Initialize() {
 	GetEnemyAttack()->SetTranslation(Vector3(x,0.01f,z),0);
 	WorldTransform part = GetEnemyAttack()->GetWorldTransforms_Parts(static_cast<int>(EnemyAttack::Parts::METEO),0);
 	part.scale_.y = 5.0f;
-	part.translation_.y = 10.0f;
+	part.translation_.y = kHeight;
 	GetEnemyAttack()->SetWorldtransforms_Parts(part, static_cast<int>(EnemyAttack::Parts::METEO),0);
 #pragma region ターゲット
 	target_Count = 1;
-	kTarget_Speed_ = 0.001f;
+	kTarget_Speed_ = 0.01f;
 #pragma endregion
 #pragma region ステイ
 	kStay_Speed_ = 0.05f;
 #pragma endregion
 #pragma region アタック
-	kAttack_Speed_ = 0.05f;
+	kAttack_Speed_ = 0.02f;
 #pragma endregion
 
 	// 設定
@@ -99,7 +99,8 @@ void EnemyMeteo::TargetUpdate() {
 		// メテオの位置調整
 		WorldTransform part = GetEnemyAttack()->GetWorldTransforms_Parts(static_cast<int>(EnemyAttack::Parts::METEO), target_Count);
 		part.scale_.y = 5.0f;
-		part.translation_.y = 10.0f;
+		part.rotation_.y = DegToRad(rnd.NextFloatRange(0.0f, 180.0f));
+		part.translation_.y = kHeight;
 		GetEnemyAttack()->SetWorldtransforms_Parts(part, static_cast<int>(EnemyAttack::Parts::METEO), target_Count);
 		target_Count++;
 	}
@@ -121,6 +122,12 @@ void EnemyMeteo::StayUpdate() {
 void EnemyMeteo::AttackUpdate() {
 	t_ += kAttack_Speed_;
 	
+	for (size_t i = 0; i < GetEnemyAttack()->GetWorldtransformSize(); i++) {
+		WorldTransform part = GetEnemyAttack()->GetWorldTransforms_Parts(
+		    static_cast<int>(EnemyAttack::Parts::METEO), i);
+		part.translation_.y = Lerp(kHeight, kScale_.x, t_);
+		GetEnemyAttack()->SetWorldtransforms_Parts(part, static_cast<int>(EnemyAttack::Parts::METEO), i);
+	}
 	if (t_ >= 0.8) {
 		UpdateHit();
 	}

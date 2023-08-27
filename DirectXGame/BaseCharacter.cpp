@@ -58,9 +58,11 @@ void BaseCharacter::AddWorldtransform(const WorldTransform& worldtransfrom) {
 	worldTransform_Motion_.emplace_back(worldTransform_Motion);
 	worldTransforms_Parts_.emplace_back(worldTransforms_Parts);
 
-	worldTransform_Motion_.back().parent_ = &worldTransform_.back();
-	for (size_t partscount = 0; partscount < worldTransforms_Parts_.back().size(); partscount++) {
-		worldTransforms_Parts_.back().at(partscount).parent_ = &worldTransform_Motion_.back();
+	for (size_t i = 0; i < worldTransform_.size(); i++) {
+	worldTransform_Motion_.at(i).parent_ = &worldTransform_.at(i);
+	for (size_t partscount = 0; partscount < worldTransforms_Parts_.at(i).size(); partscount++) {
+			worldTransforms_Parts_.at(i).at(partscount).parent_ = &worldTransform_Motion_.at(i);
+	}
 	}
 }
 

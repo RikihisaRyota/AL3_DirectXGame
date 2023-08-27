@@ -304,15 +304,14 @@ void EnemyAttack::OnCollision(const OBB& obb, uint32_t type) {
 	case EnemyAttack::Behavior::kTornadoAttack:
 		if (tornade_->GetAttack()) {
 			// 連続ヒット
-			PlayerHP::SetAdd(2);
+			PlayerHP::SetAdd(7);
 			// tornade_->SetHit(true);
 		}
 		break;
 	case EnemyAttack::Behavior::kMeteoAttack:
 		if (meteo_->GetAttack()) {
-		// 連続ヒット
-		PlayerHP::SetAdd(10);
-		// tornade_->SetHit(true);
+		PlayerHP::SetAdd(5);
+		//meteo_->SetHit(true);
 		}
 	break;
 	}

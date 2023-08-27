@@ -25,6 +25,7 @@ private:
 private:
 	const size_t kMeteoCount = 15;
 	const Vector3 kScale_ = {5.0f, 1.0f, 5.0f};
+	const float kHeight = 15.0f;
 #pragma region ターゲット
 	float kTarget_Speed_;
 	size_t target_Count;
